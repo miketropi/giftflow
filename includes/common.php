@@ -372,7 +372,7 @@ function giftflow_render_currency_formatted_amount( $amount, $decimals = 2, $cur
 		$template = giftflow_get_currency_template();
 	}
 
-	$amount = '<span class="giftflow-currency-formatted-amount">' . str_replace( array_keys( $replace ), array_values( $replace ), $template ) . '</span>';
+	$amount = '<span class="giftflow-currency-formatted-amount gfw-monofont">' . str_replace( array_keys( $replace ), array_values( $replace ), $template ) . '</span>';
 	$amount = apply_filters( 'giftflow_render_currency_formatted_amount', $amount, $currency, $decimals );
 	return $amount;
 }

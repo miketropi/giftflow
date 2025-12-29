@@ -138,7 +138,7 @@ import { applySlideEffect, validateValue } from './util/helpers';
 
 			// send data
 			const response = await self.onSendData(self.fields);
-			console.log('onSubmitForm', response);
+			// console.log('onSubmitForm', response);
 
 			if(!response || !response.success) {
 				// show error section.

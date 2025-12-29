@@ -2512,6 +2512,20 @@
     font-size: 16px;
   }
 }
+.giftflow-pro-only-field__disabled {
+  pointer-events: none;
+}
+.giftflow-pro-only-field__disabled .giftflow-field-wrapper {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.giftflow-pro-only-field .giftflow-pro-only-indicator {
+  color: #4a6cf7;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 0.25em;
+}
+
 .giftflow-repeater-field {
   margin-bottom: 1.5em;
 }

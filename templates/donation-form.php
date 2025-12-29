@@ -91,7 +91,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 									</div>
 								</label>
 							<?php endforeach; ?>
-
 						</div>
 					</fieldset>
 

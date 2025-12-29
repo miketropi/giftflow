@@ -818,7 +818,6 @@ function _regeneratorDefine2(e, r, n, t) {
                         return self.onSendData(self.fields);
                       case 5:
                         response = _context.v;
-                        console.log('onSubmitForm', response);
                         if (!(!response || !response.success)) {
                           _context.n = 6;
                           break;

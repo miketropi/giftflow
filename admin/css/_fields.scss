@@ -488,3 +488,22 @@
     }
   }
 }
+
+.giftflow-pro-only-field {
+
+  &__disabled {
+    pointer-events: none;
+
+    .giftflow-field-wrapper {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  .giftflow-pro-only-indicator {
+    color: $primary-color;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: $spacing-xs;
+  }
+}

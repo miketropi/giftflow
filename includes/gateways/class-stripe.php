@@ -383,7 +383,6 @@ class Stripe_Gateway extends Gateway_Base {
 			'token' => $data['stripe_token'],
 			// translators: 1: donor name, 2: campaign id or name.
 			'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
-			'customerEmail' => sanitize_email( $data['donor_email'] ),
 			'metadata' => array(
 				'donation_id' => $donation_id,
 				'campaign_id' => $data['campaign_id'],
