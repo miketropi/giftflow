@@ -649,7 +649,7 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                 // add event listener to form
                 this.form.addEventListener('donationFormBeforeSubmit', /*#__PURE__*/function () {
                   var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(e) {
-                    var _e$detail, self, fields, resolve, reject, _yield$_this$getSelf$, paymentMethod, error;
+                    var _e$detail, self, fields, resolve, reject, _yield$_this$getSelf$, token, error;
                     return _regenerator().w(function (_context2) {
                       while (1) switch (_context2.n) {
                         case 0:
@@ -661,28 +661,28 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                           resolve(null);
                           return _context2.a(2);
                         case 1:
+                          $validateWrapper.classList.remove('error', 'custom-error');
+                          $errorMessage.textContent = '';
+
+                          // create token.
                           _context2.n = 2;
-                          return _this.getSelf().stripe.createPaymentMethod({
-                            type: 'card',
-                            card: cardElement,
-                            billing_details: {
-                              name: fields.card_name
-                              // email: fields.card_email,
-                            }
-                          });
+                          return _this.getSelf().stripe.createToken(cardElement);
                         case 2:
                           _yield$_this$getSelf$ = _context2.v;
-                          paymentMethod = _yield$_this$getSelf$.paymentMethod;
+                          token = _yield$_this$getSelf$.token;
                           error = _yield$_this$getSelf$.error;
-                          if (error) {
-                            $validateWrapper.classList.add('error', 'custom-error');
-                            $errorMessage.textContent = error.message;
-                            reject(error);
-                          } else {
-                            self.onSetField('stripe_payment_method_id', paymentMethod.id);
-                            resolve(paymentMethod);
+                          if (!error) {
+                            _context2.n = 3;
+                            break;
                           }
+                          $validateWrapper.classList.add('error', 'custom-error');
+                          $errorMessage.textContent = error.message;
+                          reject(error);
+                          return _context2.a(2);
                         case 3:
+                          // set token.
+                          self.onSetField('stripe_token', token.id);
+                          resolve(token);
                           return _context2.a(2);
                       }
                     }, _callee2);

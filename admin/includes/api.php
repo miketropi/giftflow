@@ -6,6 +6,13 @@
  * @since v1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Register REST API routes.
+ */
 add_action(
 	'rest_api_init',
 	function () {
