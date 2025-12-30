@@ -93,6 +93,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 					'type'        => 'switch',
 					'description' => esc_html__( 'Allow recurring donations', 'giftflow' ),
 					'default'     => 0,
+					'pro_only'    => true,
 				),
 				// select recurring interval.
 				'recurring_interval' => array(
@@ -107,6 +108,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 					),
 					'description' => esc_html__( 'Select the recurring interval for recurring donations', 'giftflow' ),
 					'default'     => 'monthly',
+					'pro_only'    => true,
 				),
 
 			),

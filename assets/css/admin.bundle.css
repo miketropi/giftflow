@@ -2512,6 +2512,20 @@
     font-size: 16px;
   }
 }
+.giftflow-pro-only-field__disabled {
+  pointer-events: none;
+}
+.giftflow-pro-only-field__disabled .giftflow-field-wrapper {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.giftflow-pro-only-field .giftflow-pro-only-indicator {
+  color: #4a6cf7;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 0.25em;
+}
+
 .giftflow-repeater-field {
   margin-bottom: 1.5em;
 }
@@ -2748,9 +2762,6 @@
   color: #666;
 }
 
-.giftflow_page_giftflow-settings {
-  padding-right: 2em;
-}
 .giftflow_page_giftflow-settings .wrap {
   margin: 20px 0;
 }
@@ -2837,7 +2848,6 @@
 .giftflow_page_giftflow-settings form .form-table td input[type=number],
 .giftflow_page_giftflow-settings form .form-table td textarea,
 .giftflow_page_giftflow-settings form .form-table td select {
-  width: 400px;
   max-width: 100%;
 }
 .giftflow_page_giftflow-settings form .form-table td textarea {

@@ -1,12 +1,23 @@
-import { applySlideEffect } from './util/helpers';
+import { applySlideEffect, validateValue } from './util/helpers';
 
 /**
  * Donation Form
+ * 
+ * @param {Object} w - Window object.
  */
 (async (w) => {
 	'use strict';
+
+	// make donationForm class.
 	const donationForm = class {
 
+		/**
+		 * Constructor
+		 * 
+		 * @param {Object} donationForm - Donation form element.
+		 * @param {Object} options - Options.
+		 * @returns {void}
+		 */
     constructor(donationForm, options) {
 			this.fields = {};
 			this.form = donationForm;
@@ -20,17 +31,16 @@ import { applySlideEffect } from './util/helpers';
     init(donationForm, options) {
 			const self = this;
 
-			// set default payment method selected
+			// set default payment method selected.
 			let methodSelected = this.form.querySelector(`input[name="payment_method"][value="${options.paymentMethodSelected}"]`);
 			if (methodSelected) {
 				methodSelected.checked = true;
 			}
-			// this.form.querySelector(`input[name="payment_method"][value="${options.paymentMethodSelected}"]`).checked = true;
 
 			this.setInitFields(donationForm);
 			this.onListenerFormFieldUpdate();
 
-			// create event trigger on load form to document
+			// create event trigger on load form to document.
 			document.dispatchEvent(new CustomEvent('donationFormLoaded', {
 				detail: {
 					self: self,
@@ -38,7 +48,7 @@ import { applySlideEffect } from './util/helpers';
 				}
 			}));
 
-			// on change amount field
+			// on change amount field.
 			this.form.addEventListener('input', (event) => {
 				if (event.target.name === 'donation_amount') {
 					this.onUpdateAmountField(event.target.value);
@@ -49,20 +59,19 @@ import { applySlideEffect } from './util/helpers';
 				}
 			});
 
-			// on click Preset Amount
+			// on click Preset Amount.
 			this.form.addEventListener('click', (event) => {
 				if (event.target.classList.contains('donation-form__preset-amount')) {
 					this.onClickPresetAmount(event);
 				}
 			});
 
-			// on click next step
+			// on click next step.
 			this.form.addEventListener('click', (event) => {
-				// is contains class and is element had class donation-form__button--next
+				// is contains class and is element had class donation-form__button--next.
 				const isNextButton = event.target.classList.contains('donation-form__button--next') && event.target.tagName === 'BUTTON';
 				if (isNextButton) {
 					const stepPass = this.onValidateFieldsCurrentStep();
-					// console.log('stepPass', stepPass);
 
 					if (stepPass) {
 						this.onNextStep();
@@ -70,9 +79,9 @@ import { applySlideEffect } from './util/helpers';
 				}
 			});
 
-			// on click previous step
+			// on click previous step.
 			this.form.addEventListener('click', (event) => {
-				// is contains class and is element had class donation-form__button--back
+				// is contains class and is element had class donation-form__button--back.
 				const isBackButton = event.target.classList.contains('donation-form__button--back') && event.target.tagName === 'BUTTON';
 
 				if (isBackButton) {
@@ -80,9 +89,20 @@ import { applySlideEffect } from './util/helpers';
 				}
 			});
 
-			// on submit form
+			// disable enter key submit form.
+			this.form.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' && ['INPUT', 'SELECT'].includes(e.target.tagName)) {
+					e.preventDefault();
+					return false;
+				}
+			});
+
+			// on submit form.
 			this.form.addEventListener('submit', (event) => {
 				event.preventDefault();
+				event.stopPropagation();
+
+				// submit form.
 				this.onSubmitForm();
 			});
     }
@@ -94,16 +114,10 @@ import { applySlideEffect } from './util/helpers';
 		}
 
 		async onSubmitForm() {
-
 			const self = this;
-
-			// self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
-			// self.form.querySelector('#donation-thank-you').classList.add('is-active');
-			// return;
-
 			self.onSetLoading(true);
 
-			// validate fields
+			// validate fields.
 			const pass = self.onValidateFieldsCurrentStep();
 			// console.log('pass', pass);
 			if (!pass) {
@@ -111,7 +125,7 @@ import { applySlideEffect } from './util/helpers';
 				return;
 			}
 
-			// do hooks before submit support async function after submit
+			// do hooks before submit support async function after submit.
 			// await self.onDoHooks();
 			try {
 				await self.onDoHooks();
@@ -124,15 +138,14 @@ import { applySlideEffect } from './util/helpers';
 
 			// send data
 			const response = await self.onSendData(self.fields);
-			console.log('onSubmitForm', response);
+			// console.log('onSubmitForm', response);
 
 			if(!response || !response.success) {
-				// console.error('Error response:', response);
-				// show error section
+				// show error section.
 				self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
 				self.form.querySelector('#donation-error').classList.add('is-active');
 
-				// set error message
+				// set error message.
 				const errorMessage = self.form.querySelector('#donation-error .donation-form__error-message');
 				if (errorMessage) {
 					errorMessage.innerHTML = `
@@ -146,8 +159,7 @@ import { applySlideEffect } from './util/helpers';
 			}
 
 			if (response && response.success) {
-				// console.log('Success response:', response);
-				// show thank you section
+				// show thank you section.
 				self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
 				self.form.querySelector('#donation-thank-you').classList.add('is-active');
 				self.onSetLoading(false);
@@ -176,7 +188,7 @@ import { applySlideEffect } from './util/helpers';
 		async onDoHooks() {
 			const self = this;
 			
-			// allow developer add hooks from outside support async function and return promise
+			// allow developer add hooks from outside support async function and return promise.
 			return new Promise((resolve, reject) => {
 				self.form.dispatchEvent(new CustomEvent('donationFormBeforeSubmit', {
 					detail: {
@@ -197,15 +209,15 @@ import { applySlideEffect } from './util/helpers';
 			const self = this;
 			self.currentStep++;
 
-			// nav
+			// nav.
 			self.form.querySelector('.donation-form__step-link.is-active').classList.remove('is-active');
 			self.form.querySelector(`.donation-form__step-item.nav-step-${self.currentStep} .donation-form__step-link`).classList.add('is-active');
 
-			// panel
+			// panel.
 			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
 			self.form.querySelector('.donation-form__step-panel.step-' + self.currentStep).classList.add('is-active');
 
-			// change payment method
+			// change payment method.
 			this.onChangePaymentMethod(self.fields.payment_method);
 		}
 
@@ -213,11 +225,11 @@ import { applySlideEffect } from './util/helpers';
 			const self = this;
 			self.currentStep--;
 
-			// nav
+			// nav.
 			self.form.querySelector('.donation-form__step-link.is-active').classList.remove('is-active');
 			self.form.querySelector(`.donation-form__step-item.nav-step-${self.currentStep} .donation-form__step-link`).classList.add('is-active');
 
-			// panel
+			// panel.
 			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
 			self.form.querySelector('.donation-form__step-panel.step-' + self.currentStep).classList.add('is-active');
 		}
@@ -229,14 +241,14 @@ import { applySlideEffect } from './util/helpers';
 
 				let value = field.value;
 
-				// validate event.target is checkbox field
+				// validate event.target is checkbox field.
 				if (field.type === 'checkbox') {
 					value = field.checked;
 				}
 
-				// validate event.target is radio field
+				// validate event.target is radio field.
 				if (field.type === 'radio') {
-					// get field name
+					// get field name.
 					const fieldName = field.name;
 					// const fieldValue = field.value;
 					value = self.form.querySelector(`input[name="${fieldName}"]:checked`).value;
@@ -244,8 +256,6 @@ import { applySlideEffect } from './util/helpers';
 
 				this.fields[field.name] = value;
 			});
-
-			// console.log('fields', this.fields);
 		}
 
 		onListenerFormFieldUpdate() {
@@ -256,18 +266,18 @@ import { applySlideEffect } from './util/helpers';
 
 				// console.log(event.target.name, value);
 
-				// validate event.target is checkbox field
+				// validate event.target is checkbox field.
 				if (event.target.type === 'checkbox') {
 					value = event.target.checked;
 				}
 
-				// validate event.target is radio field
+				// validate event.target is radio field.
 				if (event.target.type === 'radio') {
 					const fieldName = event.target.name;
 					value = self.form.querySelector(`input[name="${fieldName}"]:checked`).value;
 				}
 
-				// update UI by field
+				// update UI by field.
 				self.onUpdateUIByField(event.target.name, value);
 			});
 		}
@@ -275,15 +285,15 @@ import { applySlideEffect } from './util/helpers';
 		onChangePaymentMethod(methodId) {
 			const paymentMethodDescription = this.form.querySelector(`.donation-form__payment-method-item.payment-method-${methodId}`);
 			this.form.querySelectorAll(`.donation-form__payment-method-item:not(.payment-method-${methodId})`).forEach((paymentMethodDescription) => {
-				// remove class is-active
+				// remove class is-active.
 				paymentMethodDescription.classList.remove('is-active')
-				paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.add('out-validate-field-inner'); 
+				paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.add('__skip-validate-field-inner'); 
 				applySlideEffect(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slideup');
 			});
 
 			if (paymentMethodDescription) {
 				paymentMethodDescription.classList.add('is-active')
-				paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.remove('out-validate-field-inner'); 
+				paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.remove('__skip-validate-field-inner'); 
 				applySlideEffect(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slidedown', 300, 'grid');
 			}
 		}		
@@ -332,7 +342,7 @@ import { applySlideEffect } from './util/helpers';
 				return;
 			}
 
-			// if outputField is array, loop through it
+			// if outputField is array, loop through it.
 			if (outputField.length > 1) {
 				outputField.forEach((output) => {
 					const formatTemplate = output.dataset.formatTemplate;
@@ -341,30 +351,20 @@ import { applySlideEffect } from './util/helpers';
 						__v = formatTemplate.replace('{{value}}', value);
 					}
 
-					// update output value
+					// update output value.
 					this.updateOutputValue(output, __v);
 				});
 				return;
 			}
-
-			// const formatTemplate = outputField?.dataset?.formatTemplate;
-
-			// if (formatTemplate) {
-			// 	value = formatTemplate.replace('{{value}}', value);
-			// }
-
-			// if (outputField) {
-			// 	outputField.textContent = value;
-			// }
 		}
 
 		updateOutputValue(output, value) {
 			if (output.tagName === 'INPUT' || output.tagName === 'TEXTAREA') {
-				// if output is input or textarea, set value
+				// if output is input or textarea, set value.
 				output.value = value;
 				output.setAttribute('value', value);
 			} else {
-				// if output is not input or textarea, set text content
+				// if output is not input or textarea, set text content.
 				output.textContent = value;
 			}
 		}
@@ -410,86 +410,66 @@ import { applySlideEffect } from './util/helpers';
 				return;
 			}
 
+			// get fields.
 			const fields = currentStepWrapper.querySelectorAll('input[name][data-validate]');
-			fields.forEach((field) => {
-				const fieldName = field.name;
-				const fieldValue = field.value;
-				const fieldValidate = field.dataset.validate;
-				
-				const extraData = field.dataset.extraData ? JSON.parse(field.dataset.extraData) : null;
-				if(!this.onValidateValue(fieldValidate, fieldValue, extraData)) {
-					pass = false;
-				}
-				
-				self.onUpdateUIByField(fieldName, fieldValue);
-			});
+			
+			// filter fields by skip validate field inner.
+			[...fields]
+				.filter( f => {
+					const wrapperBySkipValidate = f.closest('.__skip-validate-field-inner')
+					if(wrapperBySkipValidate) {
+						return false;
+					}
 
-			currentStepWrapper.querySelectorAll('[data-custom-validate="true"]').forEach((field) => {
-				const status = field.dataset.customValidateStatus;
+					return true;
+				})
+				.forEach((field) => {
+					const fieldName = field.name;
+					const fieldValue = field.value;
+					const fieldValidate = field.dataset.validate;
+					
+					const extraData = field.dataset.extraData ? JSON.parse(field.dataset.extraData) : null;
+					if(!this.onValidateValue(fieldValidate, fieldValue, extraData)) {
+						pass = false;
+					}
+					
+					self.onUpdateUIByField(fieldName, fieldValue);
+				});
 
-				if(status === 'false') {
-					pass = false;
+			// get fields by custom validate.
+			[...currentStepWrapper.querySelectorAll('[data-custom-validate="true"]')]
+				.filter(s => {
+					const wrapperBySkipValidate = s.closest('.__skip-validate-field-inner')
+					if(wrapperBySkipValidate) {
+						return false;
+					}
 
-					// add error class to field
-					field.classList.add('error', 'custom-error');
-				}
-			});
+					return true;
+				})
+				.forEach((field) => {
+					const status = field.dataset.customValidateStatus;
+
+					if(status === 'false') {
+						pass = false;
+
+						// add error class to field
+						field.classList.add('error', 'custom-error');
+					}
+				});
 
 			return pass;
 		}
 		
-		// validate field by type
+		/**
+		 * Validate field by type
+		 * 
+		 * @param {string} type - Validation type.
+		 * @param {any} value - Value to validate.
+		 * @param {Object|null} extraData - Extra data for some validations (min/max).
+		 * @returns {boolean} - True if passes all validations, false otherwise.
+		 */
 		onValidateValue(type, value, extraData = null) {
-			
-			// Accept multiple comma-delimited validation types, pass if all pass
-			const types = type ? type.split(',').map(s => s.trim()) : [];
-			let overallValid = true;
-
-			for (let t of types) {
-				
-				switch (t) {
-					// email
-					case 'email':
-						if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) overallValid = false;
-						break;
-
-					// phone
-					case 'phone':
-						// starts with optional +, then digits, optional spaces/hyphens
-						if (!/^\+?[0-9\s\-]+$/.test(value)) overallValid = false;
-						break;
-
-					// required
-					case 'required':
-						if (typeof value === 'undefined' || value === null || value.toString().trim() === '') overallValid = false;
-						break;
-
-					// number
-					case 'number':
-						if (isNaN(value) || value === '') overallValid = false;
-						break;
-
-					// min
-					case 'min':
-						const __min = parseInt(extraData?.min || 0);
-						if (value < __min || value === '') overallValid = false;
-						break;
-
-					// max
-					case 'max':
-						const __max = parseInt(extraData?.max || 0);
-						if (value > __max || value === '') overallValid = false;
-						break;
-
-					// default (pass)
-					default:
-						// do nothing, always pass unknown validators
-						break;
-				}
-				if (!overallValid) break; // stop on first failure
-			}
-
-			return overallValid;
+			return validateValue(type, value, extraData);
 		}
 	}
 

@@ -372,7 +372,7 @@ function giftflow_render_currency_formatted_amount( $amount, $decimals = 2, $cur
 		$template = giftflow_get_currency_template();
 	}
 
-	$amount = '<span class="giftflow-currency-formatted-amount">' . str_replace( array_keys( $replace ), array_values( $replace ), $template ) . '</span>';
+	$amount = '<span class="giftflow-currency-formatted-amount gfw-monofont">' . str_replace( array_keys( $replace ), array_values( $replace ), $template ) . '</span>';
 	$amount = apply_filters( 'giftflow_render_currency_formatted_amount', $amount, $currency, $decimals );
 	return $amount;
 }
@@ -922,4 +922,117 @@ function giftflow_get_donor_user_information( $user_id ) {
 	);
 
 	return $donor_information;
+}
+
+/**
+ * Get payment methods options
+ *
+ * @return array
+ */
+function giftflow_get_payment_methods_options() {
+	/**
+	 * Get registered gateways.
+	 */
+	$gateways = \GiftFlow\Gateways\Gateway_Base::get_registered_gateways();
+	$options = array();
+
+	foreach ( $gateways as $gateway ) {
+		$options[ $gateway->get_id() ] = $gateway->get_title();
+	}
+
+	/**
+	 * Allow developers to customize the payment methods options.
+	 */
+	return apply_filters( 'giftflow_payment_methods_options', $options );
+}
+
+/**
+ * Add recaptcha field to donation form
+ */
+function giftflow_donation_form_add_recaptcha_field() {
+	?>
+	<input type="hidden" name="recaptcha_token" id="recaptcha_token" />
+	<?php
+}
+
+/**
+ * Enqueue custom scripts for donation form
+ *
+ * @return void
+ */
+function giftflow_donation_form_enqueue_custom_scripts() {
+	$api_options = get_option( 'giftflow_options_with_api_keys_options' );
+
+	// google recaptcha.
+	$google_recaptcha_enabled = isset( $api_options['google_recaptcha']['google_recaptcha_enabled'] ) ? $api_options['google_recaptcha']['google_recaptcha_enabled'] : '';
+
+	if ( '1' === $google_recaptcha_enabled ) {
+		$google_recaptcha_site_key = isset( $api_options['google_recaptcha']['google_recaptcha_site_key'] ) ? $api_options['google_recaptcha']['google_recaptcha_site_key'] : '';
+
+		if ( empty( $google_recaptcha_site_key ) ) {
+			return;
+		}
+
+		// enqueue google recaptcha script.
+		wp_enqueue_script( 'giftflow-google-recaptcha', 'https://www.google.com/recaptcha/api.js?render=' . $google_recaptcha_site_key, array(), '1.0.0', true );
+
+		// enqueue grecaptcha script.
+		wp_enqueue_script( 'giftflow-grecaptcha', GIFTFLOW_PLUGIN_URL . 'assets/js/grecaptcha.bundle.js', array( 'giftflow-google-recaptcha', 'giftflow-donation-forms' ), GIFTFLOW_VERSION, true );
+
+		// localize script.
+		wp_localize_script(
+			'giftflow-grecaptcha',
+			'giftflowGoogleRecaptcha',
+			array(
+				'site_key' => $google_recaptcha_site_key,
+			)
+		);
+	}
+}
+
+/**
+ * Validate recaptcha
+ *
+ * @param array $fields Fields.
+ * @return void
+ */
+function giftflow_donation_form_validate_recaptcha( $fields ) {
+	// get recaptcha token.
+	$api_options = get_option( 'giftflow_options_with_api_keys_options' );
+	$google_recaptcha_enabled = isset( $api_options['google_recaptcha']['google_recaptcha_enabled'] ) ? $api_options['google_recaptcha']['google_recaptcha_enabled'] : '';
+
+	if ( '1' !== $google_recaptcha_enabled ) {
+		return;
+	}
+
+	$google_recaptcha_secret_key = isset( $api_options['google_recaptcha']['google_recaptcha_secret_key'] ) ? $api_options['google_recaptcha']['google_recaptcha_secret_key'] : '';
+
+	if ( empty( $google_recaptcha_secret_key ) ) {
+		return;
+	}
+
+	$recaptcha_token = isset( $fields['recaptcha_token'] ) ? $fields['recaptcha_token'] : '';
+
+	if ( empty( $recaptcha_token ) ) {
+		wp_send_json_error( array( 'message' => __( 'Internal error: reCAPTCHA Token is empty. Please try again!', 'giftflow' ) ) );
+	}
+
+	// verify recaptcha token.
+	$response = wp_remote_post(
+		'https://www.google.com/recaptcha/api/siteverify',
+		array(
+			'body' => array(
+				'secret' => $google_recaptcha_secret_key,
+				'response' => $recaptcha_token,
+			),
+		)
+	);
+
+	// decode response body.
+	$result = json_decode( $response['body'], true );
+
+	// if success and score is greater than 0.5, return true.
+	if ( ! $result['success'] || $result['score'] < 0.5 ) {
+		wp_send_json_error( array( 'message' => __( 'Internal error: reCAPTCHA verification failed. Please try again!', 'giftflow' ) ) );
+	}
 }

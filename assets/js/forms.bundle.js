@@ -11,8 +11,69 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySlideEffect: () => (/* binding */ applySlideEffect),
-/* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector)
+/* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector),
+/* harmony export */   validateValue: () => (/* binding */ validateValue)
 /* harmony export */ });
+function _createForOfIteratorHelper(r, e) {
+  var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (!t) {
+    if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) {
+      t && (r = t);
+      var _n = 0,
+        F = function F() {};
+      return {
+        s: F,
+        n: function n() {
+          return _n >= r.length ? {
+            done: !0
+          } : {
+            done: !1,
+            value: r[_n++]
+          };
+        },
+        e: function e(r) {
+          throw r;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var o,
+    a = !0,
+    u = !1;
+  return {
+    s: function s() {
+      t = t.call(r);
+    },
+    n: function n() {
+      var r = t.next();
+      return a = r.done, r;
+    },
+    e: function e(r) {
+      u = !0, o = r;
+    },
+    f: function f() {
+      try {
+        a || null == t["return"] || t["return"]();
+      } finally {
+        if (u) throw o;
+      }
+    }
+  };
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
+}
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
 var replaceContentBySelector = function replaceContentBySelector(selector, content) {
   var elem = document.querySelector(selector);
   if (elem) {
@@ -79,6 +140,112 @@ function applySlideEffect(dom) {
     dom.addEventListener('transitionend', _onEnd2);
   }
 }
+
+/**
+ * Validate a value according to given validation types.
+ * @param {string} type - Comma-separated string of validation types, e.g. "required,email".
+ * @param {any} value - Value to validate.
+ * @param {Object|null} extraData - Optional extra data for some validations (min/max).
+ * @returns {boolean} - True if passes all validations, false otherwise.
+ */
+function validateValue(type, value) {
+  var extraData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+  // Accept multiple comma-delimited validation types, pass if all pass
+  var types = type ? type.split(',').map(function (s) {
+    return s.trim();
+  }) : [];
+  var overallValid = true;
+  var _iterator = _createForOfIteratorHelper(types),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var t = _step.value;
+      switch (t) {
+        // email
+        case 'email':
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) overallValid = false;
+          break;
+
+        // phone
+        case 'phone':
+          // starts with optional +, then digits, optional spaces/hyphens
+          if (!/^\+?[0-9\s\-]+$/.test(value)) overallValid = false;
+          break;
+
+        // required
+        case 'required':
+          if (typeof value === 'undefined' || value === null || value.toString().trim() === '') overallValid = false;
+          break;
+
+        // number
+        case 'number':
+          if (isNaN(value) || value === '') overallValid = false;
+          break;
+
+        // min
+        case 'min':
+          var __min = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.min) || 0, 10);
+          if (value < __min || value === '') overallValid = false;
+          break;
+
+        // max
+        case 'max':
+          var __max = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.max) || 0, 10);
+          if (value > __max || value === '') overallValid = false;
+          break;
+
+        // default: always pass unknown validators
+        default:
+          // do nothing
+          break;
+      }
+      if (!overallValid) break; // stop on first failure
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return overallValid;
+}
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayLikeToArray)
+/* harmony export */ });
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithoutHoles)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _arrayWithoutHoles(r) {
+  if (Array.isArray(r)) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r);
+}
+
 
 /***/ }),
 
@@ -165,6 +332,65 @@ function _createClass(e, r, t) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArray.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArray)
+/* harmony export */ });
+function _iterableToArray(r) {
+  if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableSpread)
+/* harmony export */ });
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _toConsumableArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithoutHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js");
+/* harmony import */ var _iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableSpread.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js");
+
+
+
+
+function _toConsumableArray(r) {
+  return (0,_arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r) || (0,_iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__["default"])(r) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(r) || (0,_nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/toPrimitive.js":
 /*!****************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/toPrimitive.js ***!
@@ -234,6 +460,29 @@ function _typeof(o) {
 }
 
 
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _unsupportedIterableToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r, a) : void 0;
+  }
+}
+
+
 /***/ })
 
 /******/ 	});
@@ -299,73 +548,15 @@ var __webpack_exports__ = {};
   !*** ./assets/js/forms.js ***!
   \****************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
-/* harmony import */ var _util_helpers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util/helpers */ "./assets/js/util/helpers.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _util_helpers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util/helpers */ "./assets/js/util/helpers.js");
 
 
 
-function _createForOfIteratorHelper(r, e) {
-  var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
-  if (!t) {
-    if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) {
-      t && (r = t);
-      var _n = 0,
-        F = function F() {};
-      return {
-        s: F,
-        n: function n() {
-          return _n >= r.length ? {
-            done: !0
-          } : {
-            done: !1,
-            value: r[_n++]
-          };
-        },
-        e: function e(r) {
-          throw r;
-        },
-        f: F
-      };
-    }
-    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-  var o,
-    a = !0,
-    u = !1;
-  return {
-    s: function s() {
-      t = t.call(r);
-    },
-    n: function n() {
-      var r = t.next();
-      return a = r.done, r;
-    },
-    e: function e(r) {
-      u = !0, o = r;
-    },
-    f: function f() {
-      try {
-        a || null == t["return"] || t["return"]();
-      } finally {
-        if (u) throw o;
-      }
-    }
-  };
-}
-function _unsupportedIterableToArray(r, a) {
-  if (r) {
-    if ("string" == typeof r) return _arrayLikeToArray(r, a);
-    var t = {}.toString.call(r).slice(8, -1);
-    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
-  }
-}
-function _arrayLikeToArray(r, a) {
-  (null == a || a > r.length) && (a = r.length);
-  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
-  return n;
-}
+
 function _regenerator() {
   /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
     t,
@@ -477,18 +668,28 @@ function _regeneratorDefine2(e, r, n, t) {
 
 /**
  * Donation Form
+ * 
+ * @param {Object} w - Window object.
  */
 (function () {
-  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_regenerator().m(function _callee4(w) {
+  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee4(w) {
     'use strict';
 
+    // make donationForm class.
     var donationForm, initDonationForm;
     return _regenerator().w(function (_context4) {
       while (1) switch (_context4.n) {
         case 0:
           donationForm = /*#__PURE__*/function () {
+            /**
+             * Constructor
+             * 
+             * @param {Object} donationForm - Donation form element.
+             * @param {Object} options - Options.
+             * @returns {void}
+             */
             function donationForm(_donationForm, options) {
-              (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, donationForm);
+              (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, donationForm);
               this.fields = {};
               this.form = _donationForm;
               this.options = options;
@@ -496,23 +697,21 @@ function _regeneratorDefine2(e, r, n, t) {
               this.currentStep = 1;
               this.init(_donationForm, options);
             }
-            return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(donationForm, [{
+            return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(donationForm, [{
               key: "init",
               value: function init(_donationForm2, options) {
                 var _this = this;
                 var self = this;
 
-                // set default payment method selected
+                // set default payment method selected.
                 var methodSelected = this.form.querySelector("input[name=\"payment_method\"][value=\"".concat(options.paymentMethodSelected, "\"]"));
                 if (methodSelected) {
                   methodSelected.checked = true;
                 }
-                // this.form.querySelector(`input[name="payment_method"][value="${options.paymentMethodSelected}"]`).checked = true;
-
                 this.setInitFields(_donationForm2);
                 this.onListenerFormFieldUpdate();
 
-                // create event trigger on load form to document
+                // create event trigger on load form to document.
                 document.dispatchEvent(new CustomEvent('donationFormLoaded', {
                   detail: {
                     self: self,
@@ -520,7 +719,7 @@ function _regeneratorDefine2(e, r, n, t) {
                   }
                 }));
 
-                // on change amount field
+                // on change amount field.
                 this.form.addEventListener('input', function (event) {
                   if (event.target.name === 'donation_amount') {
                     _this.onUpdateAmountField(event.target.value);
@@ -530,39 +729,48 @@ function _regeneratorDefine2(e, r, n, t) {
                   }
                 });
 
-                // on click Preset Amount
+                // on click Preset Amount.
                 this.form.addEventListener('click', function (event) {
                   if (event.target.classList.contains('donation-form__preset-amount')) {
                     _this.onClickPresetAmount(event);
                   }
                 });
 
-                // on click next step
+                // on click next step.
                 this.form.addEventListener('click', function (event) {
-                  // is contains class and is element had class donation-form__button--next
+                  // is contains class and is element had class donation-form__button--next.
                   var isNextButton = event.target.classList.contains('donation-form__button--next') && event.target.tagName === 'BUTTON';
                   if (isNextButton) {
                     var stepPass = _this.onValidateFieldsCurrentStep();
-                    // console.log('stepPass', stepPass);
-
                     if (stepPass) {
                       _this.onNextStep();
                     }
                   }
                 });
 
-                // on click previous step
+                // on click previous step.
                 this.form.addEventListener('click', function (event) {
-                  // is contains class and is element had class donation-form__button--back
+                  // is contains class and is element had class donation-form__button--back.
                   var isBackButton = event.target.classList.contains('donation-form__button--back') && event.target.tagName === 'BUTTON';
                   if (isBackButton) {
                     _this.onPreviousStep();
                   }
                 });
 
-                // on submit form
+                // disable enter key submit form.
+                this.form.addEventListener('keydown', function (e) {
+                  if (e.key === 'Enter' && ['INPUT', 'SELECT'].includes(e.target.tagName)) {
+                    e.preventDefault();
+                    return false;
+                  }
+                });
+
+                // on submit form.
                 this.form.addEventListener('submit', function (event) {
                   event.preventDefault();
+                  event.stopPropagation();
+
+                  // submit form.
                   _this.onSubmitForm();
                 });
               }
@@ -576,17 +784,15 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onSubmitForm",
               value: function () {
-                var _onSubmitForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_regenerator().m(function _callee() {
+                var _onSubmitForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee() {
                   var self, pass, response, errorMessage, _response$data, _t;
                   return _regenerator().w(function (_context) {
                     while (1) switch (_context.p = _context.n) {
                       case 0:
-                        self = this; // self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
-                        // self.form.querySelector('#donation-thank-you').classList.add('is-active');
-                        // return;
+                        self = this;
                         self.onSetLoading(true);
 
-                        // validate fields
+                        // validate fields.
                         pass = self.onValidateFieldsCurrentStep(); // console.log('pass', pass);
                         if (pass) {
                           _context.n = 1;
@@ -612,17 +818,15 @@ function _regeneratorDefine2(e, r, n, t) {
                         return self.onSendData(self.fields);
                       case 5:
                         response = _context.v;
-                        console.log('onSubmitForm', response);
                         if (!(!response || !response.success)) {
                           _context.n = 6;
                           break;
                         }
-                        // console.error('Error response:', response);
-                        // show error section
+                        // show error section.
                         self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
                         self.form.querySelector('#donation-error').classList.add('is-active');
 
-                        // set error message
+                        // set error message.
                         errorMessage = self.form.querySelector('#donation-error .donation-form__error-message');
                         if (errorMessage) {
                           errorMessage.innerHTML = "\n\t\t\t\t\t\t<h3 class=\"donation-form__error-title\">Error</h3>\n\t\t\t\t\t\t<p class=\"donation-form__error-text\">".concat((response === null || response === void 0 || (_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'An error occurred. Please try again.', "</p>\n\t\t\t\t\t");
@@ -634,8 +838,7 @@ function _regeneratorDefine2(e, r, n, t) {
                           _context.n = 7;
                           break;
                         }
-                        // console.log('Success response:', response);
-                        // show thank you section
+                        // show thank you section.
                         self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
                         self.form.querySelector('#donation-thank-you').classList.add('is-active');
                         self.onSetLoading(false);
@@ -655,7 +858,7 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onSendData",
               value: function () {
-                var _onSendData = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data) {
+                var _onSendData = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data) {
                   var ajaxurl, response;
                   return _regenerator().w(function (_context2) {
                     while (1) switch (_context2.n) {
@@ -687,12 +890,12 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onDoHooks",
               value: function () {
-                var _onDoHooks = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/_regenerator().m(function _callee3() {
+                var _onDoHooks = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee3() {
                   var self;
                   return _regenerator().w(function (_context3) {
                     while (1) switch (_context3.n) {
                       case 0:
-                        self = this; // allow developer add hooks from outside support async function and return promise
+                        self = this; // allow developer add hooks from outside support async function and return promise.
                         return _context3.a(2, new Promise(function (resolve, reject) {
                           self.form.dispatchEvent(new CustomEvent('donationFormBeforeSubmit', {
                             detail: {
@@ -722,15 +925,15 @@ function _regeneratorDefine2(e, r, n, t) {
                 var self = this;
                 self.currentStep++;
 
-                // nav
+                // nav.
                 self.form.querySelector('.donation-form__step-link.is-active').classList.remove('is-active');
                 self.form.querySelector(".donation-form__step-item.nav-step-".concat(self.currentStep, " .donation-form__step-link")).classList.add('is-active');
 
-                // panel
+                // panel.
                 self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
                 self.form.querySelector('.donation-form__step-panel.step-' + self.currentStep).classList.add('is-active');
 
-                // change payment method
+                // change payment method.
                 this.onChangePaymentMethod(self.fields.payment_method);
               }
             }, {
@@ -739,11 +942,11 @@ function _regeneratorDefine2(e, r, n, t) {
                 var self = this;
                 self.currentStep--;
 
-                // nav
+                // nav.
                 self.form.querySelector('.donation-form__step-link.is-active').classList.remove('is-active');
                 self.form.querySelector(".donation-form__step-item.nav-step-".concat(self.currentStep, " .donation-form__step-link")).classList.add('is-active');
 
-                // panel
+                // panel.
                 self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
                 self.form.querySelector('.donation-form__step-panel.step-' + self.currentStep).classList.add('is-active');
               }
@@ -756,22 +959,20 @@ function _regeneratorDefine2(e, r, n, t) {
                 fields.forEach(function (field) {
                   var value = field.value;
 
-                  // validate event.target is checkbox field
+                  // validate event.target is checkbox field.
                   if (field.type === 'checkbox') {
                     value = field.checked;
                   }
 
-                  // validate event.target is radio field
+                  // validate event.target is radio field.
                   if (field.type === 'radio') {
-                    // get field name
+                    // get field name.
                     var fieldName = field.name;
                     // const fieldValue = field.value;
                     value = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked")).value;
                   }
                   _this2.fields[field.name] = value;
                 });
-
-                // console.log('fields', this.fields);
               }
             }, {
               key: "onListenerFormFieldUpdate",
@@ -783,18 +984,18 @@ function _regeneratorDefine2(e, r, n, t) {
 
                   // console.log(event.target.name, value);
 
-                  // validate event.target is checkbox field
+                  // validate event.target is checkbox field.
                   if (event.target.type === 'checkbox') {
                     value = event.target.checked;
                   }
 
-                  // validate event.target is radio field
+                  // validate event.target is radio field.
                   if (event.target.type === 'radio') {
                     var fieldName = event.target.name;
                     value = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked")).value;
                   }
 
-                  // update UI by field
+                  // update UI by field.
                   self.onUpdateUIByField(event.target.name, value);
                 });
               }
@@ -803,15 +1004,15 @@ function _regeneratorDefine2(e, r, n, t) {
               value: function onChangePaymentMethod(methodId) {
                 var paymentMethodDescription = this.form.querySelector(".donation-form__payment-method-item.payment-method-".concat(methodId));
                 this.form.querySelectorAll(".donation-form__payment-method-item:not(.payment-method-".concat(methodId, ")")).forEach(function (paymentMethodDescription) {
-                  // remove class is-active
+                  // remove class is-active.
                   paymentMethodDescription.classList.remove('is-active');
-                  paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.add('out-validate-field-inner');
-                  (0,_util_helpers__WEBPACK_IMPORTED_MODULE_3__.applySlideEffect)(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slideup');
+                  paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.add('__skip-validate-field-inner');
+                  (0,_util_helpers__WEBPACK_IMPORTED_MODULE_4__.applySlideEffect)(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slideup');
                 });
                 if (paymentMethodDescription) {
                   paymentMethodDescription.classList.add('is-active');
-                  paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.remove('out-validate-field-inner');
-                  (0,_util_helpers__WEBPACK_IMPORTED_MODULE_3__.applySlideEffect)(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slidedown', 300, 'grid');
+                  paymentMethodDescription.querySelector('.donation-form__payment-method-description').classList.remove('__skip-validate-field-inner');
+                  (0,_util_helpers__WEBPACK_IMPORTED_MODULE_4__.applySlideEffect)(paymentMethodDescription.querySelector('.donation-form__payment-method-description'), 'slidedown', 300, 'grid');
                 }
               }
             }, {
@@ -857,7 +1058,7 @@ function _regeneratorDefine2(e, r, n, t) {
                   return;
                 }
 
-                // if outputField is array, loop through it
+                // if outputField is array, loop through it.
                 if (outputField.length > 1) {
                   outputField.forEach(function (output) {
                     var formatTemplate = output.dataset.formatTemplate;
@@ -866,31 +1067,21 @@ function _regeneratorDefine2(e, r, n, t) {
                       __v = formatTemplate.replace('{{value}}', value);
                     }
 
-                    // update output value
+                    // update output value.
                     _this3.updateOutputValue(output, __v);
                   });
                   return;
                 }
-
-                // const formatTemplate = outputField?.dataset?.formatTemplate;
-
-                // if (formatTemplate) {
-                // 	value = formatTemplate.replace('{{value}}', value);
-                // }
-
-                // if (outputField) {
-                // 	outputField.textContent = value;
-                // }
               }
             }, {
               key: "updateOutputValue",
               value: function updateOutputValue(output, value) {
                 if (output.tagName === 'INPUT' || output.tagName === 'TEXTAREA') {
-                  // if output is input or textarea, set value
+                  // if output is input or textarea, set value.
                   output.value = value;
                   output.setAttribute('value', value);
                 } else {
-                  // if output is not input or textarea, set text content
+                  // if output is not input or textarea, set text content.
                   output.textContent = value;
                 }
               }
@@ -939,8 +1130,18 @@ function _regeneratorDefine2(e, r, n, t) {
                 if (!currentStepWrapper) {
                   return;
                 }
+
+                // get fields.
                 var fields = currentStepWrapper.querySelectorAll('input[name][data-validate]');
-                fields.forEach(function (field) {
+
+                // filter fields by skip validate field inner.
+                (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(fields).filter(function (f) {
+                  var wrapperBySkipValidate = f.closest('.__skip-validate-field-inner');
+                  if (wrapperBySkipValidate) {
+                    return false;
+                  }
+                  return true;
+                }).forEach(function (field) {
                   var fieldName = field.name;
                   var fieldValue = field.value;
                   var fieldValidate = field.dataset.validate;
@@ -950,7 +1151,15 @@ function _regeneratorDefine2(e, r, n, t) {
                   }
                   self.onUpdateUIByField(fieldName, fieldValue);
                 });
-                currentStepWrapper.querySelectorAll('[data-custom-validate="true"]').forEach(function (field) {
+
+                // get fields by custom validate.
+                (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(currentStepWrapper.querySelectorAll('[data-custom-validate="true"]')).filter(function (s) {
+                  var wrapperBySkipValidate = s.closest('.__skip-validate-field-inner');
+                  if (wrapperBySkipValidate) {
+                    return false;
+                  }
+                  return true;
+                }).forEach(function (field) {
                   var status = field.dataset.customValidateStatus;
                   if (status === 'false') {
                     pass = false;
@@ -962,68 +1171,19 @@ function _regeneratorDefine2(e, r, n, t) {
                 return pass;
               }
 
-              // validate field by type
+              /**
+               * Validate field by type
+               * 
+               * @param {string} type - Validation type.
+               * @param {any} value - Value to validate.
+               * @param {Object|null} extraData - Extra data for some validations (min/max).
+               * @returns {boolean} - True if passes all validations, false otherwise.
+               */
             }, {
               key: "onValidateValue",
               value: function onValidateValue(type, value) {
                 var extraData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-                // Accept multiple comma-delimited validation types, pass if all pass
-                var types = type ? type.split(',').map(function (s) {
-                  return s.trim();
-                }) : [];
-                var overallValid = true;
-                var _iterator = _createForOfIteratorHelper(types),
-                  _step;
-                try {
-                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                    var t = _step.value;
-                    switch (t) {
-                      // email
-                      case 'email':
-                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) overallValid = false;
-                        break;
-
-                      // phone
-                      case 'phone':
-                        // starts with optional +, then digits, optional spaces/hyphens
-                        if (!/^\+?[0-9\s\-]+$/.test(value)) overallValid = false;
-                        break;
-
-                      // required
-                      case 'required':
-                        if (typeof value === 'undefined' || value === null || value.toString().trim() === '') overallValid = false;
-                        break;
-
-                      // number
-                      case 'number':
-                        if (isNaN(value) || value === '') overallValid = false;
-                        break;
-
-                      // min
-                      case 'min':
-                        var __min = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.min) || 0);
-                        if (value < __min || value === '') overallValid = false;
-                        break;
-
-                      // max
-                      case 'max':
-                        var __max = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.max) || 0);
-                        if (value > __max || value === '') overallValid = false;
-                        break;
-
-                      // default (pass)
-                      default:
-                        // do nothing, always pass unknown validators
-                        break;
-                    }
-                    if (!overallValid) break; // stop on first failure
-                  }
-                } catch (err) {
-                  _iterator.e(err);
-                } finally {
-                  _iterator.f();
-                }
-                return overallValid;
+                return (0,_util_helpers__WEBPACK_IMPORTED_MODULE_4__.validateValue)(type, value, extraData);
               }
             }]);
           }();

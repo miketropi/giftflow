@@ -71,3 +71,61 @@ export function applySlideEffect(dom, effect = 'slidedown', duration = 300, disp
     dom.addEventListener('transitionend', onEnd);
   }
 }
+
+/**
+ * Validate a value according to given validation types.
+ * @param {string} type - Comma-separated string of validation types, e.g. "required,email".
+ * @param {any} value - Value to validate.
+ * @param {Object|null} extraData - Optional extra data for some validations (min/max).
+ * @returns {boolean} - True if passes all validations, false otherwise.
+ */
+export function validateValue(type, value, extraData = null) {
+  // Accept multiple comma-delimited validation types, pass if all pass
+  const types = type ? type.split(',').map(s => s.trim()) : [];
+  let overallValid = true;
+
+  for (let t of types) {
+    switch (t) {
+      // email
+      case 'email':
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) overallValid = false;
+        break;
+
+      // phone
+      case 'phone':
+        // starts with optional +, then digits, optional spaces/hyphens
+        if (!/^\+?[0-9\s\-]+$/.test(value)) overallValid = false;
+        break;
+
+      // required
+      case 'required':
+        if (typeof value === 'undefined' || value === null || value.toString().trim() === '') overallValid = false;
+        break;
+
+      // number
+      case 'number':
+        if (isNaN(value) || value === '') overallValid = false;
+        break;
+
+      // min
+      case 'min':
+        const __min = parseInt(extraData?.min || 0, 10);
+        if (value < __min || value === '') overallValid = false;
+        break;
+
+      // max
+      case 'max':
+        const __max = parseInt(extraData?.max || 0, 10);
+        if (value > __max || value === '') overallValid = false;
+        break;
+
+      // default: always pass unknown validators
+      default:
+        // do nothing
+        break;
+    }
+    if (!overallValid) break; // stop on first failure
+  }
+
+  return overallValid;
+}

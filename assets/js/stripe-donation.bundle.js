@@ -570,6 +570,13 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
 
   // make stripeDonation class
   var StripeDonation = /*#__PURE__*/function () {
+    /**
+     * Constructor
+     * 
+     * @param {Object} form - Form element.
+     * @param {Object} formObject - Form object.
+     * @returns {void}
+     */
     function StripeDonation(form, formObject) {
       (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, StripeDonation);
       this.form = form;
@@ -642,49 +649,40 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                 // add event listener to form
                 this.form.addEventListener('donationFormBeforeSubmit', /*#__PURE__*/function () {
                   var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(e) {
-                    var _e$detail, self, fields, resolve, reject, _yield$_this$getSelf$, paymentMethod, error;
+                    var _e$detail, self, fields, resolve, reject, _yield$_this$getSelf$, token, error;
                     return _regenerator().w(function (_context2) {
                       while (1) switch (_context2.n) {
                         case 0:
-                          _e$detail = e.detail, self = _e$detail.self, fields = _e$detail.fields, resolve = _e$detail.resolve, reject = _e$detail.reject; // create token method (Old)
-                          // const { token, error } = await this.getSelf().stripe.createToken(cardElement, {
-                          //   type: 'card',
-                          //   billing_details: {
-                          //     name: fields.card_name,
-                          //   }
-                          // });
-                          // new
-                          _context2.n = 1;
-                          return _this.getSelf().stripe.createPaymentMethod({
-                            type: 'card',
-                            card: cardElement,
-                            billing_details: {
-                              name: fields.card_name
-                              // email: fields.card_email,
-                            }
-                          });
-                        case 1:
-                          _yield$_this$getSelf$ = _context2.v;
-                          paymentMethod = _yield$_this$getSelf$.paymentMethod;
-                          error = _yield$_this$getSelf$.error;
-                          // console.log('token', token);
-                          // console.log('error', error);
-
-                          if (error) {
-                            $validateWrapper.classList.add('error', 'custom-error');
-                            // $validateWrapper.querySelector('.custom-error-message-text').textContent = error.message;
-                            $errorMessage.textContent = error.message;
-                            // console.log('Stripe error:', error.message, $errorMessage);
-
-                            reject(error);
-                          } else {
-                            // console.log('Stripe payment method created:', paymentMethod);
-                            // self.onSetField('stripe_payment_token_id', token.id);
-                            self.onSetField('stripe_payment_method_id', paymentMethod.id);
-                            resolve(paymentMethod);
-                            // resolve(token);
+                          _e$detail = e.detail, self = _e$detail.self, fields = _e$detail.fields, resolve = _e$detail.resolve, reject = _e$detail.reject; // if payment method is not stripe, return.
+                          if (!(fields !== null && fields !== void 0 && fields.payment_method && (fields === null || fields === void 0 ? void 0 : fields.payment_method) !== 'stripe')) {
+                            _context2.n = 1;
+                            break;
                           }
+                          resolve(null);
+                          return _context2.a(2);
+                        case 1:
+                          $validateWrapper.classList.remove('error', 'custom-error');
+                          $errorMessage.textContent = '';
+
+                          // create token.
+                          _context2.n = 2;
+                          return _this.getSelf().stripe.createToken(cardElement);
                         case 2:
+                          _yield$_this$getSelf$ = _context2.v;
+                          token = _yield$_this$getSelf$.token;
+                          error = _yield$_this$getSelf$.error;
+                          if (!error) {
+                            _context2.n = 3;
+                            break;
+                          }
+                          $validateWrapper.classList.add('error', 'custom-error');
+                          $errorMessage.textContent = error.message;
+                          reject(error);
+                          return _context2.a(2);
+                        case 3:
+                          // set token.
+                          self.onSetField('stripe_token', token.id);
+                          resolve(token);
                           return _context2.a(2);
                       }
                     }, _callee2);

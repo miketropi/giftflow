@@ -64,6 +64,12 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/hooks.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/mail.php';
 
+	// Payment gateways.
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-gateway-base.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-stripe.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-paypal.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-direct-bank-transfer.php';
+
 	// Admin files.
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/dashboard.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/class-export.php';
@@ -85,12 +91,6 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-shortcodes.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-forms.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-template.php';
-
-	// Payment gateways.
-	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-gateway-base.php';
-	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-stripe.php';
-	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-paypal.php';
-	require_once GIFTFLOW_PLUGIN_DIR . 'includes/gateways/class-direct-bank-transfer.php';
 
 	// Blocks.
 

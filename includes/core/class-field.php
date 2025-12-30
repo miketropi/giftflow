@@ -234,6 +234,13 @@ class GiftFlow_Field {
 	);
 
 	/**
+	 * Field pro only
+	 *
+	 * @var bool
+	 */
+	private $pro_only = false;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $id Field ID.
@@ -293,6 +300,9 @@ class GiftFlow_Field {
 			$this->html = $args['html'];
 		}
 
+		// Set field pro only.
+		$this->pro_only = isset( $args['pro_only'] ) ? $args['pro_only'] : false;
+
 		// default currency symbol.
 		$default_currency_symbol = giftflow_get_currency_symbol( giftflow_get_current_currency() );
 
@@ -347,7 +357,10 @@ class GiftFlow_Field {
 		// Render field label.
 		$output .= $this->get_field_label();
 
-		$output .= '<div class="giftflow-field-wrapper">';
+		// Add pro only indicator.
+		$classes = array( 'giftflow-field-wrapper' );
+
+		$output .= '<div class="' . esc_attr( implode( ' ', $classes ) ) . '">';
 
 		// Render field based on type.
 		switch ( $this->type ) {
@@ -418,7 +431,20 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function get_field_wrapper_start() {
-		$wrapper_classes = array_merge( array( 'giftflow-field', 'giftflow-field-' . $this->type ), $this->wrapper_classes );
+		// base classes.
+		$classes = array( 'giftflow-field', 'giftflow-field-' . $this->type );
+
+		// add pro only class.
+		if ( true === $this->pro_only ) {
+			$classes[] = 'giftflow-pro-only-field';
+
+			// if defined GIFTFLOW_PRO_VERSION add class disabled.
+			if ( ! defined( 'GIFTFLOW_PRO_VERSION' ) ) {
+				$classes[] = 'giftflow-pro-only-field__disabled';
+			}
+		}
+
+		$wrapper_classes = array_merge( $classes, $this->wrapper_classes );
 		$wrapper_classes = array_filter( $wrapper_classes );
 		$wrapper_class   = implode( ' ', $wrapper_classes );
 
@@ -444,8 +470,14 @@ class GiftFlow_Field {
 			return '';
 		}
 
+		// add pro only indicator.
+		$pro_tag = '';
+		if ( true === $this->pro_only ) {
+			$pro_tag = ' <sup class="giftflow-pro-only-indicator">(Pro)</sup>';
+		}
+
 		$required = $this->required ? ' <span class="required">*</span>' : '';
-		return '<label for="' . esc_attr( $this->id ) . '">' . esc_html( $this->label ) . $required . '</label>';
+		return '<label for="' . esc_attr( $this->id ) . '">' . esc_html( $this->label ) . $required . $pro_tag . '</label>';
 	}
 
 	/**

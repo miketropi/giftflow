@@ -8,6 +8,10 @@
 
 namespace GiftFlow\Admin\MetaBoxes;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Base Meta Box Class
  */

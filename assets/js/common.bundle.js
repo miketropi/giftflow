@@ -513,8 +513,69 @@ function _donationButton_Handle() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySlideEffect: () => (/* binding */ applySlideEffect),
-/* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector)
+/* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector),
+/* harmony export */   validateValue: () => (/* binding */ validateValue)
 /* harmony export */ });
+function _createForOfIteratorHelper(r, e) {
+  var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (!t) {
+    if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) {
+      t && (r = t);
+      var _n = 0,
+        F = function F() {};
+      return {
+        s: F,
+        n: function n() {
+          return _n >= r.length ? {
+            done: !0
+          } : {
+            done: !1,
+            value: r[_n++]
+          };
+        },
+        e: function e(r) {
+          throw r;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var o,
+    a = !0,
+    u = !1;
+  return {
+    s: function s() {
+      t = t.call(r);
+    },
+    n: function n() {
+      var r = t.next();
+      return a = r.done, r;
+    },
+    e: function e(r) {
+      u = !0, o = r;
+    },
+    f: function f() {
+      try {
+        a || null == t["return"] || t["return"]();
+      } finally {
+        if (u) throw o;
+      }
+    }
+  };
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
+}
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
 var replaceContentBySelector = function replaceContentBySelector(selector, content) {
   var elem = document.querySelector(selector);
   if (elem) {
@@ -580,6 +641,74 @@ function applySlideEffect(dom) {
     };
     dom.addEventListener('transitionend', _onEnd2);
   }
+}
+
+/**
+ * Validate a value according to given validation types.
+ * @param {string} type - Comma-separated string of validation types, e.g. "required,email".
+ * @param {any} value - Value to validate.
+ * @param {Object|null} extraData - Optional extra data for some validations (min/max).
+ * @returns {boolean} - True if passes all validations, false otherwise.
+ */
+function validateValue(type, value) {
+  var extraData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+  // Accept multiple comma-delimited validation types, pass if all pass
+  var types = type ? type.split(',').map(function (s) {
+    return s.trim();
+  }) : [];
+  var overallValid = true;
+  var _iterator = _createForOfIteratorHelper(types),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var t = _step.value;
+      switch (t) {
+        // email
+        case 'email':
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) overallValid = false;
+          break;
+
+        // phone
+        case 'phone':
+          // starts with optional +, then digits, optional spaces/hyphens
+          if (!/^\+?[0-9\s\-]+$/.test(value)) overallValid = false;
+          break;
+
+        // required
+        case 'required':
+          if (typeof value === 'undefined' || value === null || value.toString().trim() === '') overallValid = false;
+          break;
+
+        // number
+        case 'number':
+          if (isNaN(value) || value === '') overallValid = false;
+          break;
+
+        // min
+        case 'min':
+          var __min = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.min) || 0, 10);
+          if (value < __min || value === '') overallValid = false;
+          break;
+
+        // max
+        case 'max':
+          var __max = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.max) || 0, 10);
+          if (value > __max || value === '') overallValid = false;
+          break;
+
+        // default: always pass unknown validators
+        default:
+          // do nothing
+          break;
+      }
+      if (!overallValid) break; // stop on first failure
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return overallValid;
 }
 
 /***/ }),

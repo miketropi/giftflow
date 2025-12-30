@@ -37,11 +37,7 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			'payment_method'       => array(
 				'label'       => __( 'Payment Method', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'stripe' => __( 'Stripe', 'giftflow' ),
-					'paypal' => __( 'PayPal', 'giftflow' ),
-					'bank'   => __( 'Bank Transfer', 'giftflow' ),
-				),
+				'options'     => giftflow_get_payment_methods_options(),
 				'description' => __( 'Select the payment method used for the donation', 'giftflow' ),
 			),
 			'status'               => array(

@@ -109,8 +109,9 @@ class Donation extends Base_Post_Type {
 				break;
 
 			case 'payment_method':
+				$payment_methods_options = giftflow_get_payment_methods_options();
 				$payment_method = get_post_meta( $post_id, '_payment_method', true );
-				echo esc_html( ucfirst( $payment_method ) );
+				echo esc_html( $payment_methods_options[ $payment_method ] ?? $payment_method );
 				break;
 
 			case 'status':

@@ -11,6 +11,13 @@ const STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
   // make stripeDonation class
   const StripeDonation = class { 
 
+    /**
+     * Constructor
+     * 
+     * @param {Object} form - Form element.
+     * @param {Object} formObject - Form object.
+     * @returns {void}
+     */
     constructor(form, formObject) {
       this.form = form;
       this.formObject = formObject;
@@ -60,45 +67,32 @@ const STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
         }
       });
 
-
       // add event listener to form
       this.form.addEventListener('donationFormBeforeSubmit', async (e) => {
         const { self, fields, resolve, reject } = e.detail;
 
-        // create token method (Old)
-        // const { token, error } = await this.getSelf().stripe.createToken(cardElement, {
-        //   type: 'card',
-        //   billing_details: {
-        //     name: fields.card_name,
-        //   }
-        // });
+        // if payment method is not stripe, return.
+        if(fields?.payment_method && fields?.payment_method !== 'stripe') {
+          resolve(null);
+          return;
+        }
 
-        // new
-        const {paymentMethod, error} = await this.getSelf().stripe.createPaymentMethod({
-          type: 'card',
-          card: cardElement,
-          billing_details: {
-            name: fields.card_name,
-            // email: fields.card_email,
-          }});
+        $validateWrapper.classList.remove('error', 'custom-error');
+        $errorMessage.textContent = '';
 
-        // console.log('token', token);
-        // console.log('error', error);
-
+        // create token.
+        const { token, error } = await this.getSelf().stripe.createToken(cardElement);
         if(error) {
           $validateWrapper.classList.add('error', 'custom-error');
-          // $validateWrapper.querySelector('.custom-error-message-text').textContent = error.message;
           $errorMessage.textContent = error.message;
-          // console.log('Stripe error:', error.message, $errorMessage);
-          
           reject(error);
-        } else {
-          // console.log('Stripe payment method created:', paymentMethod);
-          // self.onSetField('stripe_payment_token_id', token.id);
-          self.onSetField('stripe_payment_method_id', paymentMethod.id);
-          resolve(paymentMethod)
-          // resolve(token);
+          return;
         }
+
+        // set token.
+        self.onSetField('stripe_token', token.id);
+        resolve(token);
+        return;
       });
     }
   }

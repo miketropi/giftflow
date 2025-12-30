@@ -80,6 +80,13 @@ class Forms extends Base {
 		// giftflow_donation_form.
 		check_ajax_referer( 'giftflow_donation_form', 'wp_nonce' );
 
+		/**
+		 * Hooks do_action before process donation.
+		 *
+		 * @see giftflow_donation_form_validate_recaptcha - 10
+		 */
+		do_action( 'giftflow_donation_form_before_process_donation', $fields );
+
 		// Validate data.
 		if ( ! $this->validate_donation_data( $fields ) ) {
 			wp_send_json_error(

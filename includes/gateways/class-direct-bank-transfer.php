@@ -55,7 +55,7 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 			'description'        => __( 'Configure direct bank transfer settings', 'giftflow' ),
 			'accordion_settings' => array(
 				'label'   => __( 'Direct Bank Transfer Settings', 'giftflow' ),
-				'is_open' => false,
+				'is_open' => true,
 				'fields'  => array(
 					'direct_bank_transfer_enabled' => array(
 						'id'          => 'giftflow_direct_bank_transfer_enabled',

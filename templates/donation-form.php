@@ -13,6 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <form class="donation-form" id="donation-form-<?php echo esc_attr( $campaign_id ); ?>">
+	<?php
+
+		// do action to allow other plugins to add custom content before the form.
+		do_action( 'giftflow_donation_form_before_form', $args );
+	?>
+
 	<!-- Campaign Header -->
 	<div class="donation-form__header">
 		<div class="donation-form__campaign">
@@ -85,7 +91,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 									</div>
 								</label>
 							<?php endforeach; ?>
-
 						</div>
 					</fieldset>
 
@@ -302,4 +307,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			?>
 		</div>
 	</div>
+
+	<?php
+		// do action to allow other plugins to add custom content after the form.
+		do_action( 'giftflow_donation_form_after_form', $args );
+	?>
 </form>

@@ -14,7 +14,10 @@
 namespace GiftFlow\Gateways;
 
 use Omnipay\Omnipay;
-use Omnipay\Stripe\PaymentIntentsGateway;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Stripe Gateway Class
@@ -26,6 +29,13 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @var PaymentIntentsGateway
 	 */
 	private $gateway;
+
+	/**
+	 * API key.
+	 *
+	 * @var string
+	 */
+	private $api_key;
 
 	/**
 	 * Initialize gateway properties
@@ -65,12 +75,7 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return void
 	 */
 	private function init_omnipay_gateway() {
-		$api_key = $this->get_api_key();
-
-		if ( ! empty( $api_key ) ) {
-			$this->gateway = Omnipay::create( 'Stripe\PaymentIntents' );
-			$this->gateway->setApiKey( $api_key );
-		}
+		$this->api_key = $this->get_api_key();
 	}
 
 	/**
@@ -156,82 +161,82 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return array
 	 */
 	public function register_settings_fields( $payment_fields = array() ) {
-			$payment_options = get_option( 'giftflow_payment_options' );
-			$payment_fields['stripe'] = array(
-				'id' => 'giftflow_stripe',
-				'name' => 'giftflow_payment_options[stripe]',
-				'type' => 'accordion',
-				'label' => __( 'Stripe (Credit Card)', 'giftflow' ),
-				'description' => __( 'Configure Stripe payment settings', 'giftflow' ),
-				'accordion_settings' => array(
-					'label' => __( 'Stripe Settings', 'giftflow' ),
-					'is_open' => true,
-					'fields' => array(
-						'stripe_enabled' => array(
-							'id' => 'giftflow_stripe_enabled',
-							'type' => 'switch',
-							'label' => __( 'Enable Stripe', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_enabled'] ) ? $payment_options['stripe']['stripe_enabled'] : false,
-							'description' => __( 'Enable Stripe as a payment method', 'giftflow' ),
+		$payment_options = get_option( 'giftflow_payment_options' );
+		$payment_fields['stripe'] = array(
+			'id' => 'giftflow_stripe',
+			'name' => 'giftflow_payment_options[stripe]',
+			'type' => 'accordion',
+			'label' => __( 'Stripe (Credit Card)', 'giftflow' ),
+			'description' => __( 'Configure Stripe payment settings', 'giftflow' ),
+			'accordion_settings' => array(
+				'label' => __( 'Stripe Settings', 'giftflow' ),
+				'is_open' => true,
+				'fields' => array(
+					'stripe_enabled' => array(
+						'id' => 'giftflow_stripe_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Stripe', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_enabled'] ) ? $payment_options['stripe']['stripe_enabled'] : false,
+						'description' => __( 'Enable Stripe as a payment method', 'giftflow' ),
+					),
+					'stripe_mode' => array(
+						'id' => 'giftflow_stripe_mode',
+						'type' => 'select',
+						'label' => __( 'Stripe Mode', 'giftflow' ),
+						'value' => isset( $payment_options['stripe_mode'] ) ? $payment_options['stripe_mode'] : 'sandbox',
+						'options' => array(
+							'sandbox' => __( 'Sandbox (Test Mode)', 'giftflow' ),
+							'live' => __( 'Live (Production Mode)', 'giftflow' ),
 						),
-						'stripe_mode' => array(
-							'id' => 'giftflow_stripe_mode',
-							'type' => 'select',
-							'label' => __( 'Stripe Mode', 'giftflow' ),
-							'value' => isset( $payment_options['stripe_mode'] ) ? $payment_options['stripe_mode'] : 'sandbox',
-							'options' => array(
-								'sandbox' => __( 'Sandbox (Test Mode)', 'giftflow' ),
-								'live' => __( 'Live (Production Mode)', 'giftflow' ),
-							),
-							'description' => __( 'Select Stripe environment mode', 'giftflow' ),
-						),
-						'stripe_sandbox_publishable_key' => array(
-							'id' => 'giftflow_stripe_sandbox_publishable_key',
-							'type' => 'textfield',
-							'label' => __( 'Stripe Sandbox Publishable Key', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_sandbox_publishable_key'] ) ? $payment_options['stripe']['stripe_sandbox_publishable_key'] : '',
-							'description' => __( 'Enter your Stripe sandbox publishable key', 'giftflow' ),
-						),
-						'stripe_sandbox_secret_key' => array(
-							'id' => 'giftflow_stripe_sandbox_secret_key',
-							'type' => 'textfield',
-							'label' => __( 'Stripe Sandbox Secret Key', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_sandbox_secret_key'] ) ? $payment_options['stripe']['stripe_sandbox_secret_key'] : '',
-							'input_type' => 'password',
-							'description' => __( 'Enter your Stripe sandbox secret key', 'giftflow' ),
-						),
-						'stripe_live_publishable_key' => array(
-							'id' => 'giftflow_stripe_live_publishable_key',
-							'type' => 'textfield',
-							'label' => __( 'Stripe Live Publishable Key', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_live_publishable_key'] ) ? $payment_options['stripe']['stripe_live_publishable_key'] : '',
-							'description' => __( 'Enter your Stripe live publishable key', 'giftflow' ),
-						),
-						'stripe_live_secret_key' => array(
-							'id' => 'giftflow_stripe_live_secret_key',
-							'type' => 'textfield',
-							'label' => __( 'Stripe Live Secret Key', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_live_secret_key'] ) ? $payment_options['stripe']['stripe_live_secret_key'] : '',
-							'input_type' => 'password',
-							'description' => __( 'Enter your Stripe live secret key', 'giftflow' ),
-						),
-						// stripe_webhook_enabled.
-						'stripe_webhook_enabled' => array(
-							'id' => 'giftflow_stripe_webhook_enabled',
-							'type' => 'switch',
-							'label' => __( 'Enable Webhook', 'giftflow' ),
-							'value' => isset( $payment_options['stripe']['stripe_webhook_enabled'] ) ? $payment_options['stripe']['stripe_webhook_enabled'] : false,
-							'description' => sprintf(
-								// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
-								__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-								'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
-							),
+						'description' => __( 'Select Stripe environment mode', 'giftflow' ),
+					),
+					'stripe_sandbox_publishable_key' => array(
+						'id' => 'giftflow_stripe_sandbox_publishable_key',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Sandbox Publishable Key', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_sandbox_publishable_key'] ) ? $payment_options['stripe']['stripe_sandbox_publishable_key'] : '',
+						'description' => __( 'Enter your Stripe sandbox publishable key', 'giftflow' ),
+					),
+					'stripe_sandbox_secret_key' => array(
+						'id' => 'giftflow_stripe_sandbox_secret_key',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Sandbox Secret Key', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_sandbox_secret_key'] ) ? $payment_options['stripe']['stripe_sandbox_secret_key'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe sandbox secret key', 'giftflow' ),
+					),
+					'stripe_live_publishable_key' => array(
+						'id' => 'giftflow_stripe_live_publishable_key',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Live Publishable Key', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_live_publishable_key'] ) ? $payment_options['stripe']['stripe_live_publishable_key'] : '',
+						'description' => __( 'Enter your Stripe live publishable key', 'giftflow' ),
+					),
+					'stripe_live_secret_key' => array(
+						'id' => 'giftflow_stripe_live_secret_key',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Live Secret Key', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_live_secret_key'] ) ? $payment_options['stripe']['stripe_live_secret_key'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe live secret key', 'giftflow' ),
+					),
+					// stripe_webhook_enabled.
+					'stripe_webhook_enabled' => array(
+						'id' => 'giftflow_stripe_webhook_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Webhook', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_webhook_enabled'] ) ? $payment_options['stripe']['stripe_webhook_enabled'] : false,
+						'description' => sprintf(
+							// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
+							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
+							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
 						),
 					),
 				),
-			);
+			),
+		);
 
-			return $payment_fields;
+		return $payment_fields;
 	}
 
 	/**
@@ -337,6 +342,11 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return mixed
 	 */
 	public function process_payment( $data, $donation_id = 0 ) {
+		if ( ! empty( $this->api_key ) ) {
+			$this->gateway = Omnipay::create( 'Stripe' );
+			$this->gateway->setApiKey( $this->api_key );
+		}
+
 		if ( ! $this->gateway ) {
 			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
 		}
@@ -348,6 +358,7 @@ class Stripe_Gateway extends Gateway_Base {
 		try {
 			$payment_data = $this->prepare_payment_data( $data, $donation_id );
 			$response = $this->gateway->purchase( $payment_data )->send();
+
 			return $this->handle_payment_response( $response, $donation_id );
 		} catch ( \Exception $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id );
@@ -363,30 +374,25 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return array
 	 */
 	private function prepare_payment_data( $data, $donation_id ) {
-			$statement_descriptor = $this->get_setting( 'statement_descriptor', get_bloginfo( 'name' ) );
-			$statement_descriptor = substr( $statement_descriptor, 0, 22 ); // Stripe limit.
+		$statement_descriptor = $this->get_setting( 'statement_descriptor', get_bloginfo( 'name' ) );
+		$statement_descriptor = substr( $statement_descriptor, 0, 22 ); // Stripe limit.
 
-			return array(
-				'amount' => floatval( $data['donation_amount'] ),
-				'currency' => $this->get_currency(),
-				'paymentMethod' => $data['stripe_payment_method_id'],
-				// translators: 1: donor name, 2: campaign id or name.
-				'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
-				'customer' => array(
-					'name' => sanitize_text_field( $data['donor_name'] ),
-					'email' => sanitize_email( $data['donor_email'] ),
-				),
-				'metadata' => array(
-					'donation_id' => $donation_id,
-					'campaign_id' => $data['campaign_id'],
-					'donor_email' => sanitize_email( $data['donor_email'] ),
-					'donor_name' => sanitize_text_field( $data['donor_name'] ),
-					'site_url' => home_url(),
-				),
-				'confirm' => true,
-				'returnUrl' => $this->get_return_url( $donation_id ),
-				'statement_descriptor_suffix' => $statement_descriptor,
-			);
+		$stripe_data = array(
+			'amount' => number_format( (float) $data['donation_amount'], 2, '.', '' ),
+			'currency' => strtolower( $this->get_currency() ),
+			'token' => $data['stripe_token'],
+			// translators: 1: donor name, 2: campaign id or name.
+			'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
+			'metadata' => array(
+				'donation_id' => $donation_id,
+				'campaign_id' => $data['campaign_id'],
+				'donor_email' => sanitize_email( $data['donor_email'] ),
+				'donor_name' => sanitize_text_field( $data['donor_name'] ),
+				'site_url' => home_url(),
+			),
+		);
+
+		return apply_filters( 'giftflow_stripe_prepare_payment_data', $stripe_data, $data, $donation_id );
 	}
 
 	/**
@@ -416,11 +422,11 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return array
 	 */
 	private function handle_successful_payment( $response, $donation_id ) {
-			$payment_intent_id = $response->getPaymentIntentReference();
+			$transaction_id = $response->getTransactionReference();
 			$all_data = $response->getData();
 
 			// Update donation meta.
-			update_post_meta( $donation_id, '_transaction_id', $payment_intent_id );
+			update_post_meta( $donation_id, '_transaction_id', $transaction_id );
 			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $all_data ) );
 			update_post_meta( $donation_id, '_payment_method', 'stripe' );
 			update_post_meta( $donation_id, '_status', 'completed' );
@@ -775,4 +781,3 @@ function giftflow_process_payment_stripe( $data = array(), $donation_id = 0 ) {
 
 	return $stripe_gateway->process_payment( $data, $donation_id );
 }
-
