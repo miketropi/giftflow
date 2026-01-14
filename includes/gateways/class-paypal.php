@@ -274,11 +274,10 @@ class PayPal_Gateway extends Gateway_Base {
 						'type' => 'switch',
 						'label' => __( 'Enable Webhook', 'giftflow' ),
 						'value' => isset( $payment_options['paypal']['paypal_webhook_enabled'] ) ? $payment_options['paypal']['paypal_webhook_enabled'] : false,
-						'description' => sprintf(
-							// translators: This is the label for enabling the PayPal webhook option in the payment gateway settings.
-							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_paypal_webhook' ) . '</code><br>' . __( 'Recommended PayPal events: <strong>PAYMENT.SALE.COMPLETED</strong>, <strong>PAYMENT.SALE.DENIED</strong>, <strong>PAYMENT.CAPTURE.REFUNDED</strong>.', 'giftflow' )
-						),
+						'description' =>
+							esc_html__( 'Enable webhooks for payment status updates.', 'giftflow' ) . '<br>' .
+							esc_html__( 'Webhook URL:', 'giftflow' ) . ' <code>' . admin_url( 'admin-ajax.php?action=giftflow_paypal_webhook' ) . '</code><br>' .
+							__( 'Recommended PayPal events: <strong>Payments > Payout completed</strong>, <strong>Payments > Payout denied</strong>, <strong>Payments > Payout refunded</strong>, <strong>Checkout > approved</strong>, <strong>Checkout > completed</strong>.', 'giftflow' ),
 					),
 				),
 			),
