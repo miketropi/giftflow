@@ -489,31 +489,26 @@ function _regeneratorDefine2(e, r, n, t) {
                   });
                 });
 
-                // Listen for form submission
-                this.form.addEventListener('donationFormBeforeSubmit', /*#__PURE__*/function () {
-                  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee3(e) {
-                    var _e$detail, formSelf, fields, resolve, reject;
+                // add event listener to form using event hub.
+                self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
+                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee3(_ref) {
+                    var self, fields;
                     return _regenerator().w(function (_context3) {
                       while (1) switch (_context3.n) {
                         case 0:
-                          _e$detail = e.detail, formSelf = _e$detail.self, fields = _e$detail.fields, resolve = _e$detail.resolve, reject = _e$detail.reject; // If payment method is not PayPal, return
+                          self = _ref.self, fields = _ref.fields;
                           if (!(fields !== null && fields !== void 0 && fields.payment_method && (fields === null || fields === void 0 ? void 0 : fields.payment_method) !== 'paypal')) {
                             _context3.n = 1;
                             break;
                           }
-                          resolve(null);
                           return _context3.a(2);
                         case 1:
-                          // PayPal payment is handled by the button click, so we just resolve
-                          // The actual payment happens in onApprove
-                          resolve(null);
-                        case 2:
-                          return _context3.a(2);
+                          return _context3.a(2, null);
                       }
                     }, _callee3);
                   }));
                   return function (_x5) {
-                    return _ref.apply(this, arguments);
+                    return _ref2.apply(this, arguments);
                   };
                 }());
               case 5:
@@ -775,9 +770,9 @@ function _regeneratorDefine2(e, r, n, t) {
 
   // Initialize when form is loaded
   document.addEventListener('donationFormLoaded', function (e) {
-    var _e$detail2 = e.detail,
-      self = _e$detail2.self,
-      form = _e$detail2.form;
+    var _e$detail = e.detail,
+      self = _e$detail.self,
+      form = _e$detail.form;
 
     // Check if PayPal payment method exists
     var paypalInput = form.querySelector('input[name="payment_method"][value="paypal"]');

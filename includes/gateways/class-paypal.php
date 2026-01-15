@@ -13,6 +13,8 @@
 
 namespace GiftFlow\Gateways;
 
+use GiftFlow\Core\Donations;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -450,7 +452,10 @@ class PayPal_Gateway extends Gateway_Base {
 		update_post_meta( $donation_id, '_transaction_id', $transaction_id );
 		update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $all_data ) );
 		update_post_meta( $donation_id, '_payment_method', 'paypal' );
-		update_post_meta( $donation_id, '_status', 'completed' );
+
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'completed' );
 
 		$this->log_success( $transaction_id, $donation_id );
 
@@ -856,7 +861,10 @@ class PayPal_Gateway extends Gateway_Base {
 		update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $response_body ) );
 		update_post_meta( $donation_id, '_paypal_order_id', $order_id );
 		update_post_meta( $donation_id, '_payment_method', 'paypal' );
-		update_post_meta( $donation_id, '_status', 'completed' );
+
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'completed' );
 
 		// Clean up transient.
 		delete_transient( $transient_key );
@@ -873,122 +881,47 @@ class PayPal_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * Create donation record
+	 * Create donation record using centralized Donations class
 	 *
 	 * @param array $donation_data Donation data.
 	 * @return int|\WP_Error Donation ID or error.
 	 */
 	private function create_donation_record( $donation_data ) {
-		// Create donation post.
-		$donation_post = array(
-			// translators: %s: Donor name.
-			'post_title' => sprintf( esc_html__( 'Donation from %s', 'giftflow' ), $donation_data['donor_name'] ),
-			'post_type' => 'donation',
-			'post_status' => 'publish',
+		// Prepare donation data for Donations class.
+		$data = array(
+			'donation_amount' => isset( $donation_data['donation_amount'] ) ? floatval( $donation_data['donation_amount'] ) : 0,
+			'donor_name' => isset( $donation_data['donor_name'] ) ? sanitize_text_field( $donation_data['donor_name'] ) : '',
+			'donor_email' => isset( $donation_data['donor_email'] ) ? sanitize_email( $donation_data['donor_email'] ) : '',
+			'payment_method' => isset( $donation_data['payment_method'] ) ? sanitize_text_field( $donation_data['payment_method'] ) : 'paypal',
+			'status' => 'pending', // Initial status, will be updated to completed after payment capture.
 		);
 
-		$donation_id = wp_insert_post( $donation_post );
-
-		if ( is_wp_error( $donation_id ) ) {
-			return $donation_id;
-		}
-
-		// Save donation meta.
-		update_post_meta( $donation_id, '_amount', $donation_data['donation_amount'] );
-
-		// Campaign ID.
+		// Optional fields.
 		if ( ! empty( $donation_data['campaign_id'] ) ) {
-			update_post_meta( $donation_id, '_campaign_id', $donation_data['campaign_id'] );
+			$data['campaign_id'] = sanitize_text_field( $donation_data['campaign_id'] );
 		}
 
-		// Payment method.
-		update_post_meta( $donation_id, '_payment_method', $donation_data['payment_method'] );
-
-		// Donation type.
 		if ( ! empty( $donation_data['donation_type'] ) ) {
-			update_post_meta( $donation_id, '_donation_type', $donation_data['donation_type'] );
+			$data['donation_type'] = sanitize_text_field( $donation_data['donation_type'] );
 		}
 
-		// Recurring interval.
 		if ( ! empty( $donation_data['recurring_interval'] ) ) {
-			update_post_meta( $donation_id, '_recurring_interval', $donation_data['recurring_interval'] );
+			$data['recurring_interval'] = sanitize_text_field( $donation_data['recurring_interval'] );
 		}
 
-		// Donor ID - get or create donor.
-		if ( ! empty( $donation_data['donor_email'] ) ) {
-			$donor_id = $this->get_or_create_donor( $donation_data['donor_email'], $donation_data );
-			if ( $donor_id ) {
-				update_post_meta( $donation_id, '_donor_id', $donor_id );
-			}
-		}
-
-		// Donor message.
 		if ( ! empty( $donation_data['donor_message'] ) ) {
-			update_post_meta( $donation_id, '_donor_message', $donation_data['donor_message'] );
+			$data['donor_message'] = sanitize_textarea_field( $donation_data['donor_message'] );
 		}
 
-		// Anonymous donation.
-		if ( ! empty( $donation_data['anonymous_donation'] ) && 'yes' === $donation_data['anonymous_donation'] ) {
-			update_post_meta( $donation_id, '_anonymous_donation', 'yes' );
-			update_post_meta( $donation_id, '_anonymous', 'yes' );
-		} else {
-			update_post_meta( $donation_id, '_anonymous_donation', 'no' );
+		if ( isset( $donation_data['anonymous_donation'] ) ) {
+			$data['anonymous_donation'] = ( 'yes' === $donation_data['anonymous_donation'] || true === $donation_data['anonymous_donation'] || '1' === $donation_data['anonymous_donation'] ) ? 'yes' : 'no';
 		}
 
-		// Initial status (will be updated to completed after payment).
-		update_post_meta( $donation_id, '_status', 'pending' );
-
-		// Fire action.
-		do_action( 'giftflow_donation_created', $donation_id );
+		// Use centralized Donations class to create donation.
+		$donations = new Donations();
+		$donation_id = $donations->create( $data );
 
 		return $donation_id;
-	}
-
-	/**
-	 * Get or create donor record
-	 *
-	 * @param string $email Donor email.
-	 * @param array  $data Donation data.
-	 * @return int|false Donor ID or false.
-	 */
-	private function get_or_create_donor( $email, $data ) {
-		// Get donor record by email.
-		$donors = get_posts(
-			array(
-				'post_type' => 'donor',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_email',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value' => $email,
-				'posts_per_page' => 1,
-			)
-		);
-
-		if ( ! empty( $donors ) ) {
-			return $donors[0]->ID;
-		}
-
-		// Create new donor record.
-		$donor_data = array(
-			'post_title' => $data['donor_name'],
-			'post_type' => 'donor',
-			'post_status' => 'publish',
-		);
-
-		$donor_id = wp_insert_post( $donor_data );
-
-		if ( is_wp_error( $donor_id ) ) {
-			return false;
-		}
-
-		// Save donor email and name.
-		update_post_meta( $donor_id, '_email', $email );
-		update_post_meta( $donor_id, '_first_name', $data['donor_name'] );
-
-		// Fire action.
-		do_action( 'giftflow_donor_added', $donor_id );
-
-		return $donor_id;
 	}
 
 	/**
@@ -1081,7 +1014,9 @@ class PayPal_Gateway extends Gateway_Base {
 
 		if ( ! empty( $donations ) ) {
 			$donation_id = $donations[0]->ID;
-			update_post_meta( $donation_id, '_status', 'completed' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'completed' );
 			do_action( 'giftflow_paypal_webhook_payment_completed', $donation_id, $_resource );
 		}
 	}
@@ -1112,7 +1047,9 @@ class PayPal_Gateway extends Gateway_Base {
 
 		if ( ! empty( $donations ) ) {
 			$donation_id = $donations[0]->ID;
-			update_post_meta( $donation_id, '_status', 'failed' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'failed' );
 			update_post_meta( $donation_id, '_payment_error', __( 'Payment was denied', 'giftflow' ) );
 			do_action( 'giftflow_paypal_webhook_payment_denied', $donation_id, $_resource );
 		}
@@ -1144,7 +1081,9 @@ class PayPal_Gateway extends Gateway_Base {
 
 		if ( ! empty( $donations ) ) {
 			$donation_id = $donations[0]->ID;
-			update_post_meta( $donation_id, '_status', 'refunded' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'refunded' );
 			do_action( 'giftflow_paypal_webhook_payment_refunded', $donation_id, $_resource );
 		}
 	}

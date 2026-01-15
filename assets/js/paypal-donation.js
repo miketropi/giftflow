@@ -116,19 +116,15 @@
 				});
 			});
 
-			// Listen for form submission
-			this.form.addEventListener('donationFormBeforeSubmit', async (e) => {
-				const { self: formSelf, fields, resolve, reject } = e.detail;
-
-				// If payment method is not PayPal, return
-				if (fields?.payment_method && fields?.payment_method !== 'paypal') {
-					resolve(null);
+			// add event listener to form using event hub.
+			self.formObject.eventHub.on('donationFormBeforeSubmit', async ({ self, fields }) => {
+				if(fields?.payment_method && fields?.payment_method !== 'paypal') {
 					return;
 				}
 
 				// PayPal payment is handled by the button click, so we just resolve
-				// The actual payment happens in onApprove
-				resolve(null);
+				
+				return null;
 			});
 		}
 

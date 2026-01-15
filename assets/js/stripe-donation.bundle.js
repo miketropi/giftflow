@@ -646,19 +646,18 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                   };
                 }());
 
-                // add event listener to form
-                this.form.addEventListener('donationFormBeforeSubmit', /*#__PURE__*/function () {
-                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(e) {
-                    var _e$detail, self, fields, resolve, reject, _yield$_this$getSelf$, token, error;
+                // add event listener to form using event hub.
+                self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
+                  var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(_ref2) {
+                    var self, fields, _yield$_this$getSelf$, token, error;
                     return _regenerator().w(function (_context2) {
                       while (1) switch (_context2.n) {
                         case 0:
-                          _e$detail = e.detail, self = _e$detail.self, fields = _e$detail.fields, resolve = _e$detail.resolve, reject = _e$detail.reject; // if payment method is not stripe, return.
+                          self = _ref2.self, fields = _ref2.fields;
                           if (!(fields !== null && fields !== void 0 && fields.payment_method && (fields === null || fields === void 0 ? void 0 : fields.payment_method) !== 'stripe')) {
                             _context2.n = 1;
                             break;
                           }
-                          resolve(null);
                           return _context2.a(2);
                         case 1:
                           $validateWrapper.classList.remove('error', 'custom-error');
@@ -677,18 +676,16 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                           }
                           $validateWrapper.classList.add('error', 'custom-error');
                           $errorMessage.textContent = error.message;
-                          reject(error);
-                          return _context2.a(2);
+                          throw error;
                         case 3:
                           // set token.
                           self.onSetField('stripe_token', token.id);
-                          resolve(token);
-                          return _context2.a(2);
+                          return _context2.a(2, token);
                       }
                     }, _callee2);
                   }));
                   return function (_x2) {
-                    return _ref2.apply(this, arguments);
+                    return _ref3.apply(this, arguments);
                   };
                 }());
               case 2:
@@ -704,9 +701,9 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
     }]);
   }();
   document.addEventListener('donationFormLoaded', function (e) {
-    var _e$detail2 = e.detail,
-      self = _e$detail2.self,
-      form = _e$detail2.form;
+    var _e$detail = e.detail,
+      self = _e$detail.self,
+      form = _e$detail.form;
     new StripeDonation(form, self);
   });
 })(window);
