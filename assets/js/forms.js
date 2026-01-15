@@ -105,6 +105,7 @@ import { applySlideEffect, validateValue } from './util/helpers';
 				// submit form.
 				this.onSubmitForm();
 			});
+
     }
 
 		onSetLoading(status) {
@@ -168,6 +169,28 @@ import { applySlideEffect, validateValue } from './util/helpers';
 			
 
 			self.onSetLoading(false);
+		}
+
+		onShowThankYouSection() {
+			const self = this;
+			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+			self.form.querySelector('#donation-thank-you').classList.add('is-active');
+		}
+
+		onShowErrorSection(message = null) {
+			const self = this;
+			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+			const errorPanel = self.form.querySelector('#donation-error');
+			errorPanel.classList.add('is-active');
+			if (message) {
+				const errorMessageEl = errorPanel.querySelector('.donation-form__error-message');
+				if (errorMessageEl) {
+					errorMessageEl.innerHTML = `
+						<h3 class="donation-form__error-title">Error</h3>
+						<p class="donation-form__error-text">${message}</p>
+					`;
+				}
+			}
 		}
 
 		async onSendData(data) {

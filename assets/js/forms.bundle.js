@@ -856,6 +856,28 @@ function _regeneratorDefine2(e, r, n, t) {
                 return onSubmitForm;
               }()
             }, {
+              key: "onShowThankYouSection",
+              value: function onShowThankYouSection() {
+                var self = this;
+                self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+                self.form.querySelector('#donation-thank-you').classList.add('is-active');
+              }
+            }, {
+              key: "onShowErrorSection",
+              value: function onShowErrorSection() {
+                var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+                var self = this;
+                self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+                var errorPanel = self.form.querySelector('#donation-error');
+                errorPanel.classList.add('is-active');
+                if (message) {
+                  var errorMessageEl = errorPanel.querySelector('.donation-form__error-message');
+                  if (errorMessageEl) {
+                    errorMessageEl.innerHTML = "\n\t\t\t\t\t\t<h3 class=\"donation-form__error-title\">Error</h3>\n\t\t\t\t\t\t<p class=\"donation-form__error-text\">".concat(message, "</p>\n\t\t\t\t\t");
+                  }
+                }
+              }
+            }, {
               key: "onSendData",
               value: function () {
                 var _onSendData = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data) {

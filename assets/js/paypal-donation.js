@@ -84,8 +84,11 @@
 					},
 				});
 
+				// reset the container
+				this.form.querySelector('#giftflow-paypal-button-container').innerHTML = '';
+				
 				// Render buttons
-				this.paypalButtons.render('#giftflow-paypal-button-container').catch((err) => {
+				this.paypalButtons.render(this.form.querySelector('#giftflow-paypal-button-container')).catch((err) => {
 					console.error('PayPal buttons render error:', err);
 				});
 
@@ -254,8 +257,10 @@
 		 * @returns {void}
 		 */
 		onCancel(data) {
-			console.log('PayPal payment canceled:', data);
-			this.showErrorMessage(giftflowPayPalDonation.messages.canceled);
+			const message = data?.message || giftflowPayPalDonation.messages.canceled;
+			this.showErrorMessage(
+				message + " If you want to continue, please reload the page and try again."
+			);
 		}
 
 		/**
@@ -265,8 +270,9 @@
 		 * @returns {void}
 		 */
 		onError(err) {
-			console.error('PayPal error:', err);
-			this.showErrorMessage(err.message || giftflowPayPalDonation.messages.error);
+			// console.error('PayPal error:', err);
+			this.formObject.onShowErrorSection(err.message || giftflowPayPalDonation.messages.error);
+			// this.showErrorMessage(err.message || giftflowPayPalDonation.messages.error);
 		}
 
 		/**
@@ -289,12 +295,15 @@
 		 * @returns {void}
 		 */
 		showSuccessMessage() {
-			const container = document.getElementById('giftflow-paypal-button-container');
-			if (container) {
-				container.innerHTML = '<p style="text-align: center; padding: 20px; color: green;">' + 
-					'Payment successful!' + 
-					'</p>';
-			}
+			
+			this.formObject.onShowThankYouSection();
+
+			// const container = document.getElementById('giftflow-paypal-button-container');
+			// if (container) {
+			// 	container.innerHTML = '<p style="text-align: center; padding: 20px; color: green; border-radius: 4px; background: #e6f7e6; border: 1px solid #c6f0c6;">' + 
+			// 		'Payment successful!' + 
+			// 		'</p>';
+			// }
 		}
 
 		/**
@@ -304,6 +313,8 @@
 		 * @returns {void}
 		 */
 		showErrorMessage(message) {
+			// this.formObject.onShowErrorSection(message);
+
 			const container = document.getElementById('giftflow-paypal-button-container');
 			if (container) {
 				const errorDiv = document.createElement('div');

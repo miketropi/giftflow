@@ -13,8 +13,6 @@
 
 namespace GiftFlow\Gateways;
 
-use Omnipay\Omnipay;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -23,13 +21,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * PayPal Gateway Class
  */
 class PayPal_Gateway extends Gateway_Base {
-	/**
-	 * Omnipay gateway instance.
-	 *
-	 * @var \Omnipay\PayPal\RestGateway
-	 */
-	private $gateway;
-
 	/**
 	 * Client ID.
 	 *
@@ -68,21 +59,12 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @return void
 	 */
 	protected function ready() {
-		// Initialize Omnipay gateway.
-		$this->init_omnipay_gateway();
+		// Initialize PayPal credentials.
+		$this->client_id = $this->get_client_id();
+		$this->client_secret = $this->get_client_secret();
 
 		// Add PayPal-specific assets.
 		$this->add_paypal_assets();
-	}
-
-	/**
-	 * Initialize Omnipay gateway
-	 *
-	 * @return void
-	 */
-	private function init_omnipay_gateway() {
-		$this->client_id = $this->get_client_id();
-		$this->client_secret = $this->get_client_secret();
 	}
 
 	/**
@@ -329,17 +311,28 @@ class PayPal_Gateway extends Gateway_Base {
 
 			<?php // PayPal buttons container. ?>
 			<div 
-		class="donation-form__field"
-		data-custom-validate="true" 
-		data-custom-validate-status="false" >
-		<div class="donation-form__field-error custom-error-message" style="margin-bottom: 10px;">
-			<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
-			<span class="custom-error-message-text">
-			<?php esc_html_e( 'Please complete the payment process with PayPal.', 'giftflow' ); ?>
-			</span>
-		</div>
+				class="donation-form__field"
+				data-custom-validate="true" 
+				data-custom-validate-status="false" >
+				<div 
+					class="donation-form__field-error custom-error-message" 
+					style="margin-bottom: 10px;align-items: center; justify-content: center;">
+					<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
+					<span class="custom-error-message-text">
+						<?php esc_html_e( 'Please complete the payment process with PayPal.', 'giftflow' ); ?>
+					</span>
+				</div>
 				<div id="giftflow-paypal-button-container"></div>
 			</div>
+			<style>
+				@scope {
+					#giftflow-paypal-button-container {
+						width: 350px;
+						max-width: 100%;
+						margin: 0 auto;
+					}
+				}
+			</style>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -376,7 +369,7 @@ class PayPal_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * Prepare payment data for Omnipay
+	 * Prepare payment data (legacy method - not used with JS SDK v6)
 	 *
 	 * @param array $data Payment data.
 	 * @param int   $donation_id Donation ID.
@@ -414,15 +407,13 @@ class PayPal_Gateway extends Gateway_Base {
 		);
 
 		// Add metadata.
-		if ( method_exists( $this->gateway, 'setMetadata' ) ) {
-			$paypal_data['metadata'] = array(
-				'donation_id' => $donation_id,
-				'campaign_id' => $data['campaign_id'],
-				'donor_email' => sanitize_email( $data['donor_email'] ),
-				'donor_name' => sanitize_text_field( $data['donor_name'] ),
-				'site_url' => home_url(),
-			);
-		}
+		$paypal_data['metadata'] = array(
+			'donation_id' => $donation_id,
+			'campaign_id' => $data['campaign_id'],
+			'donor_email' => sanitize_email( $data['donor_email'] ),
+			'donor_name' => sanitize_text_field( $data['donor_name'] ),
+			'site_url' => home_url(),
+		);
 
 		return apply_filters( 'giftflow_paypal_prepare_payment_data', $paypal_data, $data, $donation_id );
 	}
