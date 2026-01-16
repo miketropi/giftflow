@@ -393,6 +393,12 @@ $mobile: 480px;
         &.error {
           border-color: $error-color;
         }
+
+        &:disabled {
+          background-color: #f0f0f0;
+          // color: #b0b0b0;
+          cursor: not-allowed;
+        }
       }
     }
   }

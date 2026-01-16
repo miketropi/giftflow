@@ -9,7 +9,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
-
 ?>
 
 <form class="donation-form" id="donation-form-<?php echo esc_attr( $campaign_id ); ?>">
@@ -64,7 +63,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<section id="donation-information" class="donation-form__step-panel step-1 is-active">
 				<div class="donation-form__step-panel-content">
 					<!-- Donation Type -->
-					<fieldset class="donation-form__fieldset">
+					<fieldset class="
+					<?php
+					echo implode(
+						' ',
+						array(
+							'donation-form__fieldset',
+							'__count-donation-types-' . count( $donation_types ),
+							count( $donation_types ) === 1 ? '__hidden-fieldset' : '',
+						)
+					);
+					?>
+						">
 						<legend class="donation-form__legend"><?php esc_html_e( 'Select donation type, one-time or monthly', 'giftflow' ); ?></legend>
 						<div class="donation-form__radio-group donation-form__radio-group--donation-type">
 							<?php
@@ -156,7 +166,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 									step="<?php echo esc_attr( apply_filters( 'giftflow_donation_form_amount_step', 1 ) ); ?>" 
 									required 
 									data-validate="<?php echo esc_attr( implode( ',', $validate_attr_value ) ); ?>"
-									data-extra-data='<?php echo esc_attr( wp_json_encode( $extra_data ) ); ?>'>
+									data-extra-data='<?php echo esc_attr( wp_json_encode( $extra_data ) ); ?>'
+									<?php if ( $allow_custom_donation_amounts ) : ?>
+										disabled
+									<?php endif; ?>
+									>
 							</div>
 							<div class="donation-form__preset-amounts">
 								<?php

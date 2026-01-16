@@ -515,6 +515,13 @@ class PayPal_Gateway extends Gateway_Base {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$data = $_POST;
 
+		/**
+		 * Hooks do_action before process donation.
+		 *
+		 * @see giftflow_donation_form_validate_recaptcha - 10
+		 */
+		do_action( 'giftflow_donation_form_before_process_donation', $data );
+
 		// Get donation amount - required.
 		$amount = isset( $data['amount'] ) ? floatval( $data['amount'] ) : 0;
 		if ( ! $amount || $amount <= 0 ) {
@@ -872,6 +879,14 @@ class PayPal_Gateway extends Gateway_Base {
 		$this->log_success( $transaction_id, $donation_id );
 
 		do_action( 'giftflow_paypal_payment_completed', $donation_id, $transaction_id, $response_body );
+
+		/**
+		 * Add hook after payment processed
+
+		 * @see giftflow_send_mail_notification_donation_to_admin - 10
+		 * @see giftflow_auto_create_user_on_donation - 10
+		 */
+		do_action( 'giftflow_donation_after_payment_processed', $donation_id, true );
 
 		return array(
 			'success' => true,

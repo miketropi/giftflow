@@ -1,0 +1,248 @@
+.giftflow-campaign-single-images {
+	margin: 1.5rem 0;
+	width: 100%;
+  
+	// Single Image View
+	&-single {
+		width: 100%;
+
+		.giftflow-campaign-single-images-main {
+			width: 100%;
+			height: auto;
+			display: block;
+			// border-radius: $border-radius;
+			object-fit: cover;
+		}
+	}
+
+	// Placeholder State
+	// &--placeholder {
+	// 	.giftflow-campaign-single-images-placeholder {
+	// 		display: flex;
+	// 		align-items: center;
+	// 		justify-content: center;
+	// 		background: #e8e8e8;
+	// 		// border-radius: $border-radius;
+	// 		color: #aaaaaa;
+	// 		font-size: 0.875rem;
+	// 		text-align: center;
+	// 		user-select: none;
+	// 		aspect-ratio: 3 / 2;
+	// 		min-height: 200px;
+	// 		padding: 2rem;
+	// 	}
+	// }
+
+	// Gallery View
+	&-gallery {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		width: 100%;
+
+		// Main Image Container
+		&-main-container {
+			width: 100%;
+			position: relative;
+			// border-radius: $border-radius;
+			overflow: hidden;
+			background: black;
+			aspect-ratio: 3 / 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+			.giftflow-campaign-single-images-main {
+				width: 100%;
+				height: 100%;
+				display: block;
+				object-fit: cover;
+				object-position: center center;
+				transition: opacity 0.3s ease;
+			}
+		}
+
+		// Thumbnails Container
+		&-thumbnails {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			width: 100%;
+
+			// Individual Thumbnail
+			.giftflow-campaign-single-images-gallery-thumbnail {
+				position: relative;
+				cursor: pointer;
+				// border-radius: $border-radius;
+				overflow: hidden;
+				// border: 2px solid transparent;
+				transition: $transition;
+				background: $background-color;
+				aspect-ratio: 1;
+        width: clamp(80px, 10vw, 120px);
+        height: clamp(80px, 10vw, 120px);
+				flex-shrink: 0;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					display: block;
+					transition: transform 0.3s ease;
+				}
+
+				// Hover State
+				&:hover {
+					border-color: $primary-color;
+					transform: translateY(-2px);
+
+					img {
+						transform: scale(1.05);
+					}
+				}
+
+				// Active State
+				&.active {
+					// border-color: $primary-color;
+					// border-width: 3px;
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+					img {
+						opacity: 1;
+					}
+				}
+
+				// Focus State for Accessibility
+				&:focus {
+					outline: 2px solid $primary-color;
+					outline-offset: 2px;
+				}
+
+				// Inactive State (subtle opacity)
+				&:not(.active) {
+					opacity: 0.7;
+
+					&:hover {
+						opacity: 1;
+					}
+				}
+
+				// Hidden State (for expandable thumbnails)
+				&.giftflow-thumbnail-hidden {
+					display: none;
+				}
+			}
+
+			// Expand Button
+			.giftflow-campaign-single-images-gallery-expand {
+				position: relative;
+				cursor: pointer;
+				overflow: hidden;
+				transition: $transition;
+				background: #f6f6f6;
+				// border: 2px dashed $border-color;
+				aspect-ratio: 1;
+				width: clamp(80px, 10vw, 120px);
+				height: clamp(80px, 10vw, 120px);
+				flex-shrink: 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.25rem;
+				color: #666;
+				user-select: none;
+
+				&-icon {
+					font-size: 1.5rem;
+					font-weight: 300;
+					line-height: 1;
+					transition: transform 0.3s ease;
+				}
+
+				&-count {
+					font-size: 0.75rem;
+					font-weight: 600;
+					line-height: 1;
+				}
+
+				&-text {
+					font-size: 0.8em;
+					line-height: 1;
+					color: $primary-color;
+					font-family: $font-family-monospace;
+          padding: .25em 0;
+          box-sizing: border-box;
+				}
+
+				// Hover State
+				&:hover {
+					border-color: $primary-color;
+					background: rgba(0, 0, 0, 0.06);
+					color: $primary-color;
+
+					.giftflow-campaign-single-images-gallery-expand-icon {
+						transform: scale(1.1);
+					}
+				}
+
+				// Active/Expanded State
+				&.expanded {
+					border-color: $primary-color;
+					background: rgba(0, 0, 0, 0.02);
+					color: $primary-color;
+
+					.giftflow-campaign-single-images-gallery-expand-icon {
+						transform: rotate(45deg);
+					}
+				}
+
+				// Focus State for Accessibility
+				&:focus {
+					outline: 2px solid $primary-color;
+					outline-offset: 2px;
+				}
+			}
+		}
+	}
+
+	// Responsive Design
+	@media (min-width: 768px) {
+		&-gallery {
+			&-thumbnails {
+				.giftflow-campaign-single-images-gallery-thumbnail,
+				.giftflow-campaign-single-images-gallery-expand {
+					width: 100px;
+					height: 100px;
+				}
+			}
+		}
+	}
+
+	@media (min-width: 1024px) {
+		&-gallery {
+			&-thumbnails {
+				.giftflow-campaign-single-images-gallery-thumbnail,
+				.giftflow-campaign-single-images-gallery-expand {
+					width: 120px;
+					height: 120px;
+				}
+			}
+		}
+	}
+
+	// Loading State (for future enhancement)
+	&--loading {
+		.giftflow-campaign-single-images-main {
+			opacity: 0.5;
+		}
+	}
+}
+
+// Ensure images are responsive
+.giftflow-campaign-single-images {
+	img {
+		max-width: 100%;
+		height: auto;
+	}
+}

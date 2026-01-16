@@ -142,19 +142,14 @@
                               '0';
 
         // Prepare request data with all donation information
-        const requestData = {
-          action: 'giftflow_paypal_create_order',
-          nonce: giftflowPayPalDonation.nonce,
-          amount: donationAmount,
-          donor_name: formData.get('donor_name') || this.formObject.fields?.donor_name || '',
-          donor_email: formData.get('donor_email') || this.formObject.fields?.donor_email || '',
-          campaign_id: formData.get('campaign_id') || this.formObject.fields?.campaign_id || '',
-          donation_type: formData.get('donation_type') || this.formObject.fields?.donation_type || '',
-          recurring_interval: formData.get('recurring_interval') || this.formObject.fields?.recurring_interval || '',
-          donor_message: formData.get('donor_message') || this.formObject.fields?.donor_message || '',
-          anonymous_donation: formData.get('anonymous_donation') || this.formObject.fields?.anonymous_donation || '',
-        };
-
+				const fields = this.formObject.getFields() || {};
+				const requestData = {
+					...fields,
+					action: 'giftflow_paypal_create_order',
+					nonce: giftflowPayPalDonation.nonce,
+					amount: fields?.donation_amount || '0',
+				};
+				
         // Make AJAX request
         const response = await fetch(giftflowPayPalDonation.ajaxurl, {
           method: 'POST',
@@ -277,9 +272,9 @@
 		 * @returns {void}
 		 */
 		showProcessingMessage() {
-			const container = document.getElementById('giftflow-paypal-button-container');
+			const container = this.form.querySelector('#giftflow-paypal-button-container');
 			if (container) {
-				container.innerHTML = '<p style="text-align: center; padding: 20px;">' + 
+				container.innerHTML = '<p style="text-align: center; padding: 20px; color: #000; border-radius: 4px; background: #f0f0f0; border: 1px solid #e0e0e0;">' + 
 					giftflowPayPalDonation.messages.processing + 
 					'</p>';
 			}
@@ -311,7 +306,7 @@
 		showErrorMessage(message) {
 			// this.formObject.onShowErrorSection(message);
 
-			const container = document.getElementById('giftflow-paypal-button-container');
+			const container = this.form.querySelector('#giftflow-paypal-button-container');
 			if (container) {
 				const errorDiv = document.createElement('div');
 				errorDiv.className = 'paypal-error-message';

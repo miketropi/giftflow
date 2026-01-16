@@ -1554,7 +1554,8 @@ function _regeneratorDefine2(e, r, n, t) {
                 new donationForm(form, options);
               });
             }
-            console.log('Donation forms initialized via custom event');
+
+            // console.log('Donation forms initialized via custom event');
           });
           initDonationForm = function initDonationForm(formSelector, options) {
             document.dispatchEvent(new CustomEvent('initDonationForm', {

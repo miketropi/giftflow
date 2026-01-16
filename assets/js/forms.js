@@ -536,7 +536,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 			});
 		}
 		
-		console.log('Donation forms initialized via custom event');
+		// console.log('Donation forms initialized via custom event');
 	});
 
 	const initDonationForm = (formSelector, options) => {

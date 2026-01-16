@@ -85,6 +85,30 @@ function _createClass(e, r, t) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/defineProperty.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _defineProperty)
+/* harmony export */ });
+/* harmony import */ var _toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./toPropertyKey.js */ "./node_modules/@babel/runtime/helpers/esm/toPropertyKey.js");
+
+function _defineProperty(e, r, t) {
+  return (r = (0,_toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r)) in e ? Object.defineProperty(e, r, {
+    value: t,
+    enumerable: !0,
+    configurable: !0,
+    writable: !0
+  }) : e[r] = t, e;
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/toPrimitive.js":
 /*!****************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/toPrimitive.js ***!
@@ -219,12 +243,35 @@ var __webpack_exports__ = {};
   !*** ./assets/js/paypal-donation.js ***!
   \**************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
 
 
 
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
 function _regenerator() {
   /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
     t,
@@ -350,7 +397,7 @@ function _regeneratorDefine2(e, r, n, t) {
      * @returns {void}
      */
     function PayPalDonation(form, formObject) {
-      (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, PayPalDonation);
+      (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_2__["default"])(this, PayPalDonation);
       this.form = form;
       this.formObject = formObject;
       this.paypalButtons = null;
@@ -363,10 +410,10 @@ function _regeneratorDefine2(e, r, n, t) {
      * 
      * @returns {void}
      */
-    return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(PayPalDonation, [{
+    return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_3__["default"])(PayPalDonation, [{
       key: "init",
       value: function () {
-        var _init = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee4() {
+        var _init = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee4() {
           var _this = this;
           var self, paymentMethodInput, container, paymentMethodInputs;
           return _regenerator().w(function (_context4) {
@@ -417,7 +464,7 @@ function _regeneratorDefine2(e, r, n, t) {
                       label: 'paypal'
                     },
                     createOrder: function () {
-                      var _createOrder = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(data, actions) {
+                      var _createOrder = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee(data, actions) {
                         return _regenerator().w(function (_context) {
                           while (1) switch (_context.n) {
                             case 0:
@@ -434,7 +481,7 @@ function _regeneratorDefine2(e, r, n, t) {
                       return createOrder;
                     }(),
                     onApprove: function () {
-                      var _onApprove = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data, actions) {
+                      var _onApprove = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data, actions) {
                         return _regenerator().w(function (_context2) {
                           while (1) switch (_context2.n) {
                             case 0:
@@ -491,7 +538,7 @@ function _regeneratorDefine2(e, r, n, t) {
 
                 // add event listener to form using event hub.
                 self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
-                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee3(_ref) {
+                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee3(_ref) {
                     var self, fields;
                     return _regenerator().w(function (_context3) {
                       while (1) switch (_context3.n) {
@@ -529,8 +576,8 @@ function _regeneratorDefine2(e, r, n, t) {
     }, {
       key: "createOrder",
       value: function () {
-        var _createOrder2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee5() {
-          var _this$formObject$fiel, _this$formObject$fiel2, _this$formObject$fiel3, _this$formObject$fiel4, _this$formObject$fiel5, _this$formObject$fiel6, _this$formObject$fiel7, _this$formObject$fiel8, formData, donationAmount, requestData, response, result, _result$data, _t;
+        var _createOrder2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee5() {
+          var _this$formObject$fiel, formData, donationAmount, fields, requestData, response, result, _result$data, _t;
           return _regenerator().w(function (_context5) {
             while (1) switch (_context5.p = _context5.n) {
               case 0:
@@ -538,18 +585,12 @@ function _regeneratorDefine2(e, r, n, t) {
                 // Get form data
                 formData = new FormData(this.form);
                 donationAmount = formData.get('donation_amount') || ((_this$formObject$fiel = this.formObject.fields) === null || _this$formObject$fiel === void 0 ? void 0 : _this$formObject$fiel.donation_amount) || '0'; // Prepare request data with all donation information
-                requestData = {
+                fields = this.formObject.getFields() || {};
+                requestData = _objectSpread(_objectSpread({}, fields), {}, {
                   action: 'giftflow_paypal_create_order',
                   nonce: giftflowPayPalDonation.nonce,
-                  amount: donationAmount,
-                  donor_name: formData.get('donor_name') || ((_this$formObject$fiel2 = this.formObject.fields) === null || _this$formObject$fiel2 === void 0 ? void 0 : _this$formObject$fiel2.donor_name) || '',
-                  donor_email: formData.get('donor_email') || ((_this$formObject$fiel3 = this.formObject.fields) === null || _this$formObject$fiel3 === void 0 ? void 0 : _this$formObject$fiel3.donor_email) || '',
-                  campaign_id: formData.get('campaign_id') || ((_this$formObject$fiel4 = this.formObject.fields) === null || _this$formObject$fiel4 === void 0 ? void 0 : _this$formObject$fiel4.campaign_id) || '',
-                  donation_type: formData.get('donation_type') || ((_this$formObject$fiel5 = this.formObject.fields) === null || _this$formObject$fiel5 === void 0 ? void 0 : _this$formObject$fiel5.donation_type) || '',
-                  recurring_interval: formData.get('recurring_interval') || ((_this$formObject$fiel6 = this.formObject.fields) === null || _this$formObject$fiel6 === void 0 ? void 0 : _this$formObject$fiel6.recurring_interval) || '',
-                  donor_message: formData.get('donor_message') || ((_this$formObject$fiel7 = this.formObject.fields) === null || _this$formObject$fiel7 === void 0 ? void 0 : _this$formObject$fiel7.donor_message) || '',
-                  anonymous_donation: formData.get('anonymous_donation') || ((_this$formObject$fiel8 = this.formObject.fields) === null || _this$formObject$fiel8 === void 0 ? void 0 : _this$formObject$fiel8.anonymous_donation) || ''
-                }; // Make AJAX request
+                  amount: (fields === null || fields === void 0 ? void 0 : fields.donation_amount) || '0'
+                }); // Make AJAX request
                 _context5.n = 1;
                 return fetch(giftflowPayPalDonation.ajaxurl, {
                   method: 'POST',
@@ -595,7 +636,7 @@ function _regeneratorDefine2(e, r, n, t) {
     }, {
       key: "onApprove",
       value: function () {
-        var _onApprove2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee6(data) {
+        var _onApprove2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__["default"])(/*#__PURE__*/_regenerator().m(function _callee6(data) {
           var _result$data3, requestData, response, result, _result$data2, donationIdInput, hiddenInput, _t2;
           return _regenerator().w(function (_context6) {
             while (1) switch (_context6.p = _context6.n) {
@@ -710,9 +751,9 @@ function _regeneratorDefine2(e, r, n, t) {
     }, {
       key: "showProcessingMessage",
       value: function showProcessingMessage() {
-        var container = document.getElementById('giftflow-paypal-button-container');
+        var container = this.form.querySelector('#giftflow-paypal-button-container');
         if (container) {
-          container.innerHTML = '<p style="text-align: center; padding: 20px;">' + giftflowPayPalDonation.messages.processing + '</p>';
+          container.innerHTML = '<p style="text-align: center; padding: 20px; color: #000; border-radius: 4px; background: #f0f0f0; border: 1px solid #e0e0e0;">' + giftflowPayPalDonation.messages.processing + '</p>';
         }
       }
 
@@ -746,7 +787,7 @@ function _regeneratorDefine2(e, r, n, t) {
         var _this2 = this;
         // this.formObject.onShowErrorSection(message);
 
-        var container = document.getElementById('giftflow-paypal-button-container');
+        var container = this.form.querySelector('#giftflow-paypal-button-container');
         if (container) {
           var errorDiv = document.createElement('div');
           errorDiv.className = 'paypal-error-message';

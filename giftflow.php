@@ -4,8 +4,8 @@
  * Plugin URI: https://giftflow.com
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
  * Version: 1.0.1
- * Author: GiftFlow Team
- * Author URI: https://giftflow.com
+ * Author: Beplus
+ * Author URI: https://giftflow.beplus.com
  * Text Domain: giftflow
  * Domain Path: /languages
  * Requires at least: 6.0
@@ -129,10 +129,10 @@ register_activation_hook( __FILE__, 'giftflow_activate' );
  */
 function giftflow_activate() {
 	// Check PHP version.
-	if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+	if ( version_compare( PHP_VERSION, '8.2', '<' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'GiftFlow requires PHP 7.4 or higher.', 'giftflow' ),
+			esc_html__( 'GiftFlow requires PHP 8.2 or higher.', 'giftflow' ),
 			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);
@@ -180,6 +180,12 @@ add_action( 'admin_bar_menu', 'giftflow_admin_bar_item', 100 );
  * @return void
  */
 function giftflow_admin_bar_item( $wp_admin_bar ) {
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		// Do not add admin bar items if user is not allowed.
+		return;
+	}
+
 	// Add parent item.
 	$args = array(
 		'id'    => 'giftflow_admin_bar_item',
