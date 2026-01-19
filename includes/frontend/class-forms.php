@@ -11,6 +11,10 @@ namespace GiftFlow\Frontend;
 use GiftFlow\Core\Base;
 use GiftFlow\Core\Donations;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Handles donation form functionality
  */

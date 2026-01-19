@@ -14,6 +14,10 @@ namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Donations;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Direct Bank Transfer Gateway Class
  */

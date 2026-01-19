@@ -9,140 +9,15 @@
  * @subpackage Gateways
  * @since 1.0.0
  * @version 1.0.0
- *
- * USAGE GUIDE:
- * ============
- *
- * 1. CREATING A NEW GATEWAY:
- * --------------------------
- * ```php
- * namespace GiftFlow\Gateways;
- *
- * class My_Gateway extends Gateway_Base {
- *
- *     protected function init_gateway() {
- *         $this->id = 'my_gateway';
- *         $this->title = __('My Gateway', 'giftflow');
- *         $this->description = __('Accept payments via My Gateway', 'giftflow');
- *         $this->icon = 'path/to/icon.png';
- *         $this->order = 20;
- *         $this->supports = array('refunds', 'subscriptions');
- *
- *         // Add scripts and styles
- *         $this->add_script('my-gateway-js', array(
- *             'src' => GIFTFLOW_PLUGIN_URL . 'assets/js/my-gateway.js',
- *             'deps' => array('jquery'),
- *             'frontend' => true,
- *             'localize' => array(
- *                 'name' => 'myGatewayData',
- *                 'data' => array('apiKey' => $this->get_setting('api_key'))
- *             )
- *         ));
- *     }
- *
- *     protected function register_settings_fields() {
- *         return array(
- *             'enabled' => array(
- *                 'title' => __('Enable', 'giftflow'),
- *                 'type' => 'checkbox',
- *             ),
- *             'api_key' => array(
- *                 'title' => __('API Key', 'giftflow'),
- *                 'type' => 'password',
- *             ),
- *         );
- *     }
- *
- *     public function process_payment($data, $donation_id = 0) {
- *         // Payment processing logic here
- *         return array('success' => true, 'transaction_id' => '123');
- *     }
- * }
- * ```
- *
- * 2. INITIALIZING GATEWAYS:
- * -------------------------
- * ```php
- * // In your main plugin file or init hook
- * add_action('init', function() {
- *     Gateway_Base::init_gateways();
- * });
- *
- * // Register gateways
- * add_action('giftflow_register_gateways', function() {
- *     new \GiftFlow\Gateways\Stripe_Gateway();
- *     new \GiftFlow\Gateways\PayPal_Gateway();
- *     new \GiftFlow\Gateways\My_Gateway();
- * });
- * ```
- *
- * 3. GETTING GATEWAYS:
- * --------------------
- * ```php
- * // Get all registered gateways
- * $gateways = Gateway_Base::get_registered_gateways();
- *
- * // Get specific gateway
- * $stripe = Gateway_Base::get_gateway('stripe');
- * if ($stripe && $stripe->is_enabled()) {
- *     $result = $stripe->process_payment($data, $donation_id);
- * }
- * ```
- *
- * 4. AVAILABLE HOOKS & FILTERS:
- * -----------------------------
- * Actions:
- * - giftflow_register_gateways - Register custom gateways
- * - giftflow_gateway_init_hooks - After gateway hooks initialization
- * - giftflow_gateway_registered - After gateway registration
- * - giftflow_gateway_settings_saved - After settings saved
- * - giftflow_gateways_initialized - After all gateways initialized
- * - giftflow_gateway_enqueue_frontend_assets - Additional frontend assets
- * - giftflow_gateway_enqueue_admin_assets - Additional admin assets
- *
- * Filters:
- * - giftflow_payment_gateways - Modify gateways list
- *
- * 5. ASSET MANAGEMENT:
- * --------------------
- * ```php
- * // Add scripts in init_gateway()
- * $this->add_script('my-script', array(
- *     'src' => 'path/to/script.js',
- *     'deps' => array('jquery'),
- *     'version' => '1.0.0',
- *     'frontend' => true,  // Load on frontend
- *     'admin' => false,    // Don't load in admin
- *     'in_footer' => true,
- *     'localize' => array(
- *         'name' => 'myData',
- *         'data' => array('key' => 'value')
- *     )
- * ));
- *
- * // Add styles
- * $this->add_style('my-style', array(
- *     'src' => 'path/to/style.css',
- *     'deps' => array(),
- *     'frontend' => true,
- *     'admin' => true
- * ));
- * ```
- *
- *
- * 7. EXTENDING FUNCTIONALITY:
- * ---------------------------
- * ```php
- * // Add custom hooks in child class
- * protected function init_additional_hooks() {
- *     add_action('wp_ajax_my_gateway_webhook', array($this, 'handle_webhook'));
- *     add_filter('my_gateway_custom_filter', array($this, 'custom_filter'));
- * }
  */
 
 namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Base;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Base class for payment gateways

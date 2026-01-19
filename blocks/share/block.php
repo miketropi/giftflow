@@ -5,6 +5,10 @@
  * @package GiftFlow
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Register share block.
  *
