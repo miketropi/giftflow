@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "mix watch",
     "build": "mix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build:package": "node ./build-package.js"
   },
   "keywords": [],
   "author": "",
