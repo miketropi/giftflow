@@ -100,13 +100,29 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 				$image_full_url = wp_get_attachment_image_url( $image_id, 'full' );
 				$image_alt = get_post_meta( $image_id, '_wp_attachment_image_alt', true );
 				$image_alt = ! empty( $image_alt ) ? $image_alt : get_the_title( $post_id );
+				$image_width = get_post_meta( $image_id, '_wp_attachment_metadata', true )['width'] ?? 0;
+				$image_height = get_post_meta( $image_id, '_wp_attachment_metadata', true )['height'] ?? 0;
 				?>
 				<img 
 					src="<?php echo esc_url( $image_url ); ?>" 
 					alt="<?php echo esc_attr( $image_alt ); ?>"
-					class="giftflow-campaign-single-images-main"
+					class="giftflow-campaign-single-images-main "
+					loading="lazy"
 					data-full-url="<?php echo esc_url( $image_full_url ); ?>"
+					data-pswp-src="<?php echo esc_url( $image_full_url ); ?>"
+					data-pswp-width="<?php echo esc_attr( $image_width ); ?>"
+					data-pswp-height="<?php echo esc_attr( $image_height ); ?>"
 				/>
+
+				<button  
+					type="button"
+					class="giftflow-campaign-single-images-lightbox-open-btn"
+					aria-label="<?php esc_attr_e( 'Open image gallery in lightbox', 'giftflow' ); ?>"
+					title="<?php esc_attr_e( 'Open gallery', 'giftflow' ); ?>"
+					data-open-lightbox="true"
+				>
+					<?php echo wp_kses( giftflow_svg_icon( 'expand' ), giftflow_allowed_svg_tags() ); ?>
+				</button>
 			</div>
 		<?php else : ?>
 			<!-- Gallery with Main Image and Thumbnails -->
@@ -119,14 +135,35 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 					$main_image_full_url = wp_get_attachment_image_url( $main_image_id, 'full' );
 					$main_image_alt = get_post_meta( $main_image_id, '_wp_attachment_image_alt', true );
 					$main_image_alt = ! empty( $main_image_alt ) ? $main_image_alt : get_the_title( $post_id );
+					$main_image_width = get_post_meta( $main_image_id, '_wp_attachment_metadata', true )['width'] ?? 0;
+					$main_image_height = get_post_meta( $main_image_id, '_wp_attachment_metadata', true )['height'] ?? 0;
 					?>
-					<img 
-						src="<?php echo esc_url( $main_image_url ); ?>" 
-						alt="<?php echo esc_attr( $main_image_alt ); ?>"
-						class="giftflow-campaign-single-images-main"
-						data-full-url="<?php echo esc_url( $main_image_full_url ); ?>"
-						data-image-id="<?php echo esc_attr( $main_image_id ); ?>"
-					/>
+					<span>
+						<img 
+							src="<?php echo esc_url( $main_image_url ); ?>" 
+							alt="<?php echo esc_attr( $main_image_alt ); ?>"
+							class="giftflow-campaign-single-images-main"
+							loading="lazy"
+							data-full-url="<?php echo esc_url( $main_image_full_url ); ?>"
+							data-image-id="<?php echo esc_attr( $main_image_id ); ?>"
+						/>
+					</span>
+					<button 
+						type="button"
+						class="giftflow-campaign-single-images-lightbox-open-btn"
+						aria-label="<?php esc_attr_e( 'Open image gallery in lightbox', 'giftflow' ); ?>"
+						title="<?php esc_attr_e( 'Open gallery', 'giftflow' ); ?>"
+						data-open-lightbox="true"
+					>
+						<?php
+							// Use a dashicon or custom SVG (fallback to text).
+						if ( function_exists( 'giftflow_svg_icon' ) ) {
+							echo wp_kses( giftflow_svg_icon( 'expand' ), giftflow_allowed_svg_tags() );
+						} else {
+							echo '&#128065;'; // eye icon as unicode fallback.
+						}
+						?>
+					</button>
 				</div>
 
 				<!-- Thumbnails -->
@@ -147,6 +184,8 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 							$is_active = 0 === $index ? 'active' : '';
 							// Hide thumbnails beyond the first 3 initially.
 							$is_hidden = $has_more && $index >= $max_visible ? 'giftflow-thumbnail-hidden' : '';
+							$image_width = get_post_meta( $image_id, '_wp_attachment_metadata', true )['width'] ?? 0;
+							$image_height = get_post_meta( $image_id, '_wp_attachment_metadata', true )['height'] ?? 0;
 							?>
 							<div 
 								class="giftflow-campaign-single-images-gallery-thumbnail <?php echo esc_attr( $is_active ); ?> <?php echo esc_attr( $is_hidden ); ?>"
@@ -158,6 +197,11 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 								<img 
 									src="<?php echo esc_url( $thumb_url ); ?>" 
 									alt="<?php echo esc_attr( $image_alt ); ?>"
+									class="giftflow-campaign-single-images-image"
+									loading="lazy"
+									data-pswp-src="<?php echo esc_url( $image_full_url ); ?>"
+									data-pswp-width="<?php echo esc_attr( $image_width ); ?>"
+									data-pswp-height="<?php echo esc_attr( $image_height ); ?>"
 								/>
 							</div>
 						<?php endforeach; ?>
@@ -242,6 +286,9 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 						expandButton.classList.add('expanded');
 						expandButton.setAttribute('aria-label', expandButton.dataset.collapseLabel || '<?php echo esc_js( __( 'Show fewer images', 'giftflow' ) ); ?>');
 					}
+
+					// remove expandButton
+					expandButton.remove();
 				};
 
 				// Store labels for accessibility.
