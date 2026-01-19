@@ -261,7 +261,10 @@ class PayPal_Gateway extends Gateway_Base {
 						'description' =>
 							esc_html__( 'Enable webhooks for payment status updates.', 'giftflow' ) . '<br>' .
 							esc_html__( 'Webhook URL:', 'giftflow' ) . ' <code>' . admin_url( 'admin-ajax.php?action=giftflow_paypal_webhook' ) . '</code><br>' .
-							__( 'Recommended PayPal events: <strong>Payments > Payout completed</strong>, <strong>Payments > Payout denied</strong>, <strong>Payments > Payout refunded</strong>, <strong>Checkout > approved</strong>, <strong>Checkout > completed</strong>.', 'giftflow' ),
+							__(
+								'Recommended PayPal events: <strong>Checkout order approved</strong>, <strong>Checkout order completed</strong>, <strong>Payment capture completed</strong>, <strong>Payment capture denied</strong>, <strong>Payment capture refunded</strong>.',
+								'giftflow'
+							),
 					),
 				),
 			),
