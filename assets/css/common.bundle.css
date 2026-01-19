@@ -1948,6 +1948,202 @@
     font-size: 0.85rem;
   }
 }
+.gfw-login-form {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border: 1px solid var(--giftflow-border-color);
+  border-radius: var(--giftflow-border-radius);
+}
+@media (max-width: 768px) {
+  .gfw-login-form {
+    max-width: 100%;
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .gfw-login-form {
+    padding: 1.25rem;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+}
+.gfw-login-form form {
+  margin: 0;
+}
+.gfw-login-form p {
+  margin: 0 0 1.25rem 0;
+}
+.gfw-login-form p:last-of-type {
+  margin-bottom: 0;
+}
+.gfw-login-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--giftflow-text-color);
+  line-height: 1.5;
+}
+input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[type=checkbox]) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.gfw-login-form .input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--giftflow-border-color);
+  border-radius: var(--giftflow-border-radius);
+  background-color: white;
+  color: var(--giftflow-text-color);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: var(--giftflow-transition);
+  box-sizing: border-box;
+}
+.gfw-login-form .input:focus {
+  outline: none;
+  border-color: var(--giftflow-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+.gfw-login-form .input::-moz-placeholder {
+  color: var(--giftflow-text-light);
+  opacity: 0.6;
+}
+.gfw-login-form .input::placeholder {
+  color: var(--giftflow-text-light);
+  opacity: 0.6;
+}
+.gfw-login-form .input.error {
+  border-color: var(--giftflow-error-color);
+}
+.gfw-login-form .login-username label {
+  font-weight: 500;
+}
+.gfw-login-form .login-password label {
+  font-weight: 500;
+}
+.gfw-login-form .login-remember {
+  margin-bottom: 1.5rem;
+}
+.gfw-login-form .login-remember label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  font-size: 0.95rem;
+  color: var(--giftflow-text-color);
+}
+.gfw-login-form .login-remember input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--giftflow-primary-color);
+  flex-shrink: 0;
+}
+.gfw-login-form .login-remember input[type=checkbox]:focus {
+  outline: 2px solid var(--giftflow-primary-color);
+  outline-offset: 2px;
+}
+.gfw-login-form .login-submit {
+  margin-top: 1.5rem;
+}
+.gfw-login-form .button,
+.gfw-login-form .button-primary,
+.gfw-login-form #wp-submit {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background-color: var(--giftflow-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--giftflow-border-radius);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: var(--giftflow-transition);
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  box-sizing: border-box;
+}
+.gfw-login-form .button:hover,
+.gfw-login-form .button-primary:hover,
+.gfw-login-form #wp-submit:hover {
+  background-color: rgba(0, 0, 0, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.gfw-login-form .button:focus,
+.gfw-login-form .button-primary:focus,
+.gfw-login-form #wp-submit:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+.gfw-login-form .button:active,
+.gfw-login-form .button-primary:active,
+.gfw-login-form #wp-submit:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.gfw-login-form .button:disabled,
+.gfw-login-form .button-primary:disabled,
+.gfw-login-form #wp-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.gfw-login-form .login-error,
+.gfw-login-form .message {
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--giftflow-border-radius);
+  color: var(--giftflow-error-color);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.gfw-login-form .login-success,
+.gfw-login-form .message.success {
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--giftflow-border-radius);
+  color: var(--giftflow-success-color);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.gfw-login-form a {
+  color: var(--giftflow-primary-color);
+  text-decoration: none;
+  transition: var(--giftflow-transition);
+}
+.gfw-login-form a:hover {
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+}
+.gfw-login-form a:focus {
+  outline: 2px solid var(--giftflow-primary-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .gfw-donor-account__title {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;

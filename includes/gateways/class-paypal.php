@@ -333,6 +333,12 @@ class PayPal_Gateway extends Gateway_Base {
 						max-width: 100%;
 						margin: 0 auto;
 					}
+
+					@media(max-width: 512px) {
+						#giftflow-paypal-button-container {
+							width: 100%;
+						}
+					}
 				}
 			</style>
 		</div>
