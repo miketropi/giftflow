@@ -76,6 +76,7 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 	// If no images, return empty.
 	if ( empty( $all_image_ids ) ) {
 		// Render a semantic HTML placeholder when there are no images.
+		ob_start();
 		?>
 		<div class="giftflow-campaign-single-images giftflow-campaign-single-images--placeholder"
 			aria-label="<?php esc_attr_e( 'No images available', 'giftflow' ); ?>">
