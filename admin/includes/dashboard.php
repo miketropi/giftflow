@@ -20,16 +20,13 @@ require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/dashboard-functions.php';
  * @return void
  */
 function giftflow_register_dashboard_page() {
-	// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-	$icon_base64 = base64_encode( giftflow_svg_icon( 'plgicon' ) );
 	add_menu_page(
 		__( 'GiftFlow Dashboard', 'giftflow' ),
 		__( 'GiftFlow', 'giftflow' ),
 		'manage_options',
 		'giftflow-dashboard',
 		'giftflow_dashboard_page',
-		'data:image/svg+xml;base64,' . $icon_base64,
-		// 'dashicons-heart',
+		'dashicons-heart',
 		30
 	);
 
