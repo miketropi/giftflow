@@ -157,6 +157,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							?>
 							<div class="donation-form__amount-input">
 								<span class="donation-form__currency"><?php echo esc_html( $currency_symbol ); ?></span>
+								
 								<input 
 									type="number" 
 									name="donation_amount" 
@@ -167,7 +168,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 									required 
 									data-validate="<?php echo esc_attr( implode( ',', $validate_attr_value ) ); ?>"
 									data-extra-data='<?php echo esc_attr( wp_json_encode( $extra_data ) ); ?>'
-									<?php if ( $allow_custom_donation_amounts ) : ?>
+									<?php if ( ! $allow_custom_donation_amounts ) : ?>
 										disabled
 									<?php endif; ?>
 									>
