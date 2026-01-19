@@ -1152,3 +1152,14 @@
     padding: 0.625rem;
   }
 }
+
+.giftflow-campaign-not-ready-msg {
+  padding: 24px;
+  text-align: center;
+  color: #b71c1c;
+  background: #fbebeb;
+  border: 1px solid #ffe0e0;
+  border-radius: 8px;
+  margin: 1em auto;
+  font-size: 0.9em;
+}

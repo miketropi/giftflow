@@ -9,6 +9,17 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+if ( count( $donation_types ) === 0 ) {
+	echo '<div class="giftflow-campaign-not-ready-msg">';
+	echo esc_html__( 'This campaign is not ready for donation. Please contact the campaign owner to get more information.', 'giftflow' );
+	if ( current_user_can( 'manage_options' ) && is_user_logged_in() ) {
+		echo esc_html__( ' — As an admin, double-check your campaign\'s enabled donation types ("One-Time" or "Recurring [pro]").', 'giftflow' );
+	}
+	echo '</div>';
+	return;
+}
+
 ?>
 
 <form class="donation-form" id="donation-form-<?php echo esc_attr( $campaign_id ); ?>">
