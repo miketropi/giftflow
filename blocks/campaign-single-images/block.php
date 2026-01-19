@@ -106,7 +106,7 @@ function giftflow_campaign_single_images_block_render( $attributes, $content, $b
 				<img 
 					src="<?php echo esc_url( $image_url ); ?>" 
 					alt="<?php echo esc_attr( $image_alt ); ?>"
-					class="giftflow-campaign-single-images-main "
+					class="giftflow-campaign-single-images-main giftflow-campaign-single-images-image"
 					loading="lazy"
 					data-full-url="<?php echo esc_url( $image_full_url ); ?>"
 					data-pswp-src="<?php echo esc_url( $image_full_url ); ?>"
