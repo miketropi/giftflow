@@ -7,12 +7,17 @@ import './util/modal.js';
 import { replaceContentBySelector } from './util/helpers.js';
 import donationButton_Handle from './util/donation-button.js';
 
-((w, $) => {
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+// photoswipe
+import PhotoSwipe from 'photoswipe';
+import 'photoswipe/style.css';
+
+((w, $) => { 
   "use strict"
   const { ajax_url, nonce } = giftflow_common;
 
   w.giftflow = w.giftflow || {}
-  const gfw = w.giftflow
+  const gfw = w.giftflow 
 
   // load donation list
   gfw.loadDonationListPaginationTemplate_Handle = async function (elem) {
@@ -57,5 +62,38 @@ import donationButton_Handle from './util/donation-button.js';
   }
 
   gfw.donationButton_Handle = donationButton_Handle;
+
+  // lightbox
+  gfw.lightbox_initialize = function() {
+    const galleryElements = document.querySelector('.giftflow-campaign-single-images:not(.giftflow-campaign-single-images--placeholder)');
+
+    if(!galleryElements || galleryElements.length === 0) {
+      return;
+    }
+
+    const sourceData = Array.from(galleryElements.querySelectorAll('.giftflow-campaign-single-images-image')).map(element => {
+      return {
+        src: element.dataset.pswpSrc,
+        width: element.dataset.pswpWidth,
+        height: element.dataset.pswpHeight,
+      }
+    });
+
+    const lightbox = new PhotoSwipeLightbox({
+      dataSource: sourceData,
+      pswpModule: PhotoSwipe
+    });
+
+    lightbox.init(); 
+
+    galleryElements.querySelector('.giftflow-campaign-single-images-lightbox-open-btn').addEventListener('click', function() {
+      lightbox.loadAndOpen(); 
+    });
+  }
+
+  // dom loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    gfw.lightbox_initialize();
+  });
 
 })(window, jQuery)

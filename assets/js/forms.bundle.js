@@ -2,6 +2,310 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./assets/js/util/async-event-hub.js":
+/*!*******************************************!*\
+  !*** ./assets/js/util/async-event-hub.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AsyncEventHub: () => (/* binding */ AsyncEventHub)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+
+
+
+function _regenerator() {
+  /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
+    t,
+    r = "function" == typeof Symbol ? Symbol : {},
+    n = r.iterator || "@@iterator",
+    o = r.toStringTag || "@@toStringTag";
+  function i(r, n, o, i) {
+    var c = n && n.prototype instanceof Generator ? n : Generator,
+      u = Object.create(c.prototype);
+    return _regeneratorDefine2(u, "_invoke", function (r, n, o) {
+      var i,
+        c,
+        u,
+        f = 0,
+        p = o || [],
+        y = !1,
+        G = {
+          p: 0,
+          n: 0,
+          v: e,
+          a: d,
+          f: d.bind(e, 4),
+          d: function d(t, r) {
+            return i = t, c = 0, u = e, G.n = r, a;
+          }
+        };
+      function d(r, n) {
+        for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) {
+          var o,
+            i = p[t],
+            d = G.p,
+            l = i[2];
+          r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0));
+        }
+        if (o || r > 1) return a;
+        throw y = !0, n;
+      }
+      return function (o, p, l) {
+        if (f > 1) throw TypeError("Generator is already running");
+        for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) {
+          i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u);
+          try {
+            if (f = 2, i) {
+              if (c || (o = "next"), t = i[o]) {
+                if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object");
+                if (!t.done) return t;
+                u = t.value, c < 2 && (c = 0);
+              } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1);
+              i = e;
+            } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break;
+          } catch (t) {
+            i = e, c = 1, u = t;
+          } finally {
+            f = 1;
+          }
+        }
+        return {
+          value: t,
+          done: y
+        };
+      };
+    }(r, o, i), !0), u;
+  }
+  var a = {};
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+  t = Object.getPrototypeOf;
+  var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () {
+      return this;
+    }), t),
+    u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c);
+  function f(e) {
+    return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e;
+  }
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () {
+    return this;
+  }), _regeneratorDefine2(u, "toString", function () {
+    return "[object Generator]";
+  }), (_regenerator = function _regenerator() {
+    return {
+      w: i,
+      m: f
+    };
+  })();
+}
+function _regeneratorDefine2(e, r, n, t) {
+  var i = Object.defineProperty;
+  try {
+    i({}, "", {});
+  } catch (e) {
+    i = 0;
+  }
+  _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) {
+    function o(r, n) {
+      _regeneratorDefine2(e, r, function (e) {
+        return this._invoke(r, n, e);
+      });
+    }
+    r ? i ? i(e, r, {
+      value: n,
+      enumerable: !t,
+      configurable: !t,
+      writable: !t
+    }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2));
+  }, _regeneratorDefine2(e, r, n, t);
+}
+function _createForOfIteratorHelper(r, e) {
+  var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (!t) {
+    if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) {
+      t && (r = t);
+      var _n = 0,
+        F = function F() {};
+      return {
+        s: F,
+        n: function n() {
+          return _n >= r.length ? {
+            done: !0
+          } : {
+            done: !1,
+            value: r[_n++]
+          };
+        },
+        e: function e(r) {
+          throw r;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var o,
+    a = !0,
+    u = !1;
+  return {
+    s: function s() {
+      t = t.call(r);
+    },
+    n: function n() {
+      var r = t.next();
+      return a = r.done, r;
+    },
+    e: function e(r) {
+      u = !0, o = r;
+    },
+    f: function f() {
+      try {
+        a || null == t["return"] || t["return"]();
+      } finally {
+        if (u) throw o;
+      }
+    }
+  };
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
+}
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+/**
+ * AsyncEventHub is a class that allows you to register and emit events asynchronously.
+ * 
+ * @since 1.0.0
+ * @author GiftFlow
+ */
+
+var AsyncEventHub = /*#__PURE__*/function () {
+  function AsyncEventHub() {
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, AsyncEventHub);
+    this.events = new Map();
+  }
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(AsyncEventHub, [{
+    key: "on",
+    value: function on(eventName, handler) {
+      var _this = this;
+      if (!this.events.has(eventName)) {
+        this.events.set(eventName, []);
+      }
+      this.events.get(eventName).push(handler);
+
+      // unsubscribe
+      return function () {
+        var list = _this.events.get(eventName) || [];
+        _this.events.set(eventName, list.filter(function (h) {
+          return h !== handler;
+        }));
+      };
+    }
+  }, {
+    key: "emit",
+    value: function () {
+      var _emit = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(eventName, payload) {
+        var options,
+          handlers,
+          _options$mode,
+          mode,
+          _options$stopOnFalse,
+          stopOnFalse,
+          _results,
+          results,
+          _iterator,
+          _step,
+          handler,
+          result,
+          _args = arguments,
+          _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              options = _args.length > 2 && _args[2] !== undefined ? _args[2] : {};
+              handlers = this.events.get(eventName) || [];
+              _options$mode = options.mode, mode = _options$mode === void 0 ? 'series' : _options$mode, _options$stopOnFalse = options.stopOnFalse, stopOnFalse = _options$stopOnFalse === void 0 ? true : _options$stopOnFalse;
+              if (!(mode === 'parallel')) {
+                _context.n = 3;
+                break;
+              }
+              _context.n = 1;
+              return Promise.all(handlers.map(function (h) {
+                return h(payload);
+              }));
+            case 1:
+              _results = _context.v;
+              if (!(stopOnFalse && _results.includes(false))) {
+                _context.n = 2;
+                break;
+              }
+              throw new Error("AsyncEventHub: \"".concat(eventName, "\" blocked"));
+            case 2:
+              return _context.a(2, _results);
+            case 3:
+              // series (default, safe)
+              results = [];
+              _iterator = _createForOfIteratorHelper(handlers);
+              _context.p = 4;
+              _iterator.s();
+            case 5:
+              if ((_step = _iterator.n()).done) {
+                _context.n = 8;
+                break;
+              }
+              handler = _step.value;
+              _context.n = 6;
+              return handler(payload);
+            case 6:
+              result = _context.v;
+              results.push(result);
+              if (!(stopOnFalse && result === false)) {
+                _context.n = 7;
+                break;
+              }
+              throw new Error("AsyncEventHub: \"".concat(eventName, "\" blocked"));
+            case 7:
+              _context.n = 5;
+              break;
+            case 8:
+              _context.n = 10;
+              break;
+            case 9:
+              _context.p = 9;
+              _t = _context.v;
+              _iterator.e(_t);
+            case 10:
+              _context.p = 10;
+              _iterator.f();
+              return _context.f(10);
+            case 11:
+              return _context.a(2, results);
+          }
+        }, _callee, this, [[4, 9, 10, 11]]);
+      }));
+      function emit(_x, _x2) {
+        return _emit.apply(this, arguments);
+      }
+      return emit;
+    }()
+  }]);
+}();
+
+/***/ }),
+
 /***/ "./assets/js/util/helpers.js":
 /*!***********************************!*\
   !*** ./assets/js/util/helpers.js ***!
@@ -553,6 +857,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
 /* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
 /* harmony import */ var _util_helpers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util/helpers */ "./assets/js/util/helpers.js");
+/* harmony import */ var _util_async_event_hub__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util/async-event-hub */ "./assets/js/util/async-event-hub.js");
 
 
 
@@ -666,6 +971,7 @@ function _regeneratorDefine2(e, r, n, t) {
 }
 
 
+
 /**
  * Donation Form
  * 
@@ -695,6 +1001,7 @@ function _regeneratorDefine2(e, r, n, t) {
               this.options = options;
               this.totalSteps = this.form.querySelectorAll('.donation-form__step-panel').length;
               this.currentStep = 1;
+              this.eventHub = new _util_async_event_hub__WEBPACK_IMPORTED_MODULE_5__.AsyncEventHub();
               this.init(_donationForm, options);
             }
             return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(donationForm, [{
@@ -775,6 +1082,11 @@ function _regeneratorDefine2(e, r, n, t) {
                 });
               }
             }, {
+              key: "getFields",
+              value: function getFields() {
+                return this.fields;
+              }
+            }, {
               key: "onSetLoading",
               value: function onSetLoading(status) {
                 var self = this;
@@ -803,7 +1115,10 @@ function _regeneratorDefine2(e, r, n, t) {
                       case 1:
                         _context.p = 1;
                         _context.n = 2;
-                        return self.onDoHooks();
+                        return self.eventHub.emit('donationFormBeforeSubmit', {
+                          self: self,
+                          fields: self.getFields()
+                        });
                       case 2:
                         _context.n = 4;
                         break;
@@ -815,7 +1130,7 @@ function _regeneratorDefine2(e, r, n, t) {
                         return _context.a(2);
                       case 4:
                         _context.n = 5;
-                        return self.onSendData(self.fields);
+                        return self.onSendData(self.getFields());
                       case 5:
                         response = _context.v;
                         if (!(!response || !response.success)) {
@@ -855,6 +1170,28 @@ function _regeneratorDefine2(e, r, n, t) {
                 }
                 return onSubmitForm;
               }()
+            }, {
+              key: "onShowThankYouSection",
+              value: function onShowThankYouSection() {
+                var self = this;
+                self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+                self.form.querySelector('#donation-thank-you').classList.add('is-active');
+              }
+            }, {
+              key: "onShowErrorSection",
+              value: function onShowErrorSection() {
+                var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+                var self = this;
+                self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+                var errorPanel = self.form.querySelector('#donation-error');
+                errorPanel.classList.add('is-active');
+                if (message) {
+                  var errorMessageEl = errorPanel.querySelector('.donation-form__error-message');
+                  if (errorMessageEl) {
+                    errorMessageEl.innerHTML = "\n\t\t\t\t\t\t<h3 class=\"donation-form__error-title\">Error</h3>\n\t\t\t\t\t\t<p class=\"donation-form__error-text\">".concat(message, "</p>\n\t\t\t\t\t");
+                  }
+                }
+              }
             }, {
               key: "onSendData",
               value: function () {
@@ -918,6 +1255,7 @@ function _regeneratorDefine2(e, r, n, t) {
               key: "onSetField",
               value: function onSetField(name, value) {
                 this.fields[name] = value;
+                // console.log('onSetField', name, value, this.fields);
               }
             }, {
               key: "onNextStep",
@@ -1216,7 +1554,8 @@ function _regeneratorDefine2(e, r, n, t) {
                 new donationForm(form, options);
               });
             }
-            console.log('Donation forms initialized via custom event');
+
+            // console.log('Donation forms initialized via custom event');
           });
           initDonationForm = function initDonationForm(formSelector, options) {
             document.dispatchEvent(new CustomEvent('initDonationForm', {

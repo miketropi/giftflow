@@ -14,6 +14,7 @@
 namespace GiftFlow\Gateways;
 
 use Omnipay\Omnipay;
+use GiftFlow\Core\Donations;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -429,11 +430,14 @@ class Stripe_Gateway extends Gateway_Base {
 			update_post_meta( $donation_id, '_transaction_id', $transaction_id );
 			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $all_data ) );
 			update_post_meta( $donation_id, '_payment_method', 'stripe' );
-			update_post_meta( $donation_id, '_status', 'completed' );
 
-			$this->log_success( $payment_intent_id, $donation_id );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'completed' );
 
-			do_action( 'giftflow_stripe_payment_completed', $donation_id, $payment_intent_id, $all_data );
+			$this->log_success( $transaction_id, $donation_id );
+
+			do_action( 'giftflow_stripe_payment_completed', $donation_id, $transaction_id, $all_data );
 
 			// return true when payment is successful.
 			return true;
@@ -626,7 +630,9 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
-			update_post_meta( $donation_id, '_status', 'completed' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'completed' );
 			do_action( 'giftflow_stripe_webhook_payment_completed', $donation_id, $payment_intent );
 		}
 	}
@@ -646,7 +652,9 @@ class Stripe_Gateway extends Gateway_Base {
 				? $payment_intent['last_payment_error']['message']
 				: __( 'Payment failed', 'giftflow' );
 
-			update_post_meta( $donation_id, '_status', 'failed' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'failed' );
 			update_post_meta( $donation_id, '_payment_error', $error_message );
 
 			do_action( 'giftflow_stripe_webhook_payment_failed', $donation_id, $payment_intent );
@@ -664,7 +672,9 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
-			update_post_meta( $donation_id, '_status', 'refunded' );
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'refunded' );
 			do_action( 'giftflow_stripe_webhook_charge_refunded', $donation_id, $charge );
 		}
 	}

@@ -54,6 +54,9 @@ class Shortcodes extends Base {
 		// preset donation amounts.
 		$preset_donation_amounts = giftflow_get_preset_donation_amounts_by_campaign( $campaign_id );
 
+		// allow_custom_donation_amounts.
+		$allow_custom_donation_amounts = filter_var( get_post_meta( $campaign_id, '_allow_custom_donation_amounts', true ), FILTER_VALIDATE_BOOLEAN );
+
 		// raised amount.
 		$raised_amount = giftflow_get_campaign_raised_amount( $campaign_id );
 
@@ -88,31 +91,6 @@ class Shortcodes extends Base {
 			);
 		}
 
-		// get recurring donation.
-		$recurring_donation = get_post_meta( $campaign_id, '_recurring', true );
-		// get recurring interval.
-		$recurring_interval = get_post_meta( $campaign_id, '_recurring_interval', true );
-
-		// if recurring donation is on, add it to the array.
-		if ( $recurring_donation ) {
-
-			$recurring_label_array = array(
-				'daily'   => __( 'Daily Donation', 'giftflow' ),
-				'weekly'  => __( 'Weekly Donation', 'giftflow' ),
-				'monthly' => __( 'Monthly Donation', 'giftflow' ),
-				'yearly'  => __( 'Yearly Donation', 'giftflow' ),
-			);
-
-			$recurring_label = $recurring_label_array[ $recurring_interval ];
-
-			$donation_types[] = array(
-				'name'        => 'recurring',
-				'icon'        => giftflow_svg_icon( 'loop' ),
-				'label'       => $recurring_label,
-				'description' => __( 'Make a recurring donation', 'giftflow' ),
-			);
-		}
-
 		$user_fullname      = '';
 		$user_email         = '';
 		$user_info_readonly = false;
@@ -123,10 +101,17 @@ class Shortcodes extends Base {
 			$user_info_readonly = true;
 		}
 
+		// localtion.
+		$location = get_post_meta( $campaign_id, '_location', true );
+
+		// gallery.
+		$gallery = get_post_meta( $campaign_id, '_gallery', true );
+
 		ob_start();
 
 		$atts['gateways']                 = $gateways;
 		$atts['preset_donation_amounts']  = $preset_donation_amounts;
+		$atts['allow_custom_donation_amounts'] = $allow_custom_donation_amounts;
 		$atts['raised_amount']            = $raised_amount;
 		$atts['goal_amount']              = $goal_amount;
 		$atts['default_amount']           = $default_amount;
@@ -134,7 +119,19 @@ class Shortcodes extends Base {
 		$atts['currency_symbol']          = $currency_symbol;
 		$atts['currency_format_template'] = $currency_format_template;
 		$atts['recurring_interval']       = $recurring_interval;
-		$atts['donation_types']           = $donation_types;
+		$atts['location']                 = $location;
+		$atts['gallery']                  = $gallery;
+
+		/**
+		 * Filter the donation types for the donation form.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $donation_types The available donation types.
+		 * @param int   $campaign_id    The campaign post ID.
+		 */
+		$atts['donation_types'] = apply_filters( 'giftflow_form_donation_types', $donation_types, $campaign_id );
+
 		$atts['user_fullname']            = $user_fullname;
 		$atts['user_email']               = $user_email;
 		$atts['user_info_readonly']       = $user_info_readonly;
@@ -145,7 +142,7 @@ class Shortcodes extends Base {
 
 		// load the donation form template use class-template.php.
 		$template = new Template();
-		$template->load_template( 'donation-form.php', $atts );
+		$template->load_template( 'donation-form.php', apply_filters( 'giftflow_form_donation_form_atts', $atts, $campaign_id ) );
 		return ob_get_clean();
 	}
 }

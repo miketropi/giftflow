@@ -9,6 +9,7 @@
 namespace GiftFlow\Frontend;
 
 use GiftFlow\Core\Base;
+use GiftFlow\Core\Donations;
 
 /**
  * Handles donation form functionality
@@ -196,45 +197,6 @@ class Forms extends Base {
 	 * @param array $data Donation data.
 	 * @return int|WP_Error
 	 */
-	private function get_donor_id( $email, $data ) {
-		// get donor record by email.
-		$donor = get_posts(
-			array(
-				'post_type' => 'donor',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_email',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value' => $data['donor_email'],
-				// get only one record.
-				'posts_per_page' => 1,
-			)
-		);
-
-		if ( $donor ) {
-			// return donor id.
-			return $donor[0]->ID;
-		} else {
-			// create new donor record.
-			$donor_data = array(
-				'post_title' => $data['donor_name'],
-				'post_type' => 'donor',
-				'post_status' => 'publish',
-			);
-
-			$donor_id = wp_insert_post( $donor_data );
-
-			// save donor email.
-			update_post_meta( $donor_id, '_email', $data['donor_email'] );
-			update_post_meta( $donor_id, '_first_name', $data['donor_name'] );
-
-			// hook after create donor record.
-			do_action( 'giftflow_donor_added', $donor_id );
-
-			return $donor_id;
-		}
-
-		return false;
-	}
 
 	/**
 	 * Create donation record
@@ -244,72 +206,39 @@ class Forms extends Base {
 	 * @return int|WP_Error
 	 */
 	private function create_donation( $data, $payment_result = '' ) {
+		// Prepare donation data for Donations class.
 		$donation_data = array(
-			// translators: %s: Donor name.
-			'post_title' => sprintf( __( 'Donation from %s', 'giftflow' ), $data['donor_name'] ),
-			'post_type' => 'donation',
-			'post_status' => 'publish',
+			'donation_amount' => isset( $data['donation_amount'] ) ? floatval( $data['donation_amount'] ) : 0,
+			'donor_name' => isset( $data['donor_name'] ) ? sanitize_text_field( $data['donor_name'] ) : '',
+			'donor_email' => isset( $data['donor_email'] ) ? sanitize_email( $data['donor_email'] ) : '',
+			'payment_method' => isset( $data['payment_method'] ) ? sanitize_text_field( $data['payment_method'] ) : '',
+			'status' => 'pending', // Default status, will be updated after payment processing.
 		);
 
-		$donation_id = wp_insert_post( $donation_data );
-
-		if ( is_wp_error( $donation_id ) ) {
-				return $donation_id;
-		}
-
-		// Save donation meta.
-		// Amount is required.
-		update_post_meta( $donation_id, '_amount', $data['donation_amount'] );
-
-		// Campaign ID.
+		// Optional fields.
 		if ( ! empty( $data['campaign_id'] ) ) {
-				update_post_meta( $donation_id, '_campaign_id', $data['campaign_id'] );
+			$donation_data['campaign_id'] = sanitize_text_field( $data['campaign_id'] );
 		}
 
-		// Payment method.
-		if ( ! empty( $data['payment_method'] ) ) {
-				update_post_meta( $donation_id, '_payment_method', $data['payment_method'] );
-		}
-
-		// Donation type.
 		if ( ! empty( $data['donation_type'] ) ) {
-				update_post_meta( $donation_id, '_donation_type', $data['donation_type'] );
+			$donation_data['donation_type'] = sanitize_text_field( $data['donation_type'] );
 		}
 
-		// Recurring interval.
 		if ( ! empty( $data['recurring_interval'] ) ) {
-				update_post_meta( $donation_id, '_recurring_interval', $data['recurring_interval'] );
+			$donation_data['recurring_interval'] = sanitize_text_field( $data['recurring_interval'] );
 		}
 
-		// Anonymous donation.
-		if ( isset( $data['anonymous_donation'] ) ) {
-				update_post_meta( $donation_id, '_anonymous', $data['anonymous_donation'] );
-		}
-
-		// Donor ID.
-		if ( ! empty( $data['donor_email'] ) ) {
-				$donor_id = $this->get_donor_id( trim( $data['donor_email'] ), $data );
-			if ( $donor_id ) {
-				update_post_meta( $donation_id, '_donor_id', $donor_id );
-			}
-		}
-
-		// donor_message.
 		if ( ! empty( $data['donor_message'] ) ) {
-				update_post_meta( $donation_id, '_donor_message', $data['donor_message'] );
+			$donation_data['donor_message'] = sanitize_textarea_field( $data['donor_message'] );
 		}
 
-		// anonymous donation.
-		if ( ! empty( $data['anonymous_donation'] ) ) {
-				update_post_meta( $donation_id, '_anonymous_donation', 'yes' );
-		} else {
-				update_post_meta( $donation_id, '_anonymous_donation', 'no' );
+		if ( isset( $data['anonymous_donation'] ) ) {
+			$donation_data['anonymous_donation'] = ( 'yes' === $data['anonymous_donation'] || true === $data['anonymous_donation'] || '1' === $data['anonymous_donation'] ) ? 'yes' : 'no';
 		}
 
-		// custom field status.
-		update_post_meta( $donation_id, '_status', 'pending' );
-
-		do_action( 'giftflow_donation_created', $donation_id );
+		// Use centralized Donations class to create donation.
+		$donations = new Donations();
+		$donation_id = $donations->create( $donation_data );
 
 		return $donation_id;
 	}

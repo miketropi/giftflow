@@ -67,13 +67,9 @@ const STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
         }
       });
 
-      // add event listener to form
-      this.form.addEventListener('donationFormBeforeSubmit', async (e) => {
-        const { self, fields, resolve, reject } = e.detail;
-
-        // if payment method is not stripe, return.
+      // add event listener to form using event hub.
+      self.formObject.eventHub.on('donationFormBeforeSubmit', async ({ self, fields }) => {
         if(fields?.payment_method && fields?.payment_method !== 'stripe') {
-          resolve(null);
           return;
         }
 
@@ -85,15 +81,14 @@ const STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
         if(error) {
           $validateWrapper.classList.add('error', 'custom-error');
           $errorMessage.textContent = error.message;
-          reject(error);
-          return;
+          throw error;
         }
 
         // set token.
         self.onSetField('stripe_token', token.id);
-        resolve(token);
-        return;
-      });
+
+        return token;
+      })
     }
   }
 

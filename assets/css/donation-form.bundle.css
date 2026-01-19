@@ -341,6 +341,10 @@
 .donation-form__amount-input input.error {
   border-color: var(--giftflow-error-color);
 }
+.donation-form__amount-input input:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
 .donation-form__preset-amounts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

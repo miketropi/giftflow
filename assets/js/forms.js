@@ -1,4 +1,5 @@
 import { applySlideEffect, validateValue } from './util/helpers';
+import { AsyncEventHub } from './util/async-event-hub';
 
 /**
  * Donation Form
@@ -24,6 +25,7 @@ import { applySlideEffect, validateValue } from './util/helpers';
 			this.options = options;
 			this.totalSteps = this.form.querySelectorAll('.donation-form__step-panel').length;
 			this.currentStep = 1;
+			this.eventHub = new AsyncEventHub();
 
 			this.init(donationForm, options);
     }
@@ -105,7 +107,12 @@ import { applySlideEffect, validateValue } from './util/helpers';
 				// submit form.
 				this.onSubmitForm();
 			});
+
     }
+
+		getFields() {
+			return this.fields;
+		}
 
 		onSetLoading(status) {
 			const self = this;
@@ -128,16 +135,20 @@ import { applySlideEffect, validateValue } from './util/helpers';
 			// do hooks before submit support async function after submit.
 			// await self.onDoHooks();
 			try {
-				await self.onDoHooks();
+				// await self.onDoHooks();
+				await self.eventHub.emit('donationFormBeforeSubmit', {
+					self: self,
+					fields: self.getFields()
+				});
 			} catch (error) {
 				console.error('Error in onDoHooks:', error);
 				self.onSetLoading(false);
 				return;
 			}
-			
 
 			// send data
-			const response = await self.onSendData(self.fields);
+			// console.log('getFields', self.getFields());
+			const response = await self.onSendData(self.getFields());
 			// console.log('onSubmitForm', response);
 
 			if(!response || !response.success) {
@@ -168,6 +179,28 @@ import { applySlideEffect, validateValue } from './util/helpers';
 			
 
 			self.onSetLoading(false);
+		}
+
+		onShowThankYouSection() {
+			const self = this;
+			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+			self.form.querySelector('#donation-thank-you').classList.add('is-active');
+		}
+
+		onShowErrorSection(message = null) {
+			const self = this;
+			self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
+			const errorPanel = self.form.querySelector('#donation-error');
+			errorPanel.classList.add('is-active');
+			if (message) {
+				const errorMessageEl = errorPanel.querySelector('.donation-form__error-message');
+				if (errorMessageEl) {
+					errorMessageEl.innerHTML = `
+						<h3 class="donation-form__error-title">Error</h3>
+						<p class="donation-form__error-text">${message}</p>
+					`;
+				}
+			}
 		}
 
 		async onSendData(data) {
@@ -203,6 +236,7 @@ import { applySlideEffect, validateValue } from './util/helpers';
 
 		onSetField(name, value) {
 			this.fields[name] = value;
+			// console.log('onSetField', name, value, this.fields);
 		}
 
 		onNextStep() {
@@ -502,7 +536,7 @@ import { applySlideEffect, validateValue } from './util/helpers';
 			});
 		}
 		
-		console.log('Donation forms initialized via custom event');
+		// console.log('Donation forms initialized via custom event');
 	});
 
 	const initDonationForm = (formSelector, options) => {

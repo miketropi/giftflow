@@ -12,6 +12,8 @@
 
 namespace GiftFlow\Gateways;
 
+use GiftFlow\Core\Donations;
+
 /**
  * Direct Bank Transfer Gateway Class
  */
@@ -250,8 +252,11 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 		try {
 			// Mark donation as pending - payment will be confirmed manually.
 			update_post_meta( $donation_id, '_payment_method', 'direct_bank_transfer' );
-			update_post_meta( $donation_id, '_status', 'pending' );
-			update_post_meta( $donation_id, '_payment_status', 'pending' );
+
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'pending' );
+
 			update_post_meta( $donation_id, '_bank_transfer_pending', 'yes' );
 
 			// Store payment data.

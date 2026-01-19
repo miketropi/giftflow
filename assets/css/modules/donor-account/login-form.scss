@@ -1,0 +1,222 @@
+.gfw-login-form {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.25rem;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  // Form container
+  form {
+    margin: 0;
+  }
+
+  // Form paragraphs (containing fields)
+  p {
+    margin: 0 0 1.25rem 0;
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+  // Labels
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: $text-color;
+    line-height: 1.5;
+
+    // Checkbox label (inline)
+    input[type="checkbox"] + &,
+    &:has(input[type="checkbox"]) {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+    }
+  }
+
+  // Input fields
+  .input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    background-color: white;
+    color: $text-color;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: $transition;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    &::placeholder {
+      color: $text-light;
+      opacity: 0.6;
+    }
+
+    // Error state (if WordPress adds error class)
+    &.error {
+      border-color: $error-color;
+    }
+  }
+
+  // Username/Email field
+  .login-username {
+    label {
+      font-weight: 500;
+    }
+  }
+
+  // Password field
+  .login-password {
+    label {
+      font-weight: 500;
+    }
+  }
+
+  // Remember me checkbox
+  .login-remember {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.95rem;
+      color: $text-color;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: $primary-color;
+      flex-shrink: 0;
+
+      &:focus {
+        outline: 2px solid $primary-color;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  // Submit button container
+  .login-submit {
+    margin-top: 1.5rem;
+  }
+
+  // Submit button
+  .button,
+  .button-primary,
+  #wp-submit {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: $transition;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    box-sizing: border-box;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.85);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  // Error messages (if WordPress adds them)
+  .login-error,
+  .message {
+    padding: 0.875rem 1rem;
+    margin-bottom: 1.25rem;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: $border-radius;
+    color: $error-color;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  // Success messages
+  .login-success,
+  .message.success {
+    padding: 0.875rem 1rem;
+    margin-bottom: 1.25rem;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: $border-radius;
+    color: $success-color;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  // Links (like "Lost your password?")
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    transition: $transition;
+
+    &:hover {
+      text-decoration: underline;
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    &:focus {
+      outline: 2px solid $primary-color;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+}

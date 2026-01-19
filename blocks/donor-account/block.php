@@ -90,14 +90,6 @@ function giftflow_donor_account_tabs() {
 			'url'      => get_permalink( giftflow_get_donor_account_page() ),
 			'callback' => 'giftflow_donor_account_my_donations_callback',
 		),
-		// campaign bookmarks.
-		array(
-			'label'    => esc_html__( 'Bookmarks', 'giftflow' ),
-			'slug'     => 'bookmarks',
-			'icon'     => giftflow_svg_icon( 'bookmark' ),
-			'url'      => get_permalink( giftflow_get_donor_account_page() ),
-			'callback' => 'giftflow_donor_account_campaign_bookmarks_callback',
-		),
 		// donor infomation.
 		array(
 			'label'    => esc_html__( 'My Account', 'giftflow' ),

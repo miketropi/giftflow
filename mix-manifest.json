@@ -5,6 +5,8 @@
     "/assets/js/forms.bundle.asset.php": "/assets/js/forms.bundle.asset.php",
     "/assets/js/grecaptcha.bundle.js": "/assets/js/grecaptcha.bundle.js",
     "/assets/js/grecaptcha.bundle.asset.php": "/assets/js/grecaptcha.bundle.asset.php",
+    "/assets/js/paypal-donation.bundle.js": "/assets/js/paypal-donation.bundle.js",
+    "/assets/js/paypal-donation.bundle.asset.php": "/assets/js/paypal-donation.bundle.asset.php",
     "/assets/js/stripe-donation.bundle.js": "/assets/js/stripe-donation.bundle.js",
     "/assets/js/stripe-donation.bundle.asset.php": "/assets/js/stripe-donation.bundle.asset.php",
     "/assets/js/admin.bundle.js": "/assets/js/admin.bundle.js",

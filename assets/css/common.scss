@@ -7,6 +7,7 @@
 @import './modules/donation-button';
 @import './modules/share';
 @import './modules/modal';
+@import './modules/campaign-single-images';
 
 // donor account style
 @import './modules/donor-account';
@@ -20,4 +21,8 @@
 // monofont global class name
 .gfw-monofont {
   font-family: $font-family-monospace;
+}
+
+.__hidden-fieldset {
+  display: none;
 }
