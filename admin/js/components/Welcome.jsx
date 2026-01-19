@@ -29,7 +29,7 @@ const Welcome = () => {
     <div className="giftflow-welcome">
       <div className="giftflow-welcome__header">
         <div className="giftflow-welcome__logo-section">
-          <Waves width={48} height={48} color='black' />
+          {/* <Waves width={48} height={48} color='black' /> */}
           <div className="giftflow-welcome__title-section">
             <h2 className="giftflow-welcome__title">GiftFlow Dashboard</h2>
             <p className="giftflow-welcome__subtitle">Your hub for managing fundraising campaigns and settings.</p>
