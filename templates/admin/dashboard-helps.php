@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $docs = array(
 	array(
 		'title' => __( 'GiftFlow operating model', 'giftflow' ),
@@ -36,6 +37,7 @@ $docs = array(
 	),
 );
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $contact_support_url = 'https://giftflow.beplus-agency.cloud/contact';
 ?>
 <div class="giftflow-dashboard-helps">
@@ -59,7 +61,10 @@ $contact_support_url = 'https://giftflow.beplus-agency.cloud/contact';
 			</p>
 			
 			<div class="giftflow-dashboard-helps__docs-list">
-				<?php foreach ( $docs as $doc ) : ?>
+				<?php
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+				foreach ( $docs as $doc ) :
+					?>
 					<a 
 						href="<?php echo esc_url( $doc['url'] ); ?>" 
 						target="_blank" 

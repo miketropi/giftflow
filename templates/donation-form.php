@@ -20,6 +20,7 @@ if ( count( $donation_types ) === 0 ) {
 	return;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $no_payment_methods = count( $gateways ) === 0;
 
 ?>
