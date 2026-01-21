@@ -160,6 +160,9 @@ register_deactivation_hook( __FILE__, 'giftflow_deactivate' );
  * Plugin deactivation
  */
 function giftflow_deactivate() {
+	// giftflow_first_activation_notice_dismissed.
+	delete_option( 'giftflow_first_activation_notice_dismissed' );
+
 	// Flush rewrite rules.
 	flush_rewrite_rules();
 
