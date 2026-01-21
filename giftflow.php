@@ -235,3 +235,77 @@ function giftflow_admin_bar_item( $wp_admin_bar ) {
 		)
 	);
 }
+
+/**
+ * Add admin notice on first activation to suggest viewing documentation.
+ */
+add_action( 'admin_init', 'giftflow_add_first_activation_notice' );
+
+/**
+ * Add admin notice on first activation to suggest viewing documentation.
+ */
+function giftflow_add_first_activation_notice() {
+	$is_giftflow_help_page = false;
+	if (
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		isset( $_GET['page'], $_GET['tab'] )
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
+		&& $_GET['page'] === 'giftflow-dashboard'
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
+		&& $_GET['tab'] === 'help'
+	) {
+		$is_giftflow_help_page = true;
+	}
+
+	// Show admin notice on first activation to suggest viewing documentation.
+	if ( is_admin()
+		&& ! get_option( 'giftflow_first_activation_notice_dismissed', false )
+		&& ! $is_giftflow_help_page
+	) {
+		add_action(
+			'admin_notices',
+			function () {
+				// Only show to users who can manage options.
+				if ( ! current_user_can( 'manage_options' ) ) {
+					return;
+				}
+
+				// Prepare URL to documentation. You may want to change this as needed.
+				$docs_url = esc_url( admin_url( 'admin.php?page=giftflow-dashboard&tab=help' ) ); // Update to your actual docs page if needed.
+
+				?>
+			<div class="notice notice-info is-dismissible giftflow-first-activation-notice">
+				<p>
+					<strong><?php esc_html_e( 'Welcome to GiftFlow!', 'giftflow' ); ?></strong>
+					<?php esc_html_e( 'It looks like you\'re using GiftFlow for the first time. We highly recommend visiting the documentation page to quickly get started and make the most out of your donation campaigns.', 'giftflow' ); ?>
+				</p>
+				<p>
+					<a href="<?php echo esc_url( $docs_url ); ?>" class="button button-primary" target="_blank">
+						<?php esc_html_e( 'View Documentation', 'giftflow' ); ?>
+					</a>
+				</p>
+			</div>
+			<script>
+			(function($){
+				$(document).on('click', '.giftflow-first-activation-notice .notice-dismiss', function() {
+					$.post(ajaxurl, {
+						action: 'giftflow_dismiss_first_activation_notice',
+						_giftflow_nonce: '<?php echo esc_js( wp_create_nonce( 'giftflow_dismiss_notice' ) ); ?>'
+					});
+				});
+			})(jQuery);
+			</script>
+				<?php
+			}
+		);
+
+		add_action(
+			'wp_ajax_giftflow_dismiss_first_activation_notice',
+			function () {
+				check_ajax_referer( 'giftflow_dismiss_notice', '_giftflow_nonce' );
+				update_option( 'giftflow_first_activation_notice_dismissed', true );
+				wp_send_json_success();
+			}
+		);
+	}
+}
