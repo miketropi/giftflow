@@ -109,6 +109,14 @@ class Shortcodes extends Base {
 
 		ob_start();
 
+		// filter gateways by is_enabled().
+		$gateways = array_filter(
+			$gateways,
+			function ( $gateway ) {
+				return $gateway->is_enabled();
+			}
+		);
+
 		$atts['gateways']                 = $gateways;
 		$atts['preset_donation_amounts']  = $preset_donation_amounts;
 		$atts['allow_custom_donation_amounts'] = $allow_custom_donation_amounts;

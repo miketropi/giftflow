@@ -679,6 +679,12 @@ $mobile: 480px;
       color: white;
       border: none;
 
+      &.disabled {
+        background: #f0f0f0;
+        color: #b0b0b0;
+        cursor: not-allowed;
+      }
+
       &:hover {
         filter: brightness(0.9);
       }
@@ -940,7 +946,8 @@ $mobile: 480px;
     }
   }
   
-  &__payment-notification {
+  &__payment-notification,
+  &__notification {
     display: flex;
     gap: 0.7rem;
     align-items: flex-start;
@@ -948,7 +955,8 @@ $mobile: 480px;
     padding: 0.75rem;
     background-color: color-mix(in srgb, var(--giftflow-primary-color) 5%, transparent);
     border-radius: $border-radius;
-    
+    border: 1px solid $border-color;
+
     .notification-icon {
       flex-shrink: 0;
       color: $primary-color;
@@ -966,6 +974,12 @@ $mobile: 480px;
       font-size: 0.8125rem;
       color: #313131;
       line-height: 1.4;
+    }
+
+    &--warning {
+      background-color: color-mix(in srgb, var(--giftflow-error-color) 5%, transparent);
+      border-color: color-mix(in srgb, var(--giftflow-error-color) 20%, transparent);
+      color: var(--giftflow-error-color);
     }
     
     @include mobile {
