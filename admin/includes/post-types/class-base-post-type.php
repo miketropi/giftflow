@@ -8,6 +8,10 @@
 
 namespace GiftFlow\Admin\PostTypes;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Base Post Type Class
  */

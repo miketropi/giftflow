@@ -8,6 +8,10 @@
 
 namespace GiftFlow\Core;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Loader class that handles file loading and initialization
  */

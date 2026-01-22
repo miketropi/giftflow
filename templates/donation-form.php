@@ -20,6 +20,9 @@ if ( count( $donation_types ) === 0 ) {
 	return;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+$no_payment_methods = count( $gateways ) === 0;
+
 ?>
 
 <form class="donation-form" id="donation-form-<?php echo esc_attr( $campaign_id ); ?>">
@@ -269,6 +272,17 @@ if ( count( $donation_types ) === 0 ) {
 										echo '</div>';
 									}
 								}
+							} else {
+								?>
+								<div class="donation-form__payment-notification donation-form__payment-notification--warning">
+									<span class="notification-icon"><?php echo wp_kses( giftflow_svg_icon( 'info' ), giftflow_allowed_svg_tags() ); ?></span>
+									<div class="notification-message-entry">
+										<p>
+											<?php esc_html_e( 'No payment methods are currently available for this campaign. Please contact the site administrator or try again later.', 'giftflow' ); ?>
+										</p>
+									</div>
+								</div>
+								<?php
 							}
 							?>
 						</div>
@@ -314,7 +328,7 @@ if ( count( $donation_types ) === 0 ) {
 					</button>
 										
 					<?php // support class loading show icon loading when submit. ?>
-					<button type="submit" class="donation-form__button donation-form__button--submit">
+					<button type="submit" class="donation-form__button donation-form__button--submit <?php echo $no_payment_methods ? 'disabled' : ''; ?>">
 						<?php esc_html_e( 'Complete Donation', 'giftflow' ); ?>
 						<?php echo wp_kses( giftflow_svg_icon( 'next' ), giftflow_allowed_svg_tags() ); ?>
 					</button>

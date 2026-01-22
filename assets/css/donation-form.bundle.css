@@ -590,6 +590,11 @@
   color: white;
   border: none;
 }
+.donation-form__button--next.disabled, .donation-form__button--submit.disabled {
+  background: #f0f0f0;
+  color: #b0b0b0;
+  cursor: not-allowed;
+}
 .donation-form__button--next:hover, .donation-form__button--submit:hover {
   filter: brightness(0.9);
 }
@@ -815,7 +820,7 @@
 .donation-form .custom-error .custom-error-message {
   display: flex;
 }
-.donation-form__payment-notification {
+.donation-form__payment-notification, .donation-form__notification {
   display: flex;
   gap: 0.7rem;
   align-items: flex-start;
@@ -823,33 +828,39 @@
   padding: 0.75rem;
   background-color: color-mix(in srgb, var(--giftflow-primary-color) 5%, transparent);
   border-radius: var(--giftflow-border-radius);
+  border: 1px solid var(--giftflow-border-color);
 }
-.donation-form__payment-notification .notification-icon {
+.donation-form__payment-notification .notification-icon, .donation-form__notification .notification-icon {
   flex-shrink: 0;
   color: var(--giftflow-primary-color);
 }
-.donation-form__payment-notification .notification-icon svg {
+.donation-form__payment-notification .notification-icon svg, .donation-form__notification .notification-icon svg {
   width: 20px;
   height: auto;
   margin: 0;
   color: currentColor;
 }
-.donation-form__payment-notification p {
+.donation-form__payment-notification p, .donation-form__notification p {
   margin: 0;
   font-size: 0.8125rem;
   color: #313131;
   line-height: 1.4;
 }
+.donation-form__payment-notification--warning, .donation-form__notification--warning {
+  background-color: color-mix(in srgb, var(--giftflow-error-color) 5%, transparent);
+  border-color: color-mix(in srgb, var(--giftflow-error-color) 20%, transparent);
+  color: var(--giftflow-error-color);
+}
 @media (max-width: 480px) {
-  .donation-form__payment-notification {
+  .donation-form__payment-notification, .donation-form__notification {
     padding: 0.625rem;
   }
-  .donation-form__payment-notification .notification-icon {
+  .donation-form__payment-notification .notification-icon, .donation-form__notification .notification-icon {
     margin-right: 0.5rem;
     width: 14px;
     height: 14px;
   }
-  .donation-form__payment-notification p {
+  .donation-form__payment-notification p, .donation-form__notification p {
     font-size: 0.75rem;
   }
 }
