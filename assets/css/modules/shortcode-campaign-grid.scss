@@ -1,0 +1,348 @@
+@import '../modules/variables';
+
+.giftflow-campaign-grid {
+	margin: 2rem 0;
+	width: 100%;
+
+	// Empty State
+	&__empty {
+		padding: 3rem 1.5rem;
+		text-align: center;
+		background: $background-color;
+		border: 1px solid $border-color;
+		border-radius: $border-radius;
+	}
+
+	&__empty-message {
+		margin: 0;
+		color: $text-light;
+		font-size: 1rem;
+	}
+
+	// Container
+	&__container {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 2rem;
+		margin-bottom: 2rem;
+
+		@media (max-width: 768px) {
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+			gap: 1.5rem;
+		}
+
+		@media (max-width: 480px) {
+			grid-template-columns: 1fr;
+			gap: 1.25rem;
+		}
+	}
+
+	// Campaign Item
+	&__item {
+		display: flex;
+		flex-direction: column;
+		background: #fff;
+		border: 1px solid $border-color;
+		// border-radius: $border-radius;
+		overflow: hidden;
+		transition: $transition;
+		// box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+		&:hover {
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			transform: translateY(-2px);
+			border-color: #ddd
+		}
+	}
+
+	// Image
+	&__image {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		background: $background-color;
+
+		&-link {
+			display: block;
+			width: 100%;
+			height: 100%;
+			text-decoration: none;
+		}
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+			transition: transform 0.3s ease;
+		}
+
+		&:hover img {
+			transform: scale(1.05);
+		}
+
+		// Placeholder
+		&--placeholder {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #f5f5f5;
+		}
+	}
+
+	&__placeholder-icon {
+		width: 48px;
+		height: 48px;
+		color: $text-light;
+		opacity: 0.5;
+	}
+
+	// Content
+	&__content {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		padding: 1.5rem;
+		gap: 1rem;
+	}
+
+	// Categories
+	&__categories {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	&__category {
+		display: inline-block;
+		padding: 0.2rem 0.7rem;
+		background: transparent;
+		border: 1px solid $border-color;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 500;
+		color: $text-light;
+		line-height: 1.3;
+		text-transform: none;
+		transition: background 0.15s, color 0.15s, border-color 0.15s;
+		
+		// Optional hover for clarity highlight
+		&:hover {
+			background: #f5f5f5;
+			color: #000;
+			border-color: #f5f5f5;
+		}
+	}
+
+	// Title
+	&__title {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.4;
+		color: $text-color;
+
+		a {
+			color: inherit;
+			text-decoration: none;
+			transition: $transition;
+
+			&:hover {
+				color: $primary-color;
+			}
+		}
+	}
+
+	// Excerpt
+	&__excerpt {
+		font-size: 0.95rem;
+		line-height: 1.5;
+		color: $text-light;
+		margin: 0;
+	}
+
+	// Progress
+	&__progress {
+		margin-top: auto;
+	}
+
+	&__progress-bar {
+		width: 100%;
+		height: 8px;
+		background: $background-color;
+		border-radius: 4px;
+		overflow: hidden;
+		margin-bottom: 0.75rem;
+	}
+
+	&__progress-fill {
+		height: 100%;
+		background: $primary-color;
+		border-radius: 4px;
+		transition: width 0.3s ease;
+	}
+
+	&__progress-stats {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.875rem;
+		gap: 0.5rem;
+	}
+
+	&__progress-raised {
+		font-weight: 600;
+		color: $text-color;
+		font-family: $font-family-monospace;
+	}
+
+	&__progress-goal {
+		color: $text-light;
+	}
+
+	// Location
+	&__location {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		color: $text-light;
+
+		svg {
+			width: 16px;
+			height: 16px;
+			flex-shrink: 0;
+			color: $text-light;
+		}
+	}
+
+	// Footer
+	&__footer {
+		margin-top: 0.5rem;
+	}
+
+	&__button {
+		display: inline-block;
+		padding: 0.75rem 1.5rem;
+		background: $primary-color;
+		color: #fff;
+		border: none;
+		border-radius: $border-radius;
+		font-size: 0.95rem;
+		font-weight: 500;
+		text-decoration: none;
+		text-align: center;
+		transition: $transition;
+		cursor: pointer;
+		width: 100%;
+		box-sizing: border-box;
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.85);
+			color: #fff;
+			text-decoration: none;
+			transform: translateY(-1px);
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		}
+
+		&:focus {
+			outline: none;
+			box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+		}
+
+		&:active {
+			transform: translateY(0);
+		}
+	}
+
+	// Pagination
+	// &__pagination {
+	// 	margin-top: 2rem;
+	// 	text-align: center;
+
+	// 	.page-numbers {
+	// 		display: inline-flex;
+	// 		flex-wrap: wrap;
+	// 		justify-content: center;
+	// 		align-items: center;
+	// 		gap: 0.5rem;
+	// 		list-style: none;
+	// 		margin: 0;
+	// 		padding: 0;
+
+	// 		li {
+	// 			margin: 0;
+	// 		}
+
+	// 		a,
+	// 		span {
+	// 			display: inline-block;
+	// 			padding: 0.5rem 0.75rem;
+	// 			min-width: 40px;
+	// 			text-align: center;
+	// 			text-decoration: none;
+	// 			border: 1px solid $border-color;
+	// 			border-radius: $border-radius;
+	// 			color: $text-color;
+	// 			background: #fff;
+	// 			transition: $transition;
+	// 			font-size: 0.95rem;
+	// 		}
+
+	// 		a:hover {
+	// 			background: $background-color;
+	// 			border-color: $primary-color;
+	// 			color: $primary-color;
+	// 		}
+
+	// 		.current {
+	// 			background: $primary-color;
+	// 			color: #fff;
+	// 			border-color: $primary-color;
+	// 			font-weight: 600;
+	// 		}
+
+	// 		.dots {
+	// 			border: none;
+	// 			background: transparent;
+	// 			cursor: default;
+	// 		}
+	// 	}
+	// }
+
+	// Responsive adjustments
+	@media (max-width: 768px) {
+		margin: 1.5rem 0;
+
+		&__container {
+			gap: 1.5rem;
+		}
+
+		&__content {
+			padding: 1.25rem;
+		}
+
+		&__title {
+			font-size: 1.125rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		margin: 1rem 0;
+
+		&__content {
+			padding: 1rem;
+			gap: 0.75rem;
+		}
+
+		&__title {
+			font-size: 1rem;
+		}
+
+		&__button {
+			padding: 0.625rem 1.25rem;
+			font-size: 0.875rem;
+		}
+	}
+}

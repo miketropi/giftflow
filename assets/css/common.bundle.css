@@ -1426,6 +1426,265 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+:root {
+  --giftflow-primary-color: #000000;
+  --giftflow-secondary-color: #10B981;
+  --giftflow-text-color: black;
+  --giftflow-text-light: #6B7280;
+  --giftflow-border-color: #E5E7EB;
+  --giftflow-background-color: #F9FAFB;
+  --giftflow-error-color: #EF4444;
+  --giftflow-success-color: #10B981;
+  --giftflow-border-radius: 6px;
+  --giftflow-transition: all 0.3s ease;
+  --giftflow-disabled: #fafafa;
+  --giftflow-disabled-text: #999;
+  --giftflow-font-family-monospace: monospace, "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Droid Sans Mono", "Source Code Pro", "Lucida Console", "Courier New";
+}
+
+.giftflow-campaign-grid {
+  margin: 2rem 0;
+  width: 100%;
+}
+.giftflow-campaign-grid__empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: var(--giftflow-background-color);
+  border: 1px solid var(--giftflow-border-color);
+  border-radius: var(--giftflow-border-radius);
+}
+.giftflow-campaign-grid__empty-message {
+  margin: 0;
+  color: var(--giftflow-text-light);
+  font-size: 1rem;
+}
+.giftflow-campaign-grid__container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 768px) {
+  .giftflow-campaign-grid__container {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .giftflow-campaign-grid__container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+.giftflow-campaign-grid__item {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--giftflow-border-color);
+  overflow: hidden;
+  transition: var(--giftflow-transition);
+}
+.giftflow-campaign-grid__item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #ddd;
+}
+.giftflow-campaign-grid__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--giftflow-background-color);
+}
+.giftflow-campaign-grid__image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+}
+.giftflow-campaign-grid__image img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.giftflow-campaign-grid__image:hover img {
+  transform: scale(1.05);
+}
+.giftflow-campaign-grid__image--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+.giftflow-campaign-grid__placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--giftflow-text-light);
+  opacity: 0.5;
+}
+.giftflow-campaign-grid__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+.giftflow-campaign-grid__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.giftflow-campaign-grid__category {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  background: transparent;
+  border: 1px solid var(--giftflow-border-color);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--giftflow-text-light);
+  line-height: 1.3;
+  text-transform: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.giftflow-campaign-grid__category:hover {
+  background: #f5f5f5;
+  color: #000;
+  border-color: #f5f5f5;
+}
+.giftflow-campaign-grid__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--giftflow-text-color);
+}
+.giftflow-campaign-grid__title a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--giftflow-transition);
+}
+.giftflow-campaign-grid__title a:hover {
+  color: var(--giftflow-primary-color);
+}
+.giftflow-campaign-grid__excerpt {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--giftflow-text-light);
+  margin: 0;
+}
+.giftflow-campaign-grid__progress {
+  margin-top: auto;
+}
+.giftflow-campaign-grid__progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--giftflow-background-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+.giftflow-campaign-grid__progress-fill {
+  height: 100%;
+  background: var(--giftflow-primary-color);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.giftflow-campaign-grid__progress-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+}
+.giftflow-campaign-grid__progress-raised {
+  font-weight: 600;
+  color: var(--giftflow-text-color);
+  font-family: var(--giftflow-font-family-monospace);
+}
+.giftflow-campaign-grid__progress-goal {
+  color: var(--giftflow-text-light);
+}
+.giftflow-campaign-grid__location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--giftflow-text-light);
+}
+.giftflow-campaign-grid__location svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--giftflow-text-light);
+}
+.giftflow-campaign-grid__footer {
+  margin-top: 0.5rem;
+}
+.giftflow-campaign-grid__button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--giftflow-primary-color);
+  color: #fff;
+  border: none;
+  border-radius: var(--giftflow-border-radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: var(--giftflow-transition);
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+.giftflow-campaign-grid__button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.giftflow-campaign-grid__button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+.giftflow-campaign-grid__button:active {
+  transform: translateY(0);
+}
+@media (max-width: 768px) {
+  .giftflow-campaign-grid {
+    margin: 1.5rem 0;
+  }
+  .giftflow-campaign-grid__container {
+    gap: 1.5rem;
+  }
+  .giftflow-campaign-grid__content {
+    padding: 1.25rem;
+  }
+  .giftflow-campaign-grid__title {
+    font-size: 1.125rem;
+  }
+}
+@media (max-width: 480px) {
+  .giftflow-campaign-grid {
+    margin: 1rem 0;
+  }
+  .giftflow-campaign-grid__content {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  .giftflow-campaign-grid__title {
+    font-size: 1rem;
+  }
+  .giftflow-campaign-grid__button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
 .giftflow-donor-account-dashboard__welcome {
   margin-bottom: 3rem;
 }

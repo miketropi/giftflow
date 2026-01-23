@@ -26,7 +26,14 @@ class Shortcodes extends Base {
 	 * Register shortcodes
 	 */
 	private function init_shortcodes() {
+		// donation form shortcode.
 		add_shortcode( 'giftflow_donation_form', array( $this, 'render_donation_form' ) );
+
+		// campaign grid shortcode.
+		add_shortcode( 'giftflow_campaign_grid', array( $this, 'render_campaign_grid' ) );
+
+		// campaign status bar shortcode.
+		add_shortcode( 'giftflow_campaign_status_bar', array( $this, 'render_campaign_status_bar' ) );
 	}
 
 	/**
@@ -151,6 +158,98 @@ class Shortcodes extends Base {
 		// load the donation form template use class-template.php.
 		$template = new Template();
 		$template->load_template( 'donation-form.php', apply_filters( 'giftflow_form_donation_form_atts', $atts, $campaign_id ) );
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render campaign grid shortcode
+	 * [giftflow_campaign_grid per_page="10" orderby="date" order="DESC" category="1" search="test" paged="1"]
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function render_campaign_grid( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'per_page' => 10,
+				'orderby' => 'date',
+				'order' => 'DESC',
+				'category' => '',
+				'search' => '',
+				'paged' => 1,
+				'post_type' => 'campaign',
+				'custom_class' => '',
+			),
+			$atts
+		);
+
+		// paged maybe override by get parameter.
+		$paged = get_query_var( 'paged' );
+		if ( ! empty( $paged ) ) {
+			$atts['paged'] = intval( $paged );
+		}
+
+		// Get campaigns using the Campaigns class.
+		$campaigns_class = new \GiftFlow\Core\Campaigns();
+		$query_args = array(
+			'posts_per_page' => intval( $atts['per_page'] ),
+			'orderby' => sanitize_text_field( $atts['orderby'] ),
+			'order' => strtoupper( sanitize_text_field( $atts['order'] ) ),
+			'paged' => intval( $atts['paged'] ),
+		);
+
+		// Add category filter if provided.
+		if ( ! empty( $atts['category'] ) ) {
+			$query_args['category'] = $atts['category'];
+		}
+
+		// Add search if provided.
+		if ( ! empty( $atts['search'] ) ) {
+			$query_args['search'] = $atts['search'];
+		}
+
+		$campaigns_result = $campaigns_class->get_campaigns( $query_args );
+
+		// Add campaigns data to atts for template.
+		$atts['campaigns'] = $campaigns_result['campaigns'];
+		$atts['total'] = $campaigns_result['total'];
+		$atts['pages'] = $campaigns_result['pages'];
+		$atts['current_page'] = $campaigns_result['current_page'];
+
+		ob_start();
+
+		// load the campaign grid template use class-template.php.
+		giftflow_load_template( 'campaign-grid.php', apply_filters( 'giftflow_form_campaign_grid_atts', $atts ) );
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render campaign status bar shortcode
+	 * [giftflow_campaign_status_bar campaign_id="1"]
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function render_campaign_status_bar( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'campaign_id' => 0,
+			),
+			$atts
+		);
+
+		$campaign_id = intval( $atts['campaign_id'] );
+		if ( ! $campaign_id ) {
+			return;
+		}
+
+		// Prepare template data using helper function.
+		$template_data = giftflow_prepare_campaign_status_bar_data( $campaign_id );
+
+		ob_start();
+
+		// load the campaign status bar template use class-template.php.
+		giftflow_load_template( 'block/campaign-status-bar.php', $template_data );
 		return ob_get_clean();
 	}
 }
