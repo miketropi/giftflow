@@ -64,7 +64,7 @@ if ( empty( $campaigns ) ) {
 			$categories = isset( $campaign['categories'] ) ? $campaign['categories'] : array();
 			?>
 			<?php do_action( 'giftflow_campaign_grid_before_item', $campaign, $campaign_id ); ?>
-			<article class="giftflow-campaign-grid__item">
+			<article <?php post_class( 'giftflow-campaign-grid__item' ); ?>>
 				<?php if ( ! empty( $featured_image_url ) ) : ?>
 					<div class="giftflow-campaign-grid__image">
 						<a href="<?php echo esc_url( $permalink ); ?>" class="giftflow-campaign-grid__image-link">
@@ -134,7 +134,14 @@ if ( empty( $campaigns ) ) {
 
 					<div class="giftflow-campaign-grid__footer">
 						<a href="<?php echo esc_url( $permalink ); ?>" class="giftflow-campaign-grid__button">
-							<?php esc_html_e( 'View Campaign', 'giftflow' ); ?>
+							<span class="giftflow-campaign-grid__button-text">
+								<?php esc_html_e( 'View Campaign', 'giftflow' ); ?>
+							</span>
+							<span class="giftflow-campaign-grid__button-icon">
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 5L19 12M19 12L12 19M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
 						</a>
 					</div>
 				</div>
@@ -155,15 +162,14 @@ if ( empty( $campaigns ) ) {
 				'format'    => '',
 				'current'   => $current_page,
 				'total'     => $pages,
-				'prev_text' => __( '&laquo; Previous', 'giftflow' ),
-				'next_text' => __( 'Next &raquo;', 'giftflow' ),
-				'type'      => 'list',
+				'prev_text' => esc_html__( 'Previous', 'giftflow' ),
+				'next_text' => esc_html__( 'Next', 'giftflow' ),
 			),
 			$current_page,
 			$pages
 		);
 		?>
-		<nav class="giftflow-campaign-grid__pagination" aria-label="<?php esc_attr_e( 'Campaign pagination', 'giftflow' ); ?>">
+		<nav class="gfw-pagination" aria-label="<?php esc_attr_e( 'Campaign pagination', 'giftflow' ); ?>">
 			<?php echo wp_kses_post( paginate_links( $pagination_args ) ); ?>
 		</nav>
 		<?php do_action( 'giftflow_campaign_grid_after_pagination', $current_page, $pages ); ?>
