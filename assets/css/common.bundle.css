@@ -1186,50 +1186,6 @@
     }
   }
 }
-@media (prefers-color-scheme: dark) {
-  .giftflow-modal {
-    background: #1f2937;
-    color: #f9fafb;
-  }
-  .giftflow-modal__header h1, .giftflow-modal__header h2, .giftflow-modal__header h3, .giftflow-modal__header h4, .giftflow-modal__header h5, .giftflow-modal__header h6 {
-    color: #f9fafb;
-  }
-  .giftflow-modal__body p {
-    color: #d1d5db;
-  }
-  .giftflow-modal__footer {
-    border-top-color: #374151;
-  }
-  .giftflow-modal__close {
-    background: #374151;
-    color: #d1d5db;
-  }
-  .giftflow-modal__close:hover {
-    background: #4b5563;
-    color: #f9fafb;
-  }
-  .giftflow-modal__input {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f9fafb;
-  }
-  .giftflow-modal__input::-moz-placeholder {
-    color: #9ca3af;
-  }
-  .giftflow-modal__input::placeholder {
-    color: #9ca3af;
-  }
-  .giftflow-modal__btn--secondary {
-    background: #374151;
-    color: #d1d5db;
-    border-color: #4b5563;
-  }
-  .giftflow-modal__btn--secondary:hover {
-    background: #4b5563;
-    color: #f9fafb;
-    border-color: #6b7280;
-  }
-}
 .giftflow-campaign-single-images {
   margin: 1.5rem 0;
   width: 100%;

@@ -601,59 +601,59 @@
 }
 
 // Dark mode support (if CSS custom properties are available)
-@media (prefers-color-scheme: dark) {
-  .giftflow-modal {
-    background: #1f2937;
-    color: #f9fafb;
+// @media (prefers-color-scheme: dark) {
+//   .giftflow-modal {
+//     background: #1f2937;
+//     color: #f9fafb;
     
-    &__header {
-      h1, h2, h3, h4, h5, h6 {
-        color: #f9fafb;
-      }
-    }
+//     &__header {
+//       h1, h2, h3, h4, h5, h6 {
+//         color: #f9fafb;
+//       }
+//     }
     
-    &__body {
-      p {
-        color: #d1d5db;
-      }
-    }
+//     &__body {
+//       p {
+//         color: #d1d5db;
+//       }
+//     }
     
-    &__footer {
-      border-top-color: #374151;
-    }
+//     &__footer {
+//       border-top-color: #374151;
+//     }
     
-    &__close {
-      background: #374151;
-      color: #d1d5db;
+//     &__close {
+//       background: #374151;
+//       color: #d1d5db;
       
-      &:hover {
-        background: #4b5563;
-        color: #f9fafb;
-      }
-    }
+//       &:hover {
+//         background: #4b5563;
+//         color: #f9fafb;
+//       }
+//     }
     
-    &__input {
-      background: #374151;
-      border-color: #4b5563;
-      color: #f9fafb;
+//     &__input {
+//       background: #374151;
+//       border-color: #4b5563;
+//       color: #f9fafb;
       
-      &::placeholder {
-        color: #9ca3af;
-      }
-    }
+//       &::placeholder {
+//         color: #9ca3af;
+//       }
+//     }
     
-    &__btn {
-      &--secondary {
-        background: #374151;
-        color: #d1d5db;
-        border-color: #4b5563;
+//     &__btn {
+//       &--secondary {
+//         background: #374151;
+//         color: #d1d5db;
+//         border-color: #4b5563;
         
-        &:hover {
-          background: #4b5563;
-          color: #f9fafb;
-          border-color: #6b7280;
-        }
-      }
-    }
-  }
-}
+//         &:hover {
+//           background: #4b5563;
+//           color: #f9fafb;
+//           border-color: #6b7280;
+//         }
+//       }
+//     }
+//   }
+// }

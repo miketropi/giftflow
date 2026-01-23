@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => '9f7c967d99db13653377a21f5fbac2c45f7e8ef6',
+        'reference' => '730c7917fed3e37f589eb250c27b8336856b0a4c',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => '9f7c967d99db13653377a21f5fbac2c45f7e8ef6',
+            'reference' => '730c7917fed3e37f589eb250c27b8336856b0a4c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -266,6 +266,15 @@
             'install_path' => __DIR__ . '/../squizlabs/php_codesniffer',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'stripe/stripe-php' => array(
+            'pretty_version' => 'v19.2.0',
+            'version' => '19.2.0.0',
+            'reference' => 'e444fbc524cd3d6583dde2c5b375d26174c54d96',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../stripe/stripe-php',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
             'pretty_version' => 'v3.5.1',

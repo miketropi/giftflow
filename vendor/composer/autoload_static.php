@@ -22,6 +22,7 @@ class ComposerStaticInita782ed2cad78c86c08122db29131cd07
             'Symfony\\Polyfill\\Php83\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Component\\HttpFoundation\\' => 33,
+            'Stripe\\' => 7,
         ),
         'P' =>
         array (
@@ -71,6 +72,10 @@ class ComposerStaticInita782ed2cad78c86c08122db29131cd07
         'Symfony\\Component\\HttpFoundation\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/http-foundation',
+        ),
+        'Stripe\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
         ),
         'Psr\\Http\\Message\\' =>
         array (

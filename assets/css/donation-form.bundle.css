@@ -382,7 +382,7 @@
   background: var(--giftflow-primary-color);
   color: white;
 }
-.donation-form__fields {
+.donation-form__fields, .donation-form__card-fields {
   display: grid;
   gap: 1rem;
 }
@@ -483,10 +483,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--giftflow-text-color);
+}
+.donation-form__payment-method-content svg {
+  stroke: var(--giftflow-text-color);
 }
 .donation-form__payment-method svg {
   width: 20px;
   height: 20px;
+  stroke: black;
 }
 @media (max-width: 480px) {
   .donation-form__payment-method svg {
@@ -691,6 +696,9 @@
     gap: 0.3rem;
   }
 }
+.donation-form__bank-instructions {
+  color: var(--giftflow-text-color);
+}
 .donation-form__bank-detail {
   display: grid;
   grid-template-columns: 140px 1fr;
@@ -788,6 +796,36 @@
   border-radius: var(--giftflow-border-radius);
   font-size: 0.875rem;
 }
+.donation-form__payment-method-description--stripe .payment-request-button-wrapper {
+  margin-bottom: 1.5rem;
+}
+.donation-form__payment-method-description--stripe .payment-request-button-wrapper #payment-request-button button {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--giftflow-border-radius);
+  transition: var(--giftflow-transition);
+}
+.donation-form__payment-method-description--stripe .payment-request-button-wrapper #payment-request-button button:hover {
+  opacity: 0.9;
+}
+.donation-form__payment-method-description--stripe .payment-request-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+.donation-form__payment-method-description--stripe .payment-request-separator::before, .donation-form__payment-method-description--stripe .payment-request-separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--giftflow-border-color);
+}
+.donation-form__payment-method-description--stripe .payment-request-separator span {
+  padding: 0 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
 .donation-form__payment-method-description--stripe #STRIPE-CARD-ELEMENT {
   margin-top: 1rem;
   padding: 1rem;
@@ -804,6 +842,15 @@
 .donation-form__payment-method-description--stripe #STRIPE-CARD-ELEMENT .StripeElement {
   width: 100%;
   min-height: 40px;
+}
+@media (max-width: 480px) {
+  .donation-form__payment-method-description--stripe .payment-request-button-wrapper {
+    margin-bottom: 1rem;
+  }
+  .donation-form__payment-method-description--stripe .payment-request-separator {
+    margin: 1rem 0;
+    font-size: 0.8125rem;
+  }
 }
 @media (max-width: 480px) {
   .donation-form__payment-method-description {
