@@ -278,7 +278,7 @@ class Stripe_Gateway extends Gateway_Base {
 						'type' => 'switch',
 						'label' => __( 'Enable Apple Pay + Google Pay', 'giftflow' ),
 						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
-						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . '<a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
+						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . ' <a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
 						'pro_only'    => true,
 					),
 				),
