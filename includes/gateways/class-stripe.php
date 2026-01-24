@@ -259,22 +259,6 @@ class Stripe_Gateway extends Gateway_Base {
 						'input_type' => 'password',
 						'description' => __( 'Enter your Stripe live secret key', 'giftflow' ),
 					),
-					'stripe_sandbox_webhook_secret' => array(
-						'id' => 'giftflow_stripe_sandbox_webhook_secret',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Sandbox Webhook Secret', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_sandbox_webhook_secret'] ) ? $payment_options['stripe']['stripe_sandbox_webhook_secret'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe sandbox webhook signing secret (whsec_...)', 'giftflow' ),
-					),
-					'stripe_live_webhook_secret' => array(
-						'id' => 'giftflow_stripe_live_webhook_secret',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Live Webhook Secret', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_live_webhook_secret'] ) ? $payment_options['stripe']['stripe_live_webhook_secret'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe live webhook signing secret (whsec_...)', 'giftflow' ),
-					),
 					// stripe_webhook_enabled.
 					'stripe_webhook_enabled' => array(
 						'id' => 'giftflow_stripe_webhook_enabled',

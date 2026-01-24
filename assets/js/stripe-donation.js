@@ -325,7 +325,7 @@ const STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
 
         // Update form fields with payer information
         if (ev.payerName) {
-          self.formObject.onSetField('donor_name', ev.payerName);
+          // self.formObject.onSetField('donor_name', ev.payerName);
           self.formObject.onSetField('card_name', ev.payerName);
         }
 
