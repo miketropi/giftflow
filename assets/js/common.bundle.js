@@ -525,7 +525,10 @@ function _donationButton_Handle() {
               }
             },
             className: 'modal-transparent-wrapper',
-            width: '800px'
+            width: '800px',
+            onClose: function onClose(_) {
+              _.destroy();
+            }
           });
           ajaxModal.open();
         case 1:

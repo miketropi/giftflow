@@ -51,7 +51,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 			}));
 
 			// on change amount field.
-			this.form.addEventListener('input', (event) => {
+			this.form.addEventListener('input', async (event) => {
 				if (event.target.name === 'donation_amount') {
 					this.onUpdateAmountField(event.target.value);
 				}
@@ -294,11 +294,9 @@ import { AsyncEventHub } from './util/async-event-hub';
 
 		onListenerFormFieldUpdate() {
 			const self = this;
-			this.form.addEventListener('change', (event) => {
+			this.form.addEventListener('change', async (event) => {
 				self.fields[event.target.name] = event.target.value;
 				let value = event.target.value;
-
-				// console.log(event.target.name, value);
 
 				// validate event.target is checkbox field.
 				if (event.target.type === 'checkbox') {
@@ -309,6 +307,13 @@ import { AsyncEventHub } from './util/async-event-hub';
 				if (event.target.type === 'radio') {
 					const fieldName = event.target.name;
 					value = self.form.querySelector(`input[name="${fieldName}"]:checked`).value;
+				}
+
+				// emit event donationAmountChanged if event.target.name is donation_amount.
+				if (event.target.name === 'donation_amount') {
+					await this.eventHub.emit('donationAmountChanged', {
+						amount: event.target.value
+					});
 				}
 
 				// update UI by field.

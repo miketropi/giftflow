@@ -18,6 +18,9 @@ export default async function donationButton_Handle(el) {
     },
     className: 'modal-transparent-wrapper',
     width: '800px',
+    onClose: (_) => {
+      _.destroy();
+    }
   });
 
   ajaxModal.open();

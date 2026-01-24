@@ -560,15 +560,22 @@ function _regeneratorDefine2(e, r, n, t) {
   }, _regeneratorDefine2(e, r, n, t);
 }
 /**
- * Stripe Donation 
+ * Stripe Donation - Payment Intents & Payment Methods
  * 
+ * Modern Stripe integration using Payment Intents API for
+ * enhanced security and SCA (Strong Customer Authentication) support.
+ * Includes Apple Pay, Google Pay, and other digital wallet support.
  */
 
 var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
 (function (w) {
   'use strict';
 
-  // make stripeDonation class
+  /**
+   * Stripe Donation Class
+   * Handles payment processing using Stripe Payment Intents
+   * with support for Card, Apple Pay, and Google Pay
+   */
   var StripeDonation = /*#__PURE__*/function () {
     /**
      * Constructor
@@ -581,6 +588,12 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
       (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, StripeDonation);
       this.form = form;
       this.formObject = formObject;
+      this.stripe = null;
+      this.cardElement = null;
+      this.paymentRequest = null;
+      this.paymentRequestButton = null;
+      this.selectedPaymentMethod = null; // Store payment method from wallet
+
       this.init();
     }
     return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(StripeDonation, [{
@@ -593,102 +606,217 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
       value: function () {
         var _init = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee3() {
           var _this = this;
-          var self, cardElement, $element, $wrapper, $wrapperField, $validateWrapper, $errorMessage;
+          var self, appearance, $element, $wrapperField, $validateWrapper, $errorMessage;
           return _regenerator().w(function (_context3) {
             while (1) switch (_context3.n) {
               case 0:
-                self = this;
+                self = this; // Load Stripe.js
                 _context3.n = 1;
                 return (0,_stripe_stripe_js__WEBPACK_IMPORTED_MODULE_3__.loadStripe)(STRIPE_PUBLIC_KEY);
               case 1:
                 this.stripe = _context3.v;
-                this.stripeElements = this.stripe.elements();
-                cardElement = this.stripeElements.create('card');
+                if (this.stripe) {
+                  _context3.n = 2;
+                  break;
+                }
+                console.error('Failed to load Stripe.js');
+                return _context3.a(2);
+              case 2:
+                // Create Elements instance
+                appearance = {
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#0570de',
+                    colorBackground: '#ffffff',
+                    colorText: '#30313d',
+                    colorDanger: '#df1b41',
+                    fontFamily: 'system-ui, sans-serif',
+                    spacingUnit: '4px',
+                    borderRadius: '4px'
+                  }
+                };
+                this.stripeElements = this.stripe.elements({
+                  appearance: appearance
+                });
+
+                // Create Card Element
+                this.cardElement = this.stripeElements.create('card', {
+                  hidePostalCode: true,
+                  style: {
+                    base: {
+                      fontSize: '16px',
+                      color: '#32325d',
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                      '::placeholder': {
+                        color: '#aab7c4'
+                      }
+                    },
+                    invalid: {
+                      color: '#fa755a',
+                      iconColor: '#fa755a'
+                    }
+                  }
+                });
+
+                // Get DOM elements
                 $element = this.form.querySelector('#STRIPE-CARD-ELEMENT');
-                $wrapper = $element.closest('.donation-form__payment-method-description');
                 $wrapperField = $element.closest('.donation-form__field');
-                $validateWrapper = $wrapperField; //$wrapperField.querySelector('[data-custom-validate="true"]');
-                $errorMessage = $wrapperField.querySelector('.custom-error-message .custom-error-message-text');
-                cardElement.mount($element);
-                cardElement.on('change', /*#__PURE__*/function () {
-                  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(event) {
+                $validateWrapper = $wrapperField;
+                $errorMessage = $wrapperField.querySelector('.custom-error-message .custom-error-message-text'); // Mount the Card Element
+                this.cardElement.mount($element);
+
+                // Handle real-time validation
+                this.cardElement.on('change', function (event) {
+                  if (event.complete) {
+                    $validateWrapper.dataset.customValidateStatus = 'true';
+                    $validateWrapper.classList.remove('error', 'custom-error');
+                    $errorMessage.textContent = '';
+                  } else {
+                    $validateWrapper.dataset.customValidateStatus = 'false';
+                    if (event.error) {
+                      $validateWrapper.classList.add('error', 'custom-error');
+                      $errorMessage.textContent = event.error.message;
+                    } else {
+                      $validateWrapper.classList.remove('error', 'custom-error');
+                      $errorMessage.textContent = '';
+                    }
+                  }
+                });
+
+                // Initialize Apple Pay / Google Pay
+                _context3.n = 3;
+                return this.initPaymentRequestButton();
+              case 3:
+                // Handle form submission
+                self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
+                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(_ref) {
+                    var formSelf, fields, paymentMethod, result, _t;
                     return _regenerator().w(function (_context) {
-                      while (1) switch (_context.n) {
+                      while (1) switch (_context.p = _context.n) {
                         case 0:
-                          // console.log('event', event);
-
-                          if (event.complete) {
-                            // console.log(self.formObject.fields);
-                            // console.log('Card information is complete.');
-
-                            $validateWrapper.dataset.customValidateStatus = 'true';
-                            $validateWrapper.classList.remove('error', 'custom-error');
-                          } else {
-                            // console.log('Card information is incomplete.');
-                            $validateWrapper.dataset.customValidateStatus = 'false';
-
-                            // add error message
-                            if (event.error) {
-                              $validateWrapper.classList.add('error', 'custom-error');
-                              $errorMessage.textContent = event.error.message;
-                            } else {
-                              $validateWrapper.classList.remove('error', 'custom-error');
-                              $errorMessage.textContent = '';
-                            }
+                          formSelf = _ref.self, fields = _ref.fields;
+                          if (!(fields !== null && fields !== void 0 && fields.payment_method && (fields === null || fields === void 0 ? void 0 : fields.payment_method) !== 'stripe')) {
+                            _context.n = 1;
+                            break;
                           }
+                          return _context.a(2);
                         case 1:
+                          $validateWrapper.classList.remove('error', 'custom-error');
+                          $errorMessage.textContent = '';
+                          _context.p = 2;
+                          if (!_this.getSelf().selectedPaymentMethod) {
+                            _context.n = 3;
+                            break;
+                          }
+                          paymentMethod = _this.getSelf().selectedPaymentMethod;
+                          console.log('Using wallet payment method:', paymentMethod.id);
+                          _context.n = 6;
+                          break;
+                        case 3:
+                          _context.n = 4;
+                          return _this.getSelf().stripe.createPaymentMethod({
+                            type: 'card',
+                            card: _this.getSelf().cardElement,
+                            billing_details: {
+                              name: fields.card_name || fields.donor_name || '',
+                              email: fields.donor_email || ''
+                            }
+                          });
+                        case 4:
+                          result = _context.v;
+                          if (!result.error) {
+                            _context.n = 5;
+                            break;
+                          }
+                          $validateWrapper.classList.add('error', 'custom-error');
+                          $errorMessage.textContent = result.error.message;
+                          throw result.error;
+                        case 5:
+                          paymentMethod = result.paymentMethod;
+                        case 6:
+                          // Set Payment Method ID for backend processing
+                          formSelf.onSetField('payment_method_id', paymentMethod.id);
+                          return _context.a(2, paymentMethod);
+                        case 7:
+                          _context.p = 7;
+                          _t = _context.v;
+                          console.error('Payment Method creation failed:', _t);
+                          throw _t;
+                        case 8:
                           return _context.a(2);
                       }
-                    }, _callee);
+                    }, _callee, null, [[2, 7]]);
                   }));
                   return function (_x) {
-                    return _ref.apply(this, arguments);
+                    return _ref2.apply(this, arguments);
                   };
                 }());
 
-                // add event listener to form using event hub.
-                self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
-                  var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(_ref2) {
-                    var self, fields, _yield$_this$getSelf$, token, error;
+                // Handle post-submission (for 3D Secure)
+                self.formObject.eventHub.on('donationFormAfterSubmit', /*#__PURE__*/function () {
+                  var _ref4 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(_ref3) {
+                    var response, formSelf, paymentData, _yield$_this$getSelf$, confirmError, paymentIntent, _t2;
                     return _regenerator().w(function (_context2) {
-                      while (1) switch (_context2.n) {
+                      while (1) switch (_context2.p = _context2.n) {
                         case 0:
-                          self = _ref2.self, fields = _ref2.fields;
-                          if (!(fields !== null && fields !== void 0 && fields.payment_method && (fields === null || fields === void 0 ? void 0 : fields.payment_method) !== 'stripe')) {
+                          response = _ref3.response, formSelf = _ref3.self;
+                          if (!(!response || !response.data)) {
                             _context2.n = 1;
                             break;
                           }
                           return _context2.a(2);
                         case 1:
-                          $validateWrapper.classList.remove('error', 'custom-error');
-                          $errorMessage.textContent = '';
-
-                          // create token.
-                          _context2.n = 2;
-                          return _this.getSelf().stripe.createToken(cardElement);
-                        case 2:
-                          _yield$_this$getSelf$ = _context2.v;
-                          token = _yield$_this$getSelf$.token;
-                          error = _yield$_this$getSelf$.error;
-                          if (!error) {
-                            _context2.n = 3;
+                          paymentData = response.data; // Handle requires_action status (3D Secure / SCA)
+                          if (!(paymentData.requires_action && paymentData.client_secret)) {
+                            _context2.n = 6;
                             break;
                           }
-                          $validateWrapper.classList.add('error', 'custom-error');
-                          $errorMessage.textContent = error.message;
-                          throw error;
+                          _context2.p = 2;
+                          _context2.n = 3;
+                          return _this.getSelf().stripe.confirmCardPayment(paymentData.client_secret);
                         case 3:
-                          // set token.
-                          self.onSetField('stripe_token', token.id);
-                          return _context2.a(2, token);
+                          _yield$_this$getSelf$ = _context2.v;
+                          confirmError = _yield$_this$getSelf$.error;
+                          paymentIntent = _yield$_this$getSelf$.paymentIntent;
+                          if (!confirmError) {
+                            _context2.n = 4;
+                            break;
+                          }
+                          // Display error to user
+                          console.error('Payment confirmation failed:', confirmError);
+
+                          // You can trigger a custom event or update UI here
+                          formSelf.eventHub.trigger('paymentConfirmationFailed', {
+                            error: confirmError.message
+                          });
+                          throw confirmError;
+                        case 4:
+                          if (paymentIntent && paymentIntent.status === 'succeeded') {
+                            // Payment succeeded after 3D Secure
+                            formSelf.eventHub.trigger('paymentConfirmed', {
+                              paymentIntent: paymentIntent
+                            });
+
+                            // Optionally reload or redirect
+                            window.location.href = paymentData.return_url || giftflowStripeDonation.return_url;
+                          }
+                          _context2.n = 6;
+                          break;
+                        case 5:
+                          _context2.p = 5;
+                          _t2 = _context2.v;
+                          console.error('3D Secure confirmation error:', _t2);
+                          throw _t2;
+                        case 6:
+                          return _context2.a(2);
                       }
-                    }, _callee2);
+                    }, _callee2, null, [[2, 5]]);
                   }));
                   return function (_x2) {
-                    return _ref3.apply(this, arguments);
+                    return _ref4.apply(this, arguments);
                   };
                 }());
-              case 2:
+              case 4:
                 return _context3.a(2);
             }
           }, _callee3, this);
@@ -698,8 +826,211 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
         }
         return init;
       }()
+      /**
+       * Initialize Payment Request Button (Apple Pay / Google Pay)
+       * 
+       * @returns {Promise<void>}
+       */
+    }, {
+      key: "initPaymentRequestButton",
+      value: function () {
+        var _initPaymentRequestButton = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee5() {
+          var _this2 = this;
+          var self, getDonationAmount, currency, countryCode, canMakePaymentResult, elements, result, $prButtonContainer, $cardElement, $cardWrapper, $cardNameField, $separator;
+          return _regenerator().w(function (_context5) {
+            while (1) switch (_context5.n) {
+              case 0:
+                self = this; // Get current donation amount from form
+                getDonationAmount = function getDonationAmount() {
+                  var fields = self.formObject.fields;
+                  var amount = parseFloat(fields.donation_amount || 0);
+                  return Math.round(amount * 100); // Convert to cents
+                }; // Get currency from settings or default to USD
+                currency = (giftflowStripeDonation.currency || 'usd').toLowerCase();
+                countryCode = giftflowStripeDonation.country || 'US'; // Create Payment Request
+                this.paymentRequest = this.stripe.paymentRequest({
+                  country: countryCode,
+                  currency: currency,
+                  total: {
+                    label: giftflowStripeDonation.site_name || 'Donation',
+                    amount: getDonationAmount()
+                  },
+                  requestPayerName: true,
+                  requestPayerEmail: true
+                });
+
+                // Check if Payment Request is available (Apple Pay / Google Pay)
+                _context5.n = 1;
+                return this.paymentRequest.canMakePayment();
+              case 1:
+                canMakePaymentResult = _context5.v;
+                if (canMakePaymentResult) {
+                  _context5.n = 2;
+                  break;
+                }
+                console.log('Apple Pay / Google Pay not available on this device');
+                return _context5.a(2);
+              case 2:
+                console.log('Payment Request available:', canMakePaymentResult);
+
+                // support only for Apple Pay & Google pay canMakePaymentResult
+                if (!(!canMakePaymentResult.applePay && !canMakePaymentResult.googlePay)) {
+                  _context5.n = 3;
+                  break;
+                }
+                console.log('Apple Pay / Google Pay not available on this device');
+                return _context5.a(2);
+              case 3:
+                // Create and mount Payment Request Button
+                elements = this.stripe.elements();
+                this.paymentRequestButton = elements.create('paymentRequestButton', {
+                  paymentRequest: this.paymentRequest,
+                  style: {
+                    paymentRequestButton: {
+                      type: 'donate',
+                      // Can be 'default', 'donate', 'buy'
+                      theme: 'dark',
+                      // Can be 'dark', 'light', or 'light-outline'
+                      height: '48px'
+                    }
+                  }
+                });
+
+                // Check if button can be mounted
+                _context5.n = 4;
+                return this.paymentRequest.canMakePayment();
+              case 4:
+                result = _context5.v;
+                if (result) {
+                  // Find or create container for Payment Request Button
+                  $prButtonContainer = this.form.querySelector('#payment-request-button');
+                  if (!$prButtonContainer) {
+                    // Create container if it doesn't exist
+                    $cardElement = this.form.querySelector('#STRIPE-CARD-ELEMENT');
+                    $cardWrapper = $cardElement.closest('.donation-form__payment-method-description');
+                    $prButtonContainer = document.createElement('div');
+                    $prButtonContainer.id = 'payment-request-button';
+                    $prButtonContainer.className = 'payment-request-button-wrapper';
+
+                    // Insert before card fields
+                    $cardNameField = $cardWrapper.querySelector('.donation-form__card-fields');
+                    if ($cardNameField) {
+                      $cardWrapper.insertBefore($prButtonContainer, $cardNameField);
+                    } else {
+                      $cardWrapper.insertBefore($prButtonContainer, $cardWrapper.firstChild);
+                    }
+
+                    // Add separator
+                    $separator = document.createElement('div');
+                    $separator.className = 'payment-request-separator';
+                    $separator.innerHTML = '<span>or pay with card</span>';
+                    $cardWrapper.insertBefore($separator, $cardNameField);
+                  }
+
+                  // Mount the button
+                  this.paymentRequestButton.mount('#payment-request-button');
+                  console.log('Payment Request Button mounted successfully');
+                }
+
+                // Listen for amount changes and update payment request
+                self.formObject.eventHub.on('donationAmountChanged', function (_ref5) {
+                  var amount = _ref5.amount;
+                  if (_this2.paymentRequest) {
+                    _this2.paymentRequest.update({
+                      total: {
+                        label: giftflowStripeDonation.site_name || 'Donation',
+                        amount: Math.round(parseFloat(amount) * 100)
+                      }
+                    });
+                  }
+                });
+
+                // Handle payment method creation from wallet
+                this.paymentRequest.on('paymentmethod', /*#__PURE__*/function () {
+                  var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee4(ev) {
+                    var submitButton, _t3;
+                    return _regenerator().w(function (_context4) {
+                      while (1) switch (_context4.p = _context4.n) {
+                        case 0:
+                          console.log('Payment method received from wallet:', ev.paymentMethod);
+
+                          // Store the payment method
+                          self.selectedPaymentMethod = ev.paymentMethod;
+
+                          // Update form fields with payer information
+                          if (ev.payerName) {
+                            self.formObject.onSetField('donor_name', ev.payerName);
+                            self.formObject.onSetField('card_name', ev.payerName);
+                          }
+                          if (ev.payerEmail) {
+                            self.formObject.onSetField('donor_email', ev.payerEmail);
+                          }
+                          _context4.p = 1;
+                          // Trigger form submission programmatically
+                          // The form will use the stored payment method
+                          submitButton = self.form.querySelector('[type="submit"]');
+                          if (!submitButton) {
+                            _context4.n = 2;
+                            break;
+                          }
+                          // add .__skip-validate-field-inner
+                          self.form.querySelector('#STRIPE-CARD-ELEMENT').closest('.donation-form__card-fields').classList.add('__skip-validate-field-inner');
+
+                          // Store that we're using wallet payment
+                          self.formObject.onSetField('using_wallet_payment', 'true');
+
+                          // Trigger the form submission
+                          submitButton.click();
+
+                          // Complete the payment (success will be handled by webhook/backend)
+                          ev.complete('success');
+                          _context4.n = 3;
+                          break;
+                        case 2:
+                          throw new Error('Submit button not found');
+                        case 3:
+                          _context4.n = 5;
+                          break;
+                        case 4:
+                          _context4.p = 4;
+                          _t3 = _context4.v;
+                          console.error('Wallet payment processing failed:', _t3);
+                          ev.complete('fail');
+
+                          // remove .__skip-validate-field-inner
+                          self.form.querySelector('#STRIPE-CARD-ELEMENT').closest('.donation-form__card-fields').classList.remove('__skip-validate-field-inner');
+
+                          // Clear the stored payment method
+                          self.selectedPaymentMethod = null;
+                        case 5:
+                          return _context4.a(2);
+                      }
+                    }, _callee4, null, [[1, 4]]);
+                  }));
+                  return function (_x3) {
+                    return _ref6.apply(this, arguments);
+                  };
+                }());
+
+                // Handle errors
+                this.paymentRequest.on('cancel', function () {
+                  console.log('Payment Request canceled by user');
+                  self.selectedPaymentMethod = null;
+                });
+              case 5:
+                return _context5.a(2);
+            }
+          }, _callee5, this);
+        }));
+        function initPaymentRequestButton() {
+          return _initPaymentRequestButton.apply(this, arguments);
+        }
+        return initPaymentRequestButton;
+      }()
     }]);
   }();
+
+  // Initialize when donation form is loaded
   document.addEventListener('donationFormLoaded', function (e) {
     var _e$detail = e.detail,
       self = _e$detail.self,
