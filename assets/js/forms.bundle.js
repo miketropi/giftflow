@@ -1102,6 +1102,7 @@ function _regeneratorDefine2(e, r, n, t) {
               key: "onSetLoading",
               value: function onSetLoading(status) {
                 var self = this;
+                self.form.classList.toggle('gfw-elem-loading-spinner', status);
                 self.form.querySelector('.donation-form__button--submit').classList.toggle('loading', status);
                 self.form.querySelector('.donation-form__button--submit').disabled = status;
               }

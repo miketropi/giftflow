@@ -184,6 +184,7 @@ class Stripe_Gateway extends Gateway_Base {
 				'currency' => $this->get_currency(),
 				'country' => $this->get_country_code(),
 				'site_name' => get_bloginfo( 'name' ),
+				'apple_pay_google_pay_enabled' => $this->get_setting( 'stripe_apple_pay_google_pay_enabled', false ),
 				'messages' => array(
 					'processing' => __( 'Processing payment...', 'giftflow' ),
 					'error' => __( 'Payment failed. Please try again.', 'giftflow' ),
@@ -270,6 +271,15 @@ class Stripe_Gateway extends Gateway_Base {
 							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
 							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
 						),
+					),
+					// support Apple Pay + Google Pay.
+					'stripe_apple_pay_google_pay_enabled' => array(
+						'id' => 'giftflow_stripe_apple_pay_google_pay_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Apple Pay + Google Pay', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
+						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . '<a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
+						'pro_only'    => true,
 					),
 				),
 			),

@@ -942,8 +942,8 @@ $mobile: 480px;
         align-items: center;
         text-align: center;
         // margin: 1.5rem 0;
-        color: #6b7280;
-        font-size: 0.875rem;
+        color: $text-color;
+        font-size: 0.8rem;
 
         &::before,
         &::after {

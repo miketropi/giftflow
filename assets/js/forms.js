@@ -116,6 +116,9 @@ import { AsyncEventHub } from './util/async-event-hub';
 
 		onSetLoading(status) {
 			const self = this;
+
+			self.form.classList.toggle('gfw-elem-loading-spinner', status);
+
 			self.form.querySelector('.donation-form__button--submit').classList.toggle('loading', status);
 			self.form.querySelector('.donation-form__button--submit').disabled = status;
 		}

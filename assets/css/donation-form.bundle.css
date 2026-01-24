@@ -812,8 +812,8 @@
   display: flex;
   align-items: center;
   text-align: center;
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: var(--giftflow-text-color);
+  font-size: 0.8rem;
 }
 .donation-form__payment-method-description--stripe .payment-request-separator::before, .donation-form__payment-method-description--stripe .payment-request-separator::after {
   content: "";

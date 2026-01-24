@@ -564,7 +564,6 @@ function _regeneratorDefine2(e, r, n, t) {
  * 
  * Modern Stripe integration using Payment Intents API for
  * enhanced security and SCA (Strong Customer Authentication) support.
- * Includes Apple Pay, Google Pay, and other digital wallet support.
  */
 
 var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
@@ -574,7 +573,9 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
   /**
    * Stripe Donation Class
    * Handles payment processing using Stripe Payment Intents
-   * with support for Card, Apple Pay, and Google Pay
+   * with support for Card payments.
+   * 
+   * Apple Pay and Google Pay support is available in GiftFlow Pro.
    */
   var StripeDonation = /*#__PURE__*/function () {
     /**
@@ -593,7 +594,7 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
       this.paymentRequest = null;
       this.paymentRequestButton = null;
       this.selectedPaymentMethod = null; // Store payment method from wallet
-
+      this.stripeElements = null;
       this.init();
     }
     return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(StripeDonation, [{
@@ -683,9 +684,11 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                   }
                 });
 
-                // Initialize Apple Pay / Google Pay
+                // Emit event for Pro plugins to hook into (e.g., Apple Pay / Google Pay)
                 _context3.n = 3;
-                return this.initPaymentRequestButton();
+                return self.formObject.eventHub.emit('stripeDonationInitialized', {
+                  self: self
+                });
               case 3:
                 // Handle form submission
                 self.formObject.eventHub.on('donationFormBeforeSubmit', /*#__PURE__*/function () {
@@ -786,14 +789,14 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
                           console.error('Payment confirmation failed:', confirmError);
 
                           // You can trigger a custom event or update UI here
-                          formSelf.eventHub.trigger('paymentConfirmationFailed', {
+                          formSelf.eventHub.emit('paymentConfirmationFailed', {
                             error: confirmError.message
                           });
                           throw confirmError;
                         case 4:
                           if (paymentIntent && paymentIntent.status === 'succeeded') {
                             // Payment succeeded after 3D Secure
-                            formSelf.eventHub.trigger('paymentConfirmed', {
+                            formSelf.eventHub.emit('paymentConfirmed', {
                               paymentIntent: paymentIntent
                             });
 
@@ -825,207 +828,6 @@ var STRIPE_PUBLIC_KEY = giftflowStripeDonation.stripe_publishable_key;
           return _init.apply(this, arguments);
         }
         return init;
-      }()
-      /**
-       * Initialize Payment Request Button (Apple Pay / Google Pay)
-       * 
-       * @returns {Promise<void>}
-       */
-    }, {
-      key: "initPaymentRequestButton",
-      value: function () {
-        var _initPaymentRequestButton = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee5() {
-          var _this2 = this;
-          var self, getDonationAmount, currency, countryCode, canMakePaymentResult, elements, result, $prButtonContainer, $cardElement, $cardWrapper, $cardNameField, $separator;
-          return _regenerator().w(function (_context5) {
-            while (1) switch (_context5.n) {
-              case 0:
-                self = this; // Get current donation amount from form
-                getDonationAmount = function getDonationAmount() {
-                  var fields = self.formObject.fields;
-                  var amount = parseFloat(fields.donation_amount || 0);
-                  return Math.round(amount * 100); // Convert to cents
-                }; // Get currency from settings or default to USD
-                currency = (giftflowStripeDonation.currency || 'usd').toLowerCase();
-                countryCode = giftflowStripeDonation.country || 'US'; // Create Payment Request
-                this.paymentRequest = this.stripe.paymentRequest({
-                  country: countryCode,
-                  currency: currency,
-                  total: {
-                    label: giftflowStripeDonation.site_name || 'Donation',
-                    amount: getDonationAmount()
-                  },
-                  requestPayerName: true,
-                  requestPayerEmail: true
-                });
-
-                // Check if Payment Request is available (Apple Pay / Google Pay)
-                _context5.n = 1;
-                return this.paymentRequest.canMakePayment();
-              case 1:
-                canMakePaymentResult = _context5.v;
-                if (canMakePaymentResult) {
-                  _context5.n = 2;
-                  break;
-                }
-                console.log('Apple Pay / Google Pay not available on this device');
-                return _context5.a(2);
-              case 2:
-                console.log('Payment Request available:', canMakePaymentResult);
-
-                // support only for Apple Pay & Google pay canMakePaymentResult
-                if (!(!canMakePaymentResult.applePay && !canMakePaymentResult.googlePay)) {
-                  _context5.n = 3;
-                  break;
-                }
-                console.log('Apple Pay / Google Pay not available on this device');
-                return _context5.a(2);
-              case 3:
-                // Create and mount Payment Request Button
-                elements = this.stripe.elements();
-                this.paymentRequestButton = elements.create('paymentRequestButton', {
-                  paymentRequest: this.paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type: 'donate',
-                      // Can be 'default', 'donate', 'buy'
-                      theme: 'dark',
-                      // Can be 'dark', 'light', or 'light-outline'
-                      height: '48px'
-                    }
-                  }
-                });
-
-                // Check if button can be mounted
-                _context5.n = 4;
-                return this.paymentRequest.canMakePayment();
-              case 4:
-                result = _context5.v;
-                if (result) {
-                  // Find or create container for Payment Request Button
-                  $prButtonContainer = this.form.querySelector('#payment-request-button');
-                  if (!$prButtonContainer) {
-                    // Create container if it doesn't exist
-                    $cardElement = this.form.querySelector('#STRIPE-CARD-ELEMENT');
-                    $cardWrapper = $cardElement.closest('.donation-form__payment-method-description');
-                    $prButtonContainer = document.createElement('div');
-                    $prButtonContainer.id = 'payment-request-button';
-                    $prButtonContainer.className = 'payment-request-button-wrapper';
-
-                    // Insert before card fields
-                    $cardNameField = $cardWrapper.querySelector('.donation-form__card-fields');
-                    if ($cardNameField) {
-                      $cardWrapper.insertBefore($prButtonContainer, $cardNameField);
-                    } else {
-                      $cardWrapper.insertBefore($prButtonContainer, $cardWrapper.firstChild);
-                    }
-
-                    // Add separator
-                    $separator = document.createElement('div');
-                    $separator.className = 'payment-request-separator';
-                    $separator.innerHTML = '<span>or pay with card</span>';
-                    $cardWrapper.insertBefore($separator, $cardNameField);
-                  }
-
-                  // Mount the button
-                  this.paymentRequestButton.mount('#payment-request-button');
-                  console.log('Payment Request Button mounted successfully');
-                }
-
-                // Listen for amount changes and update payment request
-                self.formObject.eventHub.on('donationAmountChanged', function (_ref5) {
-                  var amount = _ref5.amount;
-                  if (_this2.paymentRequest) {
-                    _this2.paymentRequest.update({
-                      total: {
-                        label: giftflowStripeDonation.site_name || 'Donation',
-                        amount: Math.round(parseFloat(amount) * 100)
-                      }
-                    });
-                  }
-                });
-
-                // Handle payment method creation from wallet
-                this.paymentRequest.on('paymentmethod', /*#__PURE__*/function () {
-                  var _ref6 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee4(ev) {
-                    var submitButton, _t3;
-                    return _regenerator().w(function (_context4) {
-                      while (1) switch (_context4.p = _context4.n) {
-                        case 0:
-                          console.log('Payment method received from wallet:', ev.paymentMethod);
-
-                          // Store the payment method
-                          self.selectedPaymentMethod = ev.paymentMethod;
-
-                          // Update form fields with payer information
-                          if (ev.payerName) {
-                            // self.formObject.onSetField('donor_name', ev.payerName);
-                            self.formObject.onSetField('card_name', ev.payerName);
-                          }
-                          if (ev.payerEmail) {
-                            self.formObject.onSetField('donor_email', ev.payerEmail);
-                          }
-                          _context4.p = 1;
-                          // Trigger form submission programmatically
-                          // The form will use the stored payment method
-                          submitButton = self.form.querySelector('[type="submit"]');
-                          if (!submitButton) {
-                            _context4.n = 2;
-                            break;
-                          }
-                          // add .__skip-validate-field-inner
-                          self.form.querySelector('#STRIPE-CARD-ELEMENT').closest('.donation-form__card-fields').classList.add('__skip-validate-field-inner');
-
-                          // Store that we're using wallet payment
-                          self.formObject.onSetField('using_wallet_payment', 'true');
-
-                          // Trigger the form submission
-                          submitButton.click();
-
-                          // Complete the payment (success will be handled by webhook/backend)
-                          ev.complete('success');
-                          _context4.n = 3;
-                          break;
-                        case 2:
-                          throw new Error('Submit button not found');
-                        case 3:
-                          _context4.n = 5;
-                          break;
-                        case 4:
-                          _context4.p = 4;
-                          _t3 = _context4.v;
-                          console.error('Wallet payment processing failed:', _t3);
-                          ev.complete('fail');
-
-                          // remove .__skip-validate-field-inner
-                          self.form.querySelector('#STRIPE-CARD-ELEMENT').closest('.donation-form__card-fields').classList.remove('__skip-validate-field-inner');
-
-                          // Clear the stored payment method
-                          self.selectedPaymentMethod = null;
-                        case 5:
-                          return _context4.a(2);
-                      }
-                    }, _callee4, null, [[1, 4]]);
-                  }));
-                  return function (_x3) {
-                    return _ref6.apply(this, arguments);
-                  };
-                }());
-
-                // Handle errors
-                this.paymentRequest.on('cancel', function () {
-                  console.log('Payment Request canceled by user');
-                  self.selectedPaymentMethod = null;
-                });
-              case 5:
-                return _context5.a(2);
-            }
-          }, _callee5, this);
-        }));
-        function initPaymentRequestButton() {
-          return _initPaymentRequestButton.apply(this, arguments);
-        }
-        return initPaymentRequestButton;
       }()
     }]);
   }();
