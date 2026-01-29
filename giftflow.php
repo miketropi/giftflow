@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: GiftFlow
- * Plugin URI: https://giftflow.com
+ * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
  * Version: 1.0.1
  * Author: Beplus
- * Author URI: https://giftflow.beplus.com
+ * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
  * Domain Path: /languages
  * Requires at least: 6.0

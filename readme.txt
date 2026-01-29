@@ -1,6 +1,7 @@
 === GiftFlow ===
-Contributors: BePlus
-Donate link: https://github.com/miketropi/giftflow
+Contributors: bearsthemes
+Author: Beplus
+Author URI: https://beplusthemes.com
 Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
