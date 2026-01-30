@@ -6,6 +6,7 @@ import './util/modal.js';
 
 import { replaceContentBySelector } from './util/helpers.js';
 import donationButton_Handle from './util/donation-button.js';
+import './util/campaign-single.js'; 
 
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 // photoswipe

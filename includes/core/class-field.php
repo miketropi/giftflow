@@ -756,7 +756,14 @@ class GiftFlow_Field {
 		// Generate a unique ID for the gallery.
 		$gallery_id = 'giftflow-gallery-' . $this->id;
 		?>
-		<div class="giftflow-gallery-field" id="<?php echo esc_attr( $gallery_id ); ?>">
+		<div 
+			class="giftflow-gallery-field" 
+			id="<?php echo esc_attr( $gallery_id ); ?>"
+			data-max-images="<?php echo esc_attr( $this->gallery_settings['max_images'] ); ?>"
+			data-image-size="<?php echo esc_attr( $this->gallery_settings['image_size'] ); ?>"
+			data-button-text="<?php echo esc_attr( $this->gallery_settings['button_text'] ); ?>"
+			data-remove-text="<?php echo esc_attr( $this->gallery_settings['remove_text'] ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_gallery_nonce' ) ); ?>">
 			<!-- Hidden input to store image IDs -->
 			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( implode( ',', $image_ids ) ); ?>" />
 			
@@ -790,7 +797,7 @@ class GiftFlow_Field {
 			</div><!-- End gallery controls -->
 			
 			<!-- JavaScript for gallery functionality -->
-			<script type="text/javascript">
+			<!-- <script type="text/javascript">
 				jQuery(document).ready(function($) {
 					var galleryFrame;
 					var $gallery = $("#<?php echo esc_js( $gallery_id ); ?>");
@@ -926,7 +933,7 @@ class GiftFlow_Field {
 						}
 					}
 				});
-			</script>
+			</script> -->
 		</div><!-- End gallery field -->
 		<?php
 

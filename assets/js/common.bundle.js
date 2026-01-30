@@ -80,9 +80,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util_modal_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./util/modal.js */ "./assets/js/util/modal.js");
 /* harmony import */ var _util_helpers_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util/helpers.js */ "./assets/js/util/helpers.js");
 /* harmony import */ var _util_donation_button_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util/donation-button.js */ "./assets/js/util/donation-button.js");
-/* harmony import */ var photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! photoswipe/lightbox */ "./node_modules/photoswipe/dist/photoswipe-lightbox.esm.js");
-/* harmony import */ var photoswipe__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! photoswipe */ "./node_modules/photoswipe/dist/photoswipe.esm.js");
-/* harmony import */ var photoswipe_style_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! photoswipe/style.css */ "./node_modules/photoswipe/dist/photoswipe.css");
+/* harmony import */ var _util_campaign_single_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util/campaign-single.js */ "./assets/js/util/campaign-single.js");
+/* harmony import */ var photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! photoswipe/lightbox */ "./node_modules/photoswipe/dist/photoswipe-lightbox.esm.js");
+/* harmony import */ var photoswipe__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! photoswipe */ "./node_modules/photoswipe/dist/photoswipe.esm.js");
+/* harmony import */ var photoswipe_style_css__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! photoswipe/style.css */ "./node_modules/photoswipe/dist/photoswipe.css");
 
 function _regenerator() {
   /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
@@ -199,6 +200,7 @@ function _regeneratorDefine2(e, r, n, t) {
 
 
 
+
 // photoswipe
 
 
@@ -283,9 +285,9 @@ function _regeneratorDefine2(e, r, n, t) {
         height: element.dataset.pswpHeight
       };
     });
-    var lightbox = new photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_5__["default"]({
+    var lightbox = new photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_6__["default"]({
       dataSource: sourceData,
-      pswpModule: photoswipe__WEBPACK_IMPORTED_MODULE_6__["default"]
+      pswpModule: photoswipe__WEBPACK_IMPORTED_MODULE_7__["default"]
     });
     lightbox.init();
     galleryElements.querySelector('.giftflow-campaign-single-images-lightbox-open-btn').addEventListener('click', function () {
@@ -298,6 +300,392 @@ function _regeneratorDefine2(e, r, n, t) {
     gfw.lightbox_initialize();
   });
 })(window, jQuery);
+
+/***/ }),
+
+/***/ "./assets/js/util/campaign-single.js":
+/*!*******************************************!*\
+  !*** ./assets/js/util/campaign-single.js ***!
+  \*******************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* module decorator */ module = __webpack_require__.hmd(module);
+
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Tab Widget Class
+ *
+ * A reusable class for managing tabbed content widgets.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+var GiftFlowTabWidget = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The tab widget container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowTabWidget(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, GiftFlowTabWidget);
+    this.container = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!this.container) {
+      console.warn('GiftFlowTabWidget: Tab widget element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowTabWidget.defaults), options);
+    this.activeTabId = null;
+    this.cacheElements();
+    this.bindEvents();
+    this.initFromHash();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowTabWidget, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.contentContainer = this.container.querySelector(this.options.contentContainerSelector) || this.container;
+      this.tabItems = this.container.querySelectorAll(this.options.tabItemSelector);
+      this.contentItems = this.contentContainer.querySelectorAll(this.options.contentItemSelector);
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this = this;
+      this.tabItems.forEach(function (tabItem) {
+        tabItem.addEventListener('click', function (e) {
+          e.preventDefault();
+          var tabId = tabItem.dataset[_this.options.tabIdAttribute];
+          _this.activateTab(tabId);
+        });
+
+        // Keyboard accessibility
+        tabItem.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            var tabId = tabItem.dataset[_this.options.tabIdAttribute];
+            _this.activateTab(tabId);
+          }
+
+          // Arrow key navigation
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            _this.navigateWithArrows(e.key === 'ArrowRight' ? 1 : -1, tabItem);
+          }
+        });
+      });
+
+      // Listen for hash changes
+      if (this.options.useHash) {
+        window.addEventListener('hashchange', function () {
+          return _this.initFromHash();
+        });
+      }
+    }
+
+    /**
+     * Initialize tab from URL hash
+     */
+  }, {
+    key: "initFromHash",
+    value: function initFromHash() {
+      if (!this.options.useHash) {
+        return;
+      }
+      var hash = window.location.hash.substring(1);
+      if (hash) {
+        // Check for keyword matches (e.g., 'comment' -> 'comments' tab)
+        for (var _i = 0, _Object$entries = Object.entries(this.options.hashKeywords); _i < _Object$entries.length; _i++) {
+          var _Object$entries$_i = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__["default"])(_Object$entries[_i], 2),
+            keyword = _Object$entries$_i[0],
+            tabId = _Object$entries$_i[1];
+          if (hash.includes(keyword)) {
+            this.activateTab(tabId);
+            return;
+          }
+        }
+
+        // Try direct tab ID match
+        this.activateTab(hash);
+      }
+    }
+
+    /**
+     * Navigate tabs with arrow keys
+     *
+     * @param {number} direction - Direction to navigate (1 for next, -1 for previous).
+     * @param {HTMLElement} currentTab - The currently focused tab.
+     */
+  }, {
+    key: "navigateWithArrows",
+    value: function navigateWithArrows(direction, currentTab) {
+      var tabsArray = Array.from(this.tabItems);
+      var currentIndex = tabsArray.indexOf(currentTab);
+      var newIndex = currentIndex + direction;
+
+      // Wrap around
+      if (newIndex < 0) {
+        newIndex = tabsArray.length - 1;
+      } else if (newIndex >= tabsArray.length) {
+        newIndex = 0;
+      }
+      var newTab = tabsArray[newIndex];
+      newTab.focus();
+      this.activateTab(newTab.dataset[this.options.tabIdAttribute]);
+    }
+
+    /**
+     * Activate a tab by its ID
+     *
+     * @param {string} tabId - The tab ID to activate.
+     * @returns {GiftFlowTabWidget} Returns this for chaining.
+     */
+  }, {
+    key: "activateTab",
+    value: function activateTab(tabId) {
+      var _this2 = this;
+      if (!tabId || tabId === this.activeTabId) {
+        return this;
+      }
+      var targetTab = this.container.querySelector("".concat(this.options.tabItemSelector, "[data-").concat(this.toKebabCase(this.options.tabIdAttribute), "=\"").concat(tabId, "\"]"));
+      var targetContent = this.contentContainer.querySelector("".concat(this.options.contentItemSelector, "[data-").concat(this.toKebabCase(this.options.tabIdAttribute), "=\"").concat(tabId, "\"]"));
+      if (!targetTab || !targetContent) {
+        return this;
+      }
+
+      // Deactivate all tabs and content
+      this.tabItems.forEach(function (tab) {
+        tab.classList.remove(_this2.options.activeClass);
+        tab.setAttribute('aria-selected', 'false');
+        tab.setAttribute('tabindex', '-1');
+      });
+      this.contentItems.forEach(function (content) {
+        content.classList.remove(_this2.options.activeClass);
+        content.setAttribute('aria-hidden', 'true');
+      });
+
+      // Activate target tab and content
+      targetTab.classList.add(this.options.activeClass);
+      targetTab.setAttribute('aria-selected', 'true');
+      targetTab.setAttribute('tabindex', '0');
+      targetContent.classList.add(this.options.activeClass);
+      targetContent.setAttribute('aria-hidden', 'false');
+      this.activeTabId = tabId;
+
+      // Dispatch custom event
+      this.container.dispatchEvent(new CustomEvent('giftflow:tab:changed', {
+        detail: {
+          tabId: tabId,
+          tab: targetTab,
+          content: targetContent,
+          instance: this
+        },
+        bubbles: true
+      }));
+      return this;
+    }
+
+    /**
+     * Convert camelCase to kebab-case
+     *
+     * @param {string} str - The string to convert.
+     * @returns {string} The kebab-case string.
+     */
+  }, {
+    key: "toKebabCase",
+    value: function toKebabCase(str) {
+      return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    }
+
+    /**
+     * Get the currently active tab ID
+     *
+     * @returns {string|null} The active tab ID or null.
+     */
+  }, {
+    key: "getActiveTabId",
+    value: function getActiveTabId() {
+      return this.activeTabId;
+    }
+
+    /**
+     * Get the currently active tab element
+     *
+     * @returns {HTMLElement|null} The active tab element or null.
+     */
+  }, {
+    key: "getActiveTab",
+    value: function getActiveTab() {
+      if (!this.activeTabId) {
+        return null;
+      }
+      return this.container.querySelector("".concat(this.options.tabItemSelector, "[data-").concat(this.toKebabCase(this.options.tabIdAttribute), "=\"").concat(this.activeTabId, "\"]"));
+    }
+
+    /**
+     * Get the currently active content element
+     *
+     * @returns {HTMLElement|null} The active content element or null.
+     */
+  }, {
+    key: "getActiveContent",
+    value: function getActiveContent() {
+      if (!this.activeTabId) {
+        return null;
+      }
+      return this.contentContainer.querySelector("".concat(this.options.contentItemSelector, "[data-").concat(this.toKebabCase(this.options.tabIdAttribute), "=\"").concat(this.activeTabId, "\"]"));
+    }
+
+    /**
+     * Go to the next tab
+     *
+     * @returns {GiftFlowTabWidget} Returns this for chaining.
+     */
+  }, {
+    key: "next",
+    value: function next() {
+      var _this3 = this;
+      var tabsArray = Array.from(this.tabItems);
+      var currentIndex = tabsArray.findIndex(function (tab) {
+        return tab.dataset[_this3.options.tabIdAttribute] === _this3.activeTabId;
+      });
+      var nextIndex = (currentIndex + 1) % tabsArray.length;
+      var nextTabId = tabsArray[nextIndex].dataset[this.options.tabIdAttribute];
+      return this.activateTab(nextTabId);
+    }
+
+    /**
+     * Go to the previous tab
+     *
+     * @returns {GiftFlowTabWidget} Returns this for chaining.
+     */
+  }, {
+    key: "prev",
+    value: function prev() {
+      var _this4 = this;
+      var tabsArray = Array.from(this.tabItems);
+      var currentIndex = tabsArray.findIndex(function (tab) {
+        return tab.dataset[_this4.options.tabIdAttribute] === _this4.activeTabId;
+      });
+      var prevIndex = (currentIndex - 1 + tabsArray.length) % tabsArray.length;
+      var prevTabId = tabsArray[prevIndex].dataset[this.options.tabIdAttribute];
+      return this.activateTab(prevTabId);
+    }
+
+    /**
+     * Refresh the cached elements (useful after dynamic content changes)
+     *
+     * @returns {GiftFlowTabWidget} Returns this for chaining.
+     */
+  }, {
+    key: "refresh",
+    value: function refresh() {
+      this.cacheElements();
+      return this;
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.tabItems.forEach(function (tabItem) {
+        tabItem.replaceWith(tabItem.cloneNode(true));
+      });
+      if (this.options.useHash) {
+        window.removeEventListener('hashchange', this.initFromHash);
+      }
+      this.container = null;
+      this.contentContainer = null;
+      this.tabItems = null;
+      this.contentItems = null;
+    }
+
+    /**
+     * Initialize all tab widgets matching a selector
+     *
+     * @param {string} selector - Selector for tab widget containers.
+     * @param {Object} options - Configuration options.
+     * @returns {GiftFlowTabWidget[]} Array of tab widget instances.
+     */
+  }], [{
+    key: "initAll",
+    value: function initAll(selector) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var instances = [];
+      document.querySelectorAll(selector).forEach(function (element) {
+        instances.push(new GiftFlowTabWidget(element, options));
+      });
+      return instances;
+    }
+  }]);
+}(); // Auto-initialize on DOMContentLoaded
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__["default"])(GiftFlowTabWidget, "defaults", {
+  tabItemSelector: '.giftflow-tab-widget-tab-item',
+  contentItemSelector: '.giftflow-tab-widget-content-item',
+  contentContainerSelector: '.giftflow-tab-widget-content',
+  activeClass: 'active',
+  tabIdAttribute: 'tabId',
+  useHash: true,
+  hashKeywords: {
+    comment: 'comments'
+  }
+});
+document.addEventListener('DOMContentLoaded', function () {
+  // Auto-init any tab widgets with default class
+  window.giftflowTabWidgets = GiftFlowTabWidget.initAll('.giftflow-campaign-single-content');
+});
+
+// Export for module systems
+if ( true && module.exports) {
+  module.exports = GiftFlowTabWidget;
+}
+
+// Make available globally
+window.GiftFlowTabWidget = GiftFlowTabWidget;
 
 /***/ }),
 
@@ -1440,6 +1828,44 @@ if ( true && module.exports) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayLikeToArray)
+/* harmony export */ });
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithHoles)
+/* harmony export */ });
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js":
 /*!*********************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js ***!
@@ -1551,6 +1977,92 @@ function _defineProperty(e, r, t) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArrayLimit)
+/* harmony export */ });
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = !0,
+      o = !1;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) {
+        if (Object(t) !== t) return;
+        f = !1;
+      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = !0, n = r;
+    } finally {
+      try {
+        if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableRest)
+/* harmony export */ });
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _slicedToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js");
+/* harmony import */ var _iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArrayLimit.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableRest.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js");
+
+
+
+
+function _slicedToArray(r, e) {
+  return (0,_arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r) || (0,_iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__["default"])(r, e) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(r, e) || (0,_nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/toPrimitive.js":
 /*!****************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/toPrimitive.js ***!
@@ -1620,6 +2132,30 @@ function _typeof(o) {
   } : function (o) {
     return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
   }, _typeof(o);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _unsupportedIterableToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r, a) : void 0;
+  }
 }
 
 

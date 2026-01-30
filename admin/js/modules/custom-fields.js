@@ -1,5 +1,6 @@
 import GiftFlowGoogleMapField from './googlemap-field';
 import GiftFlowAccordion from './accordion-section';
+import GiftFlowGalleryField from './gallery-field';
 
 ((w, $) => {
 	'use strict';
@@ -30,10 +31,31 @@ import GiftFlowAccordion from './accordion-section';
     } );
   }
 
+  const handleGalleryField = () => {
+    const selector = document.querySelectorAll( '.giftflow-gallery-field' );
+    if ( ! selector || selector.length === 0 ) {
+      return;
+    }
+
+    [...selector].forEach( ( element ) => {
+      const options = {
+        maxImages: element.dataset.maxImages,
+        imageSize: element.dataset.imageSize,
+        buttonText: element.dataset.buttonText,
+        removeText: element.dataset.removeText,
+        nonce: element.dataset.nonce,
+      };
+      
+      new GiftFlowGalleryField( element, options );
+    } );
+
+  }
+
   // window load 
   w.addEventListener( 'load', () => {
     handleMapField()
     handleAccordion()
+    handleGalleryField()
   } );
 
 })( window, jQuery )
