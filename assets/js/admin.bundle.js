@@ -3237,12 +3237,29 @@ __webpack_require__.r(__webpack_exports__);
       new _gallery_field__WEBPACK_IMPORTED_MODULE_3__["default"](element, options);
     });
   };
+  var navTabHandler = function navTabHandler() {
+    $('.nav-tab').on('click', function (e) {
+      e.preventDefault();
+
+      // Remove active class from all tabs and content
+      $('.nav-tab').removeClass('nav-tab-active');
+      $('.tab-content').removeClass('active');
+
+      // Add active class to clicked tab
+      $(this).addClass('nav-tab-active');
+
+      // Show corresponding content
+      var target = $(this).attr('href');
+      $(target).addClass('active');
+    });
+  };
 
   // window load 
   w.addEventListener('load', function () {
     handleMapField();
     handleAccordion();
     handleGalleryField();
+    navTabHandler();
   });
 })(window, jQuery);
 
