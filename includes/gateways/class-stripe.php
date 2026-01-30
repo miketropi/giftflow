@@ -634,7 +634,12 @@ class Stripe_Gateway extends Gateway_Base {
 			exit;
 		}
 
+		// Stripe sends webhook payload as raw JSON.
+		// The raw request body is required to verify the webhook signature.
+		// Therefore, sanitization is intentionally skipped at this stage.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$sig_header = isset( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ) : '';
 
 		try {
@@ -647,6 +652,7 @@ class Stripe_Gateway extends Gateway_Base {
 				);
 			} else {
 				// Fallback: parse without verification (not recommended for production).
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$event = json_decode( $payload, false );
 				if ( ! $event || ! isset( $event->type ) ) {
 					status_header( 400 );

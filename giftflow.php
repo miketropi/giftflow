@@ -254,9 +254,9 @@ function giftflow_add_first_activation_notice() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		isset( $_GET['page'], $_GET['tab'] )
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
-		&& $_GET['page'] === 'giftflow-dashboard'
+		&& sanitize_text_field( wp_unslash( $_GET['page'] ) ) === 'giftflow-dashboard'
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
-		&& $_GET['tab'] === 'help'
+		&& sanitize_text_field( wp_unslash( $_GET['tab'] ) ) === 'help'
 	) {
 		$is_giftflow_help_page = true;
 	}

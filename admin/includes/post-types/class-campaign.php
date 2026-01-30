@@ -323,7 +323,7 @@ class Campaign extends Base_Post_Type {
 
 			// Filter by status.
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if ( isset( $_GET['campaign_status'] ) && '' !== $_GET['campaign_status'] ) {
+			if ( isset( $_GET['campaign_status'] ) && '' !== sanitize_text_field( wp_unslash( $_GET['campaign_status'] ) ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$status       = sanitize_text_field( wp_unslash( $_GET['campaign_status'] ) );
 				$meta_query[] = array(
@@ -335,7 +335,7 @@ class Campaign extends Base_Post_Type {
 
 			// Filter by category.
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if ( isset( $_GET['campaign_category'] ) && '' !== $_GET['campaign_category'] ) {
+			if ( isset( $_GET['campaign_category'] ) && '' !== sanitize_text_field( wp_unslash( $_GET['campaign_category'] ) ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$category_id = intval( wp_unslash( $_GET['campaign_category'] ) );
 				$tax_query[] = array(

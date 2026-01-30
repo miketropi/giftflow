@@ -981,7 +981,12 @@ class PayPal_Gateway extends Gateway_Base {
 			exit;
 		}
 
+		// PayPal sends webhook payload as raw JSON.
+		// The raw request body is required to verify the webhook signature.
+		// Therefore, sanitization is intentionally skipped at this stage.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$event = json_decode( $payload, true );
 
 		if ( ! $event || ! isset( $event['event_type'] ) ) {
