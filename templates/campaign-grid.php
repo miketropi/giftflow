@@ -12,22 +12,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Extract variables from shortcode attributes.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $campaigns = isset( $campaigns ) ? $campaigns : array();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $total = isset( $total ) ? intval( $total ) : 0;
-// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $pages = isset( $pages ) ? intval( $pages ) : 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $current_page = isset( $current_page ) ? intval( $current_page ) : 1;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $custom_class = isset( $custom_class ) ? sanitize_html_class( $custom_class ) : '';
 
 // Custom class wrapper.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $wrapper_class = 'giftflow-campaign-grid';
 if ( ! empty( $custom_class ) ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$wrapper_class .= ' ' . esc_attr( $custom_class );
 }
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $wrapper_class = apply_filters( 'giftflow_campaign_grid_wrapper_class', $wrapper_class, $campaigns, $total, $pages, $current_page );
 
 // If no campaigns found.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 if ( empty( $campaigns ) ) {
+
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$empty_message = apply_filters( 'giftflow_campaign_grid_empty_message', __( 'No campaigns found.', 'giftflow' ) );
 	?>
 	<div class="<?php echo esc_attr( $wrapper_class ); ?>">
@@ -49,18 +60,30 @@ if ( empty( $campaigns ) ) {
 <div class="<?php echo esc_attr( $wrapper_class ); ?>">
 	<?php do_action( 'giftflow_campaign_grid_before_container', $campaigns, $total, $pages, $current_page ); ?>
 	<div class="giftflow-campaign-grid__container">
-		<?php foreach ( $campaigns as $campaign ) : ?>
+		<?php
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		foreach ( $campaigns as $campaign ) :
+			?>
 			<?php
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$campaign_id = isset( $campaign['id'] ) ? intval( $campaign['id'] ) : 0;
-			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$title = isset( $campaign['title'] ) ? $campaign['title'] : '';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$excerpt = isset( $campaign['excerpt'] ) ? $campaign['excerpt'] : '';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$permalink = isset( $campaign['permalink'] ) ? $campaign['permalink'] : '';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$featured_image_url = isset( $campaign['featured_image_url'] ) ? $campaign['featured_image_url'] : '';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$goal_amount = isset( $campaign['goal_amount'] ) ? floatval( $campaign['goal_amount'] ) : 0;
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$raised_amount = isset( $campaign['raised_amount'] ) ? floatval( $campaign['raised_amount'] ) : 0;
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$progress_percentage = isset( $campaign['progress_percentage'] ) ? floatval( $campaign['progress_percentage'] ) : 0;
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$location = isset( $campaign['location'] ) ? $campaign['location'] : '';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$categories = isset( $campaign['categories'] ) ? $campaign['categories'] : array();
 			?>
 			<?php do_action( 'giftflow_campaign_grid_before_item', $campaign, $campaign_id ); ?>
@@ -91,7 +114,10 @@ if ( empty( $campaigns ) ) {
 				<div class="giftflow-campaign-grid__content">
 					<?php if ( ! empty( $categories ) && is_array( $categories ) ) : ?>
 						<div class="giftflow-campaign-grid__categories">
-							<?php foreach ( array_slice( $categories, 0, 2 ) as $category ) : ?>
+							<?php
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+							foreach ( array_slice( $categories, 0, 2 ) as $category ) :
+								?>
 								<?php if ( isset( $category->name ) ) : ?>
 									<span class="giftflow-campaign-grid__category">
 										<?php echo esc_html( $category->name ); ?>
@@ -110,6 +136,7 @@ if ( empty( $campaigns ) ) {
 					<?php if ( ! empty( $excerpt ) ) : ?>
 						<div class="giftflow-campaign-grid__excerpt">
 							<?php
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$excerpt_length = apply_filters( 'giftflow_campaign_grid_excerpt_length', 20, $campaign_id );
 							echo wp_kses_post( wp_trim_words( $excerpt, $excerpt_length, '...' ) );
 							?>
@@ -152,9 +179,13 @@ if ( empty( $campaigns ) ) {
 	</div>
 	<?php do_action( 'giftflow_campaign_grid_after_container', $campaigns, $total, $pages, $current_page ); ?>
 
-	<?php if ( $pages > 1 ) : ?>
+	<?php
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	if ( $pages > 1 ) :
+		?>
 		<?php do_action( 'giftflow_campaign_grid_before_pagination', $current_page, $pages ); ?>
 		<?php
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$pagination_args = apply_filters(
 			'giftflow_campaign_grid_pagination_args',
 			array(

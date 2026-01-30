@@ -14,12 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Extract variables.
 // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 $post_id = isset( $post_id ) ? intval( $post_id ) : 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $goal_amount = isset( $goal_amount ) ? $goal_amount : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $raised_amount = isset( $raised_amount ) ? floatval( $raised_amount ) : 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $progress_percentage = isset( $progress_percentage ) ? floatval( $progress_percentage ) : 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $days_left = isset( $days_left ) ? $days_left : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donation_count = isset( $donation_count ) ? intval( $donation_count ) : 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $raised_amount_formatted = isset( $raised_amount_formatted ) ? $raised_amount_formatted : giftflow_render_currency_formatted_amount( $raised_amount );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $goal_amount_formatted = isset( $goal_amount_formatted ) ? $goal_amount_formatted : giftflow_render_currency_formatted_amount( $goal_amount );
 
 // If post_id is 0 or empty, show empty state.
