@@ -507,3 +507,44 @@
     margin-left: $spacing-xs;
   }
 }
+
+.giftflow-accordion-header {
+  background: #f5f5f5;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.giftflow-accordion-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.giftflow-accordion-header .dashicons {
+  transition: transform 0.2s ease;
+}
+
+.giftflow-accordion-content {
+  padding: 15px;
+  display: none;
+  background: #fafafa;
+}
+
+.giftflow-accordion-content .description {
+  margin-top: 0;
+}
+
+.giftflow-accordion-fields {
+  margin-top: 15px;
+}
+
+.giftflow-accordion-field {
+  margin-bottom: 15px;
+}
+
+.giftflow-accordion-field:last-child {
+  margin-bottom: 0;
+}

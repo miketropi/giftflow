@@ -124,6 +124,26 @@ class PayPal_Gateway extends Gateway_Base {
 				),
 			)
 		);
+
+		$css_inline = '
+			#giftflow-paypal-button-container {
+				width: 350px;
+				max-width: 100%;
+				margin: 0 auto;
+			}
+
+			@media(max-width: 512px) {
+				#giftflow-paypal-button-container {
+					width: 100%;
+				}
+			}
+		';
+
+		// Custom inline styles for PayPal buttons container.
+		$this->add_style_inline(
+			'giftflow-donation-form',
+			$css_inline
+		);
 	}
 
 	/**
@@ -329,7 +349,7 @@ class PayPal_Gateway extends Gateway_Base {
 				</div>
 				<div id="giftflow-paypal-button-container"></div>
 			</div>
-			<style>
+			<!-- <style>
 				@scope {
 					#giftflow-paypal-button-container {
 						width: 350px;
@@ -343,7 +363,7 @@ class PayPal_Gateway extends Gateway_Base {
 						}
 					}
 				}
-			</style>
+			</style> -->
 		</div>
 		<?php
 		return ob_get_clean();

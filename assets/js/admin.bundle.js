@@ -2892,6 +2892,341 @@ var useModal = function useModal() {
 
 /***/ }),
 
+/***/ "./admin/js/modules/accordion-section.js":
+/*!***********************************************!*\
+  !*** ./admin/js/modules/accordion-section.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Accordion Section Class
+ *
+ * A reusable class for managing accordion/collapsible sections.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+
+var $ = jQuery.noConflict();
+var GiftFlowAccordion = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The accordion container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowAccordion(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, GiftFlowAccordion);
+    this.$accordion = typeof selector === 'string' ? $(selector) : $(selector);
+    if (!this.$accordion.length) {
+      console.warn('GiftFlowAccordion: Accordion element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowAccordion.defaults), options);
+    this.isOpen = false;
+    this.cacheElements();
+    this.bindEvents();
+    this.initState();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(GiftFlowAccordion, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$header = this.$accordion.find(this.options.headerSelector);
+      this.$content = this.$accordion.find(this.options.contentSelector);
+      this.$icon = this.$header.find(this.options.iconSelector);
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this = this;
+      this.$header.on('click.giftflowAccordion', function (e) {
+        e.preventDefault();
+        _this.toggle();
+      });
+
+      // Keyboard accessibility
+      this.$header.on('keydown.giftflowAccordion', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _this.toggle();
+        }
+      });
+    }
+
+    /**
+     * Initialize the accordion state
+     */
+  }, {
+    key: "initState",
+    value: function initState() {
+      // Check if already has open class or option set
+      var shouldBeOpen = this.$accordion.hasClass(this.options.openClass) || this.options.initialOpen;
+      if (shouldBeOpen) {
+        this.isOpen = true;
+        this.$accordion.addClass(this.options.openClass);
+        this.$content.show();
+        this.rotateIcon(true);
+      } else {
+        this.isOpen = false;
+        this.$accordion.removeClass(this.options.openClass);
+        this.$content.hide();
+        this.rotateIcon(false);
+      }
+
+      // Set ARIA attributes for accessibility
+      this.$header.attr({
+        role: 'button',
+        tabindex: '0',
+        'aria-expanded': this.isOpen
+      });
+      this.$content.attr({
+        role: 'region',
+        'aria-hidden': !this.isOpen
+      });
+    }
+
+    /**
+     * Rotate the icon based on state
+     *
+     * @param {boolean} isOpen - Whether the accordion is open.
+     */
+  }, {
+    key: "rotateIcon",
+    value: function rotateIcon(isOpen) {
+      var rotation = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      this.$icon.css('transform', rotation);
+    }
+
+    /**
+     * Update ARIA attributes
+     */
+  }, {
+    key: "updateAria",
+    value: function updateAria() {
+      this.$header.attr('aria-expanded', this.isOpen);
+      this.$content.attr('aria-hidden', !this.isOpen);
+    }
+
+    /**
+     * Toggle the accordion open/closed
+     *
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "toggle",
+    value: function toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+      return this;
+    }
+
+    /**
+     * Open the accordion
+     *
+     * @param {boolean} animate - Whether to animate. Default true.
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "open",
+    value: function open() {
+      var _this2 = this;
+      var animate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      if (this.isOpen) {
+        return this;
+      }
+      this.isOpen = true;
+      this.$accordion.addClass(this.options.openClass);
+      this.rotateIcon(true);
+      this.updateAria();
+      if (animate) {
+        this.$content.slideDown(this.options.duration, function () {
+          _this2.$accordion.trigger('giftflow:accordion:opened', [_this2]);
+        });
+      } else {
+        this.$content.show();
+        this.$accordion.trigger('giftflow:accordion:opened', [this]);
+      }
+      return this;
+    }
+
+    /**
+     * Close the accordion
+     *
+     * @param {boolean} animate - Whether to animate. Default true.
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "close",
+    value: function close() {
+      var _this3 = this;
+      var animate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      if (!this.isOpen) {
+        return this;
+      }
+      this.isOpen = false;
+      this.$accordion.removeClass(this.options.openClass);
+      this.rotateIcon(false);
+      this.updateAria();
+      if (animate) {
+        this.$content.slideUp(this.options.duration, function () {
+          _this3.$accordion.trigger('giftflow:accordion:closed', [_this3]);
+        });
+      } else {
+        this.$content.hide();
+        this.$accordion.trigger('giftflow:accordion:closed', [this]);
+      }
+      return this;
+    }
+
+    /**
+     * Check if accordion is currently open
+     *
+     * @returns {boolean} Whether the accordion is open.
+     */
+  }, {
+    key: "isOpened",
+    value: function isOpened() {
+      return this.isOpen;
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.$header.off('.giftflowAccordion');
+      this.$header.removeAttr('role tabindex aria-expanded');
+      this.$content.removeAttr('role aria-hidden');
+      this.$icon.css('transform', '');
+      this.$accordion.removeClass(this.options.openClass);
+    }
+
+    /**
+     * Initialize all accordions matching a selector
+     *
+     * @param {string} selector - Selector for accordion containers.
+     * @param {Object} options - Configuration options.
+     * @returns {GiftFlowAccordion[]} Array of accordion instances.
+     */
+  }], [{
+    key: "initAll",
+    value: function initAll(selector) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var instances = [];
+      $(selector).each(function () {
+        instances.push(new GiftFlowAccordion(this, options));
+      });
+      return instances;
+    }
+  }]);
+}();
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowAccordion, "defaults", {
+  duration: 200,
+  openClass: 'open',
+  headerSelector: '.giftflow-accordion-header',
+  contentSelector: '.giftflow-accordion-content',
+  iconSelector: '.dashicons',
+  initialOpen: false
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowAccordion);
+
+/***/ }),
+
+/***/ "./admin/js/modules/custom-fields.js":
+/*!*******************************************!*\
+  !*** ./admin/js/modules/custom-fields.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _googlemap_field__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./googlemap-field */ "./admin/js/modules/googlemap-field.js");
+/* harmony import */ var _accordion_section__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./accordion-section */ "./admin/js/modules/accordion-section.js");
+
+
+(function (w, $) {
+  'use strict';
+
+  var handleMapField = function handleMapField() {
+    var mapFields = $('.giftflow-googlemap-field');
+    if (mapFields.length === 0) {
+      return;
+    }
+    mapFields.each(function (index, mapField) {
+      new _googlemap_field__WEBPACK_IMPORTED_MODULE_0__["default"](mapField, {
+        apiKey: mapField.data('api-key'),
+        lat: mapField.data('lat'),
+        lng: mapField.data('lng')
+      });
+    });
+  };
+  var handleAccordion = function handleAccordion() {
+    var accordionSections = $('.giftflow-accordion-section');
+    if (accordionSections.length === 0) {
+      return;
+    }
+    accordionSections.each(function (index, accordionSection) {
+      new _accordion_section__WEBPACK_IMPORTED_MODULE_1__["default"](accordionSection);
+    });
+  };
+
+  // window load 
+  w.addEventListener('load', function () {
+    handleMapField();
+    handleAccordion();
+  });
+})(window, jQuery);
+
+/***/ }),
+
 /***/ "./admin/js/modules/dashboard-view.js":
 /*!********************************************!*\
   !*** ./admin/js/modules/dashboard-view.js ***!
@@ -2924,6 +3259,407 @@ __webpack_require__.r(__webpack_exports__);
     DashboardView_Init();
   });
 })(window);
+
+/***/ }),
+
+/***/ "./admin/js/modules/googlemap-field.js":
+/*!*********************************************!*\
+  !*** ./admin/js/modules/googlemap-field.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Google Map Field Class
+ *
+ * A reusable class for managing Google Maps location picker fields.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+
+var $ = jQuery.noConflict();
+var GiftFlowGoogleMapField = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The map field container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowGoogleMapField(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, GiftFlowGoogleMapField);
+    this.$mapField = typeof selector === 'string' ? $(selector) : $(selector);
+    if (!this.$mapField.length) {
+      console.warn('GiftFlowGoogleMapField: Map field element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowGoogleMapField.defaults), options);
+    this.map = null;
+    this.marker = null;
+    this.geocoder = null;
+    this.cacheElements();
+    this.init();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(GiftFlowGoogleMapField, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$input = this.$mapField.find('input[type=hidden]');
+      this.$addressInput = this.$mapField.find('.giftflow-googlemap-address-input');
+      this.$searchButton = this.$mapField.find('.giftflow-googlemap-search');
+      this.$mapContainer = this.$mapField.find('.giftflow-googlemap-container');
+      this.$latDisplay = this.$mapField.find('.giftflow-googlemap-lat');
+      this.$lngDisplay = this.$mapField.find('.giftflow-googlemap-lng');
+    }
+
+    /**
+     * Initialize the map field
+     */
+  }, {
+    key: "init",
+    value: function init() {
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        this.loadGoogleMapsAPI();
+      } else {
+        this.initMap();
+      }
+    }
+
+    /**
+     * Load Google Maps API dynamically
+     */
+  }, {
+    key: "loadGoogleMapsAPI",
+    value: function loadGoogleMapsAPI() {
+      var _this = this;
+      // Check if script is already being loaded
+      if (window.giftflowGoogleMapsLoading) {
+        // Wait for existing load to complete
+        window.giftflowGoogleMapsCallbacks = window.giftflowGoogleMapsCallbacks || [];
+        window.giftflowGoogleMapsCallbacks.push(function () {
+          return _this.initMap();
+        });
+        return;
+      }
+      window.giftflowGoogleMapsLoading = true;
+      window.giftflowGoogleMapsCallbacks = window.giftflowGoogleMapsCallbacks || [];
+      window.giftflowGoogleMapsCallbacks.push(function () {
+        return _this.initMap();
+      });
+
+      // Define global callback
+      window.giftflowGoogleMapsCallback = function () {
+        window.giftflowGoogleMapsLoading = false;
+        window.giftflowGoogleMapsCallbacks.forEach(function (callback) {
+          return callback();
+        });
+        window.giftflowGoogleMapsCallbacks = [];
+      };
+      var script = document.createElement('script');
+      script.src = "https://maps.googleapis.com/maps/api/js?key=".concat(this.options.apiKey, "&callback=giftflowGoogleMapsCallback");
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    /**
+     * Initialize the Google Map
+     */
+  }, {
+    key: "initMap",
+    value: function initMap() {
+      var _this$options = this.options,
+        lat = _this$options.lat,
+        lng = _this$options.lng;
+      var hasCoordinates = lat && lng && lat !== GiftFlowGoogleMapField.defaults.lat;
+      var zoom = hasCoordinates ? 15 : this.options.zoom;
+      var center = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+
+      // Create map instance
+      this.map = new google.maps.Map(this.$mapContainer[0], {
+        center: center,
+        zoom: zoom,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+      });
+
+      // Create geocoder
+      this.geocoder = new google.maps.Geocoder();
+
+      // Create draggable marker
+      this.marker = new google.maps.Marker({
+        map: this.map,
+        draggable: true,
+        position: center
+      });
+      this.bindEvents();
+
+      // Reverse geocode initial position if coordinates exist
+      if (hasCoordinates) {
+        this.reverseGeocode(center);
+      }
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this2 = this;
+      // Marker drag event
+      this.marker.addListener('dragend', function () {
+        _this2.updateLocationFromMarker();
+      });
+
+      // Map click event
+      this.map.addListener('click', function (event) {
+        _this2.marker.setPosition(event.latLng);
+        _this2.updateLocationFromMarker();
+      });
+
+      // Search button click
+      this.$searchButton.on('click', function (e) {
+        e.preventDefault();
+        _this2.searchAddress();
+      });
+
+      // Enter key in address field
+      this.$addressInput.on('keypress', function (e) {
+        if (e.which === 13) {
+          e.preventDefault();
+          _this2.searchAddress();
+        }
+      });
+    }
+
+    /**
+     * Update location from marker position
+     */
+  }, {
+    key: "updateLocationFromMarker",
+    value: function updateLocationFromMarker() {
+      var position = this.marker.getPosition();
+      this.reverseGeocode({
+        lat: position.lat(),
+        lng: position.lng()
+      });
+    }
+
+    /**
+     * Reverse geocode to get address from coordinates
+     *
+     * @param {Object} position - Position object with lat and lng.
+     */
+  }, {
+    key: "reverseGeocode",
+    value: function reverseGeocode(position) {
+      var _this3 = this;
+      var latLng = position.lat && position.lng ? position : {
+        lat: position.lat(),
+        lng: position.lng()
+      };
+      this.geocoder.geocode({
+        location: latLng
+      }, function (results, status) {
+        if (status === 'OK' && results[0]) {
+          _this3.$addressInput.val(results[0].formatted_address);
+          _this3.updateLocationData(latLng.lat, latLng.lng, results[0].formatted_address);
+        }
+      });
+    }
+
+    /**
+     * Update location data in the hidden input and display elements
+     *
+     * @param {number} lat - Latitude.
+     * @param {number} lng - Longitude.
+     * @param {string} address - Formatted address.
+     */
+  }, {
+    key: "updateLocationData",
+    value: function updateLocationData(lat, lng, address) {
+      // Update display elements
+      this.$latDisplay.text(lat);
+      this.$lngDisplay.text(lng);
+
+      // Update hidden input with JSON data
+      var locationData = {
+        lat: lat,
+        lng: lng,
+        address: address
+      };
+      this.$input.val(JSON.stringify(locationData));
+
+      // Trigger change event for external listeners
+      this.$input.trigger('change', [locationData]);
+    }
+
+    /**
+     * Search for an address and update the map
+     */
+  }, {
+    key: "searchAddress",
+    value: function searchAddress() {
+      var _this4 = this;
+      var address = this.$addressInput.val().trim();
+      if (!address) {
+        return;
+      }
+      this.geocoder.geocode({
+        address: address
+      }, function (results, status) {
+        if (status === 'OK') {
+          var position = results[0].geometry.location;
+          _this4.map.setCenter(position);
+          _this4.map.setZoom(15);
+          _this4.marker.setPosition(position);
+          _this4.updateLocationData(position.lat(), position.lng(), results[0].formatted_address);
+        } else {
+          alert(_this4.options.i18n.geocodeError + status);
+        }
+      });
+    }
+
+    /**
+     * Set map location programmatically
+     *
+     * @param {number} lat - Latitude.
+     * @param {number} lng - Longitude.
+     * @param {number} zoom - Optional zoom level.
+     */
+  }, {
+    key: "setLocation",
+    value: function setLocation(lat, lng) {
+      var zoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 15;
+      var position = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+      if (this.map && this.marker) {
+        this.map.setCenter(position);
+        this.map.setZoom(zoom);
+        this.marker.setPosition(position);
+        this.reverseGeocode(position);
+      }
+    }
+
+    /**
+     * Get current location data
+     *
+     * @returns {Object|null} Location data or null if not set.
+     */
+  }, {
+    key: "getLocation",
+    value: function getLocation() {
+      var value = this.$input.val();
+      if (value) {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Clear the map location
+     */
+  }, {
+    key: "clear",
+    value: function clear() {
+      this.$addressInput.val('');
+      this.$latDisplay.text('');
+      this.$lngDisplay.text('');
+      this.$input.val('');
+
+      // Reset to defaults
+      var center = {
+        lat: GiftFlowGoogleMapField.defaults.lat,
+        lng: GiftFlowGoogleMapField.defaults.lng
+      };
+      if (this.map && this.marker) {
+        this.map.setCenter(center);
+        this.map.setZoom(GiftFlowGoogleMapField.defaults.zoom);
+        this.marker.setPosition(center);
+      }
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      // Remove event listeners
+      this.$searchButton.off('click');
+      this.$addressInput.off('keypress');
+      if (this.marker) {
+        google.maps.event.clearInstanceListeners(this.marker);
+      }
+      if (this.map) {
+        google.maps.event.clearInstanceListeners(this.map);
+      }
+      this.map = null;
+      this.marker = null;
+      this.geocoder = null;
+    }
+  }]);
+}();
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowGoogleMapField, "defaults", {
+  lat: 40.7128,
+  lng: -74.006,
+  zoom: 2,
+  apiKey: '',
+  i18n: {
+    geocodeError: 'Geocode was not successful for the following reason: '
+  }
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowGoogleMapField);
 
 /***/ }),
 
@@ -3495,6 +4231,50 @@ function _asyncToGenerator(n) {
       _next(void 0);
     });
   };
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/classCallCheck.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _classCallCheck)
+/* harmony export */ });
+function _classCallCheck(a, n) {
+  if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/createClass.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/createClass.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _createClass)
+/* harmony export */ });
+/* harmony import */ var _toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./toPropertyKey.js */ "./node_modules/@babel/runtime/helpers/esm/toPropertyKey.js");
+
+function _defineProperties(e, r) {
+  for (var t = 0; t < r.length; t++) {
+    var o = r[t];
+    o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, (0,_toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__["default"])(o.key), o);
+  }
+}
+function _createClass(e, r, t) {
+  return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
+    writable: !1
+  }), e;
 }
 
 
@@ -21710,6 +22490,8 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_test_send_mail__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/test-send-mail */ "./admin/js/modules/test-send-mail.js");
 /* harmony import */ var _modules_dashboard_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/dashboard-view */ "./admin/js/modules/dashboard-view.js");
+/* harmony import */ var _modules_custom_fields__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/custom-fields */ "./admin/js/modules/custom-fields.js");
+
 
 
 })();
