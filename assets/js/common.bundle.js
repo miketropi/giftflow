@@ -80,11 +80,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util_modal_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./util/modal.js */ "./assets/js/util/modal.js");
 /* harmony import */ var _util_campaign_single_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util/campaign-single.js */ "./assets/js/util/campaign-single.js");
 /* harmony import */ var _util_share_block_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util/share-block.js */ "./assets/js/util/share-block.js");
-/* harmony import */ var _util_helpers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util/helpers.js */ "./assets/js/util/helpers.js");
-/* harmony import */ var _util_donation_button_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util/donation-button.js */ "./assets/js/util/donation-button.js");
-/* harmony import */ var photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! photoswipe/lightbox */ "./node_modules/photoswipe/dist/photoswipe-lightbox.esm.js");
-/* harmony import */ var photoswipe__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! photoswipe */ "./node_modules/photoswipe/dist/photoswipe.esm.js");
-/* harmony import */ var photoswipe_style_css__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! photoswipe/style.css */ "./node_modules/photoswipe/dist/photoswipe.css");
+/* harmony import */ var _util_campaign_images_gallery_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util/campaign-images-gallery.js */ "./assets/js/util/campaign-images-gallery.js");
+/* harmony import */ var _util_helpers_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util/helpers.js */ "./assets/js/util/helpers.js");
+/* harmony import */ var _util_donation_button_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./util/donation-button.js */ "./assets/js/util/donation-button.js");
+/* harmony import */ var photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! photoswipe/lightbox */ "./node_modules/photoswipe/dist/photoswipe-lightbox.esm.js");
+/* harmony import */ var photoswipe__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! photoswipe */ "./node_modules/photoswipe/dist/photoswipe.esm.js");
+/* harmony import */ var photoswipe_style_css__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! photoswipe/style.css */ "./node_modules/photoswipe/dist/photoswipe.css");
 
 function _regenerator() {
   /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
@@ -205,6 +206,7 @@ function _regeneratorDefine2(e, r, n, t) {
 
 
 
+
 (function (w, $) {
   "use strict";
 
@@ -257,7 +259,7 @@ function _regeneratorDefine2(e, r, n, t) {
             if (res.success) {
               _res$data = res.data, __html = _res$data.__html, __replace_content_selector = _res$data.__replace_content_selector;
               if (__replace_content_selector) {
-                (0,_util_helpers_js__WEBPACK_IMPORTED_MODULE_5__.replaceContentBySelector)(__replace_content_selector, __html);
+                (0,_util_helpers_js__WEBPACK_IMPORTED_MODULE_6__.replaceContentBySelector)(__replace_content_selector, __html);
               }
             } else {
               console.error('Error loading donation list pagination template');
@@ -271,7 +273,7 @@ function _regeneratorDefine2(e, r, n, t) {
       return _ref.apply(this, arguments);
     };
   }();
-  gfw.donationButton_Handle = _util_donation_button_js__WEBPACK_IMPORTED_MODULE_6__["default"];
+  gfw.donationButton_Handle = _util_donation_button_js__WEBPACK_IMPORTED_MODULE_7__["default"];
 
   // lightbox
   gfw.lightbox_initialize = function () {
@@ -286,9 +288,9 @@ function _regeneratorDefine2(e, r, n, t) {
         height: element.dataset.pswpHeight
       };
     });
-    var lightbox = new photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_7__["default"]({
+    var lightbox = new photoswipe_lightbox__WEBPACK_IMPORTED_MODULE_8__["default"]({
       dataSource: sourceData,
-      pswpModule: photoswipe__WEBPACK_IMPORTED_MODULE_8__["default"]
+      pswpModule: photoswipe__WEBPACK_IMPORTED_MODULE_9__["default"]
     });
     lightbox.init();
     galleryElements.querySelector('.giftflow-campaign-single-images-lightbox-open-btn').addEventListener('click', function () {
@@ -301,6 +303,522 @@ function _regeneratorDefine2(e, r, n, t) {
     gfw.lightbox_initialize();
   });
 })(window, jQuery);
+
+/***/ }),
+
+/***/ "./assets/js/util/campaign-images-gallery.js":
+/*!***************************************************!*\
+  !*** ./assets/js/util/campaign-images-gallery.js ***!
+  \***************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* module decorator */ module = __webpack_require__.hmd(module);
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Campaign Images Gallery Class
+ *
+ * A reusable class for managing campaign image galleries with thumbnail navigation.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+var GiftFlowImageGallery = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The gallery container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowImageGallery(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, GiftFlowImageGallery);
+    this.container = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!this.container) {
+      console.warn('GiftFlowImageGallery: Gallery element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowImageGallery.defaults), options);
+    this.currentIndex = 0;
+    this.autoPlayTimer = null;
+    this.isExpanded = false;
+    this.cacheElements();
+    this.bindEvents();
+    this.initState();
+    if (this.options.autoPlay) {
+      this.startAutoPlay();
+    }
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(GiftFlowImageGallery, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.thumbnails = this.container.querySelectorAll(this.options.thumbnailSelector);
+      this.mainImage = this.container.querySelector(this.options.mainImageSelector);
+      this.expandButton = this.container.querySelector(this.options.expandButtonSelector);
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this = this;
+      // Thumbnail clicks
+      this.thumbnails.forEach(function (thumbnail, index) {
+        thumbnail.addEventListener('click', function () {
+          _this.goTo(index);
+        });
+
+        // Keyboard navigation on thumbnails
+        thumbnail.addEventListener('keydown', function (e) {
+          _this.handleThumbnailKeydown(e, index);
+        });
+      });
+
+      // Expand button
+      if (this.expandButton) {
+        // Store original labels
+        this.expandButton.dataset.expandLabel = this.expandButton.getAttribute('aria-label') || this.options.i18n.expandLabel;
+        this.expandButton.dataset.collapseLabel = this.options.i18n.collapseLabel;
+        this.expandButton.addEventListener('click', function (e) {
+          e.preventDefault();
+          _this.toggleExpand();
+        });
+        this.expandButton.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            _this.toggleExpand();
+          }
+        });
+      }
+
+      // Main image click (for lightbox integration)
+      if (this.mainImage) {
+        this.mainImage.addEventListener('click', function () {
+          _this.dispatchEvent('mainImageClick', {
+            index: _this.currentIndex,
+            image: _this.getCurrentImageData()
+          });
+        });
+      }
+    }
+
+    /**
+     * Initialize gallery state
+     */
+  }, {
+    key: "initState",
+    value: function initState() {
+      var _this2 = this;
+      // Find initially active thumbnail
+      var activeThumb = this.container.querySelector("".concat(this.options.thumbnailSelector, ".").concat(this.options.activeClass));
+      if (activeThumb) {
+        this.currentIndex = Array.from(this.thumbnails).indexOf(activeThumb);
+      }
+
+      // Set up ARIA attributes
+      this.thumbnails.forEach(function (thumb, index) {
+        thumb.setAttribute('role', 'button');
+        thumb.setAttribute('tabindex', index === _this2.currentIndex ? '0' : '-1');
+        thumb.setAttribute('aria-selected', index === _this2.currentIndex ? 'true' : 'false');
+      });
+    }
+
+    /**
+     * Handle keydown on thumbnails
+     *
+     * @param {KeyboardEvent} e - Keyboard event.
+     * @param {number} index - Current thumbnail index.
+     */
+  }, {
+    key: "handleThumbnailKeydown",
+    value: function handleThumbnailKeydown(e, index) {
+      var newIndex = index;
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          newIndex = (index + 1) % this.thumbnails.length;
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          newIndex = (index - 1 + this.thumbnails.length) % this.thumbnails.length;
+          break;
+        case 'Home':
+          e.preventDefault();
+          newIndex = 0;
+          break;
+        case 'End':
+          e.preventDefault();
+          newIndex = this.thumbnails.length - 1;
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          this.goTo(index);
+          return;
+        default:
+          return;
+      }
+      this.goTo(newIndex);
+      this.thumbnails[newIndex].focus();
+    }
+
+    /**
+     * Go to a specific image by index
+     *
+     * @param {number} index - The image index to display.
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "goTo",
+    value: function goTo(index) {
+      var _this3 = this;
+      if (index < 0 || index >= this.thumbnails.length) {
+        return this;
+      }
+      var thumbnail = this.thumbnails[index];
+      var previousIndex = this.currentIndex;
+
+      // Update active states
+      this.thumbnails.forEach(function (thumb, i) {
+        thumb.classList.toggle(_this3.options.activeClass, i === index);
+        thumb.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        thumb.setAttribute('tabindex', i === index ? '0' : '-1');
+      });
+
+      // Update main image
+      if (this.mainImage && thumbnail) {
+        this.mainImage.src = thumbnail.dataset.imageUrl || thumbnail.src;
+        this.mainImage.alt = thumbnail.dataset.imageAlt || thumbnail.alt || '';
+        if (thumbnail.dataset.imageFullUrl) {
+          this.mainImage.dataset.fullUrl = thumbnail.dataset.imageFullUrl;
+        }
+        if (thumbnail.dataset.imageId) {
+          this.mainImage.dataset.imageId = thumbnail.dataset.imageId;
+        }
+      }
+      this.currentIndex = index;
+      this.dispatchEvent('change', {
+        index: index,
+        previousIndex: previousIndex,
+        image: this.getCurrentImageData()
+      });
+      return this;
+    }
+
+    /**
+     * Go to next image
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "next",
+    value: function next() {
+      var nextIndex = (this.currentIndex + 1) % this.thumbnails.length;
+      return this.goTo(nextIndex);
+    }
+
+    /**
+     * Go to previous image
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "prev",
+    value: function prev() {
+      var prevIndex = (this.currentIndex - 1 + this.thumbnails.length) % this.thumbnails.length;
+      return this.goTo(prevIndex);
+    }
+
+    /**
+     * Toggle expand/collapse of hidden thumbnails
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "toggleExpand",
+    value: function toggleExpand() {
+      if (this.isExpanded) {
+        this.collapse();
+      } else {
+        this.expand();
+      }
+      return this;
+    }
+
+    /**
+     * Expand to show all thumbnails
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "expand",
+    value: function expand() {
+      var _this4 = this;
+      var hiddenThumbnails = this.container.querySelectorAll(".".concat(this.options.hiddenClass));
+      hiddenThumbnails.forEach(function (thumb) {
+        thumb.classList.remove(_this4.options.hiddenClass);
+      });
+      this.isExpanded = true;
+      if (this.expandButton) {
+        this.expandButton.classList.add(this.options.expandedClass);
+        this.expandButton.setAttribute('aria-label', this.expandButton.dataset.collapseLabel);
+        this.expandButton.setAttribute('aria-expanded', 'true');
+        if (this.options.removeExpandButton) {
+          this.expandButton.remove();
+          this.expandButton = null;
+        }
+      }
+      this.dispatchEvent('expanded');
+      return this;
+    }
+
+    /**
+     * Collapse to hide extra thumbnails
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "collapse",
+    value: function collapse() {
+      // This requires knowing which thumbnails should be hidden
+      // Usually handled by CSS or initial state
+      this.isExpanded = false;
+      if (this.expandButton) {
+        this.expandButton.classList.remove(this.options.expandedClass);
+        this.expandButton.setAttribute('aria-label', this.expandButton.dataset.expandLabel);
+        this.expandButton.setAttribute('aria-expanded', 'false');
+      }
+      this.dispatchEvent('collapsed');
+      return this;
+    }
+
+    /**
+     * Get current image data
+     *
+     * @returns {Object} Current image data.
+     */
+  }, {
+    key: "getCurrentImageData",
+    value: function getCurrentImageData() {
+      var thumbnail = this.thumbnails[this.currentIndex];
+      if (!thumbnail) {
+        return null;
+      }
+      return {
+        index: this.currentIndex,
+        url: thumbnail.dataset.imageUrl || thumbnail.src,
+        fullUrl: thumbnail.dataset.imageFullUrl || thumbnail.dataset.imageUrl || thumbnail.src,
+        alt: thumbnail.dataset.imageAlt || thumbnail.alt || '',
+        id: thumbnail.dataset.imageId || null
+      };
+    }
+
+    /**
+     * Get all images data
+     *
+     * @returns {Object[]} Array of image data objects.
+     */
+  }, {
+    key: "getAllImages",
+    value: function getAllImages() {
+      return Array.from(this.thumbnails).map(function (thumbnail, index) {
+        return {
+          index: index,
+          url: thumbnail.dataset.imageUrl || thumbnail.src,
+          fullUrl: thumbnail.dataset.imageFullUrl || thumbnail.dataset.imageUrl || thumbnail.src,
+          alt: thumbnail.dataset.imageAlt || thumbnail.alt || '',
+          id: thumbnail.dataset.imageId || null
+        };
+      });
+    }
+
+    /**
+     * Get total image count
+     *
+     * @returns {number} Total number of images.
+     */
+  }, {
+    key: "getCount",
+    value: function getCount() {
+      return this.thumbnails.length;
+    }
+
+    /**
+     * Get current index
+     *
+     * @returns {number} Current image index.
+     */
+  }, {
+    key: "getCurrentIndex",
+    value: function getCurrentIndex() {
+      return this.currentIndex;
+    }
+
+    /**
+     * Start auto-play slideshow
+     *
+     * @param {number} interval - Optional interval in milliseconds.
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "startAutoPlay",
+    value: function startAutoPlay() {
+      var _this5 = this;
+      var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.stopAutoPlay();
+      var ms = interval || this.options.autoPlayInterval;
+      this.autoPlayTimer = setInterval(function () {
+        _this5.next();
+      }, ms);
+      this.dispatchEvent('autoPlayStarted', {
+        interval: ms
+      });
+      return this;
+    }
+
+    /**
+     * Stop auto-play slideshow
+     *
+     * @returns {GiftFlowImageGallery} Returns this for chaining.
+     */
+  }, {
+    key: "stopAutoPlay",
+    value: function stopAutoPlay() {
+      if (this.autoPlayTimer) {
+        clearInterval(this.autoPlayTimer);
+        this.autoPlayTimer = null;
+        this.dispatchEvent('autoPlayStopped');
+      }
+      return this;
+    }
+
+    /**
+     * Dispatch a custom event
+     *
+     * @param {string} eventName - Event name (without prefix).
+     * @param {Object} detail - Event detail data.
+     */
+  }, {
+    key: "dispatchEvent",
+    value: function dispatchEvent(eventName) {
+      var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      this.container.dispatchEvent(new CustomEvent("giftflow:gallery:".concat(eventName), {
+        detail: _objectSpread(_objectSpread({}, detail), {}, {
+          instance: this
+        }),
+        bubbles: true
+      }));
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.stopAutoPlay();
+
+      // Clone and replace to remove event listeners
+      this.thumbnails.forEach(function (thumb) {
+        thumb.replaceWith(thumb.cloneNode(true));
+      });
+      if (this.expandButton) {
+        this.expandButton.replaceWith(this.expandButton.cloneNode(true));
+      }
+      if (this.mainImage) {
+        this.mainImage.replaceWith(this.mainImage.cloneNode(true));
+      }
+      this.container = null;
+      this.thumbnails = null;
+      this.mainImage = null;
+      this.expandButton = null;
+    }
+
+    /**
+     * Initialize all galleries matching a selector
+     *
+     * @param {string} selector - Selector for gallery containers.
+     * @param {Object} options - Configuration options.
+     * @returns {GiftFlowImageGallery[]} Array of gallery instances.
+     */
+  }], [{
+    key: "initAll",
+    value: function initAll(selector) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var instances = [];
+      document.querySelectorAll(selector).forEach(function (element) {
+        instances.push(new GiftFlowImageGallery(element, options));
+      });
+      return instances;
+    }
+  }]);
+}(); // Auto-initialize on DOMContentLoaded
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowImageGallery, "defaults", {
+  thumbnailSelector: '.giftflow-campaign-single-images-gallery-thumbnail',
+  mainImageSelector: '.giftflow-campaign-single-images-main',
+  expandButtonSelector: '.giftflow-campaign-single-images-gallery-expand',
+  hiddenClass: 'giftflow-thumbnail-hidden',
+  activeClass: 'active',
+  expandedClass: 'expanded',
+  removeExpandButton: true,
+  autoPlay: false,
+  autoPlayInterval: 5000,
+  i18n: {
+    expandLabel: 'Show more images',
+    collapseLabel: 'Show fewer images'
+  }
+});
+document.addEventListener('DOMContentLoaded', function () {
+  window.giftflowImageGalleries = GiftFlowImageGallery.initAll('.giftflow-campaign-single-images-gallery');
+});
+
+// Export for module systems
+if ( true && module.exports) {
+  module.exports = GiftFlowImageGallery;
+}
+
+// Make available globally
+window.GiftFlowImageGallery = GiftFlowImageGallery;
 
 /***/ }),
 

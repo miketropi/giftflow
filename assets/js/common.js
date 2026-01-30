@@ -5,6 +5,7 @@ import './util/comment-form.js';
 import './util/modal.js';
 import './util/campaign-single.js'; 
 import './util/share-block.js';
+import './util/campaign-images-gallery.js';
 
 import { replaceContentBySelector } from './util/helpers.js';
 import donationButton_Handle from './util/donation-button.js';
