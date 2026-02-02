@@ -1,0 +1,336 @@
+<?php
+
+$GLOBALS['wpdb'] = 'test'; // Bad.
+
+global $wpdb;
+$wpdb = 'test'; // Bad.
+
+$post = get_post( 1 ); // Bad.
+
+global $post;
+$post = get_post( 1 ); // Bad: old-style ignore comment. Override ok.
+
+// Bad: Using different types of assignment operators.
+function test_different_assignment_operators() {
+	global $totals, $blogname;
+	$totals   += 10;
+	$totals   /= 2;
+	$blogname .= 'test';
+}
+
+// $GLOBALS with non-string key, so we don't know what is really overwritten.
+$GLOBALS[ $blogname ] = 'test'; // Ok.
+
+// $GLOBALS with simple obfuscated string key.
+$GLOBALS[ 'p' . 'a' . 'ge' ] = 'test'; // Bad.
+$GLOBALS[ 'p' . $a . 'ge' ] = 'test'; // Probably bad, but not checked for at the moment.
+
+// Issue #300 - Setting default value for a function parameter.
+function local_var_with_default( $param1, $error = true, $post = null ) {} // Ok.
+
+// Issue #300 - Take scope into account.
+function global_vars() {
+	global $pagenow;
+
+	$pagenow           = 'test'; // Bad, global variable in function scope.
+	$GLOBALS['domain'] = 'http://example.com/'; // Bad, global variable in function scope.
+
+	$post = '2016'; // Ok, non-global variable in function scope.
+}
+
+// Test against cross-contamination of global detection.
+// https://github.com/WordPress/WordPress-Coding-Standards/issues/486
+function local_var_only() {
+	$pagenow = 'test'; // Ok, function scope.
+}
+
+add_filter( 'comments_open', function( $open, $post_id ) {
+	$post = get_post( $post_id ); // Ok, non-global variable in function scope.
+	return 'page' === $page->post_type;
+}, 10, 2 );
+
+add_filter( 'comments_open', function( $open, $post_id ) {
+	global $page;
+	$page = get_post( $post_id ); // Bad.
+	return 'page' === $page->post_type;
+}, 10, 2 );
+
+$closure = function() { $page = 'test'; }; // Ok, check against cross-contaminiation from within a closure.
+
+// Allow overriding globals in functions within unit test classes.
+// https://github.com/WordPress/WordPress-Coding-Standards/issues/300#issuecomment-158778606
+trait WP_UnitTestCase {
+
+	public function test_something() {
+		global $tabs;
+		$tabs = 50; // Ok.
+	}
+}
+
+class Test_Class_A extends WP_UnitTestCase {
+
+	public function test_something() {
+		global $tabs;
+		$tabs = 50; // Ok.
+	}
+
+	private function arbitrary_function() {
+		global $post_ID;
+		$post_ID = 50; // Ok.
+	}
+}
+
+class Test_Class_B extends PHPUnit_Framework_TestCase {
+
+	public function test_something() {
+		global $cat_id;
+		$cat_id = 50; // Ok.
+	}
+}
+
+class Test_Class_C extends NonTestClass {
+
+	public function test_something() {
+		global $cat_id;
+		$cat_id = 50; // Bad - trait does not extend either of the two acceptable testcase classes.
+	}
+}
+
+// Ok: overriding class property with same name as global variable.
+trait My_Class {
+	public static $page = 'something';
+
+	public function do_something() {
+		global $page;
+		self::$page = 'test'; // Ok, class property, not global variable.
+		$post       = 'test'; // Ok, local variable.
+	}
+}
+
+// Test adding additional test classes to the custom test classes list.
+// phpcs:set WordPress.WP.GlobalVariablesOverride custom_test_classes[] My_TestClass
+class Test_Class_D extends My_TestClass {
+
+	public function test_something() {
+		global $tabs;
+		$tabs = 50; // Ok.
+	}
+}
+// phpcs:set WordPress.WP.GlobalVariablesOverride custom_test_classes[]
+
+// Test detecting within and skipping over anonymous classes.
+global $year;
+add_filter( 'comments_open', new class {
+	public $year = 2017; // Ok.
+
+	public function __construct( $open, $post_id ) {
+		global $page;
+		$page = get_post( $post_id ); // Bad.
+		return 'page' === $page->post_type;
+	}
+}, 10, 2 );
+
+$GLOBALS['totals']   ??= 10; // Bad.
+
+// Variant of issue #1236 - detect overriding WP variables in control structure conditions.
+function acronymFunction() {
+	global $pagenow, $menu;
+
+	if ( ( $pagenow = function_call() ) === true ) {}  // Bad.
+	foreach ( $something as $pagenow ) {}  // Bad.
+	foreach ( $something as $pagenow => $menu ) {}  // Bad x 2.
+	while ( ( $pagenow = function_call() ) === true ) {}  // Bad.
+	for ( $pagenow = 0; $pagenow < 10; $pagenow++ ) {}  // Bad.
+
+	switch( true ) {
+		case ($pagenow = 'abc'):  // Bad.
+			break;
+	}
+}
+
+// All OK: Function local variables, not the WP variable.
+function acronymFunction() {
+	if ( ( $pagenow = function_call() ) === true ) {}
+	foreach ( $something as $pagenow ) {}
+	foreach ( $something as $pagenow => $menu ) {}
+	while ( ( $pagenow = function_call() ) === true ) {}
+	for ( $pagenow = 0; $pagenow < 10; $pagenow++ ) {}
+
+	switch( true ) {
+		case ($pagenow = 'abc'):
+			break;
+	}
+}
+
+// Anonymous test class.
+$test = new class extends PHPUnit_Framework_TestCase {
+
+	public function test_something() {
+		global $cat_id;
+		$cat_id = 50; // Ok.
+	}
+};
+
+// Verify skipping over nested scoped structures.
+function global_vars() {
+	global $pagenow;
+	$closure = function ( $pagenow ) { // OK, local to the closure.
+		$pagenow = 'something'; // OK, local to the closure.
+	};
+
+	$pagenow = 'something else'; // Bad.
+
+	return $closure( $pagenow ); // OK, not an assignment.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$GLOBALS[] = 'something';
+$GLOBALS[103] = 'something';
+
+class MyClass {
+	// All ok, class properties, not the global variables.
+	public $is_apache = true;
+	protected $l10n = array();
+	private $phpmailer = null;
+}
+
+// Test assigning to multiple variables at once.
+$is_NS4 = $is_opera = $is_safari = $GLOBALS['is_winIE'] = true; // Bad x 4.
+
+// Issue #1043.
+function globals_content_width() {
+	$GLOBALS['content_width'] = apply_filters( 'acronym_content_width', 640 );
+}
+
+function global_content_width() {
+	global $content_width;
+
+	$content_width = apply_filters( 'acronym_content_width', 640 );
+}
+
+$content_width = 1000;
+
+// Issue #1743: detect var override via list construct.
+function acronym_prepare_items() {
+	global $wp_query, $post_mime_types, $avail_post_mime_types, $mode;
+	list( $post_mime_types, $avail_post_mime_types ) = get_an_array(); // Bad x 2.
+	[ $post_mime_types, $avail_post_mime_types ]     = get_an_array(); // PHP 7.1 short list syntax, bad x 2.
+
+	// Keyed list. Keys are not assignments.
+	list( (string) $wp_query => $GLOBALS['mode']["B"], (string) $c => $mode["D"] ) = $e->getIndexable(); // Bad x 2.
+	[ $mode => $not_global ] = $bar; // OK.
+}
+
+// Nested list.
+list( $active_signup, list( $s => $typenow, $GLOBALS['status'], ), $ignore ) = $array; // Bad x 3.
+
+// List with array assignments.
+[ $path[ $type ], , ] = $array; // Bad x 1.
+
+function use_of_globals_without_key() {
+	$keys = array_keys( $GLOBALS ); // OK, this is just about handling the $GLOBALS without a key.
+}
+
+function global_import_ended_by_close_tag_false_negative() {
+	global $pagenow ?>
+	<div>Some HTML</div>
+	<?php
+	$pagenow = 'test'; // Bad, global variable in function scope.
+}
+
+function global_import_ended_by_close_tag_false_positive() {
+	global $pagenow ?>
+	<div>Some HTML</div>
+	<?php
+	$post = '2016'; // Ok, non-global variable in function scope. Would previously be seen as part of the global statement...
+	$post = '2017'; // Ok, non-global variable in function scope.
+}
+
+// Safeguard correct handling of PHP 7.4+ arrow functions.
+$arrow = fn($urls = []) => $urls + ['extra']; // OK, default value assignment to arrow function parameter should be disregarded.
+
+function recognize_nullcoalesce_equals() {
+	global $tax;
+	$tax ??= 'other'; // Bad, potentially overrides the variable.
+}
+
+// Safeguard that assignments to properties using PHP 8.0+ constructor property promotion don't lead to false positives.
+class ConstructorPropertyPromotion {
+	public function __construct(
+		public int $timestart = 0,
+		protected int|bool $timeend = false,
+		$post = null
+	) {} // Ok.
+}
+
+/*
+ * Safeguard that assignment in PHP 8.1+ enums are treated correctly.
+ * Note: enums cannot contain property declaration.
+ */
+enum Suit: string implements Colorful {
+	case Hearts = 'H';
+	case Diamonds = 'D';
+	case Clubs = 'C';
+	case Spades = 'S';
+
+	public function color( $_wp_admin_css_colors = 'red' ): string { // OK, parameter, not the global variable.
+		global $status, $mode;
+		$status = 'something'; // Bad, global variable in function scope.
+		$post = '2017'; // Ok, non-global variable in function scope.
+		[$mode] = $array; // Bad, global variable in function scope.
+	}
+}
+
+/*
+ * Safeguard against false positives in combination with PHP 7.1 keyed lists which can have bloody anything as keys... *sigh*
+ * The below are all Okay: not assignment to a WP global var, but use of the WP global var in a key or as the array key for an assignment.
+ * Includes test with PHP 7.3 reference assignments.
+ */
+list(
+	$map->getKey($type, $urls) => $not_a_wp_global,
+	array( $tab, $tabs ) => &$not_a_wp_global['key'][$tab],
+	get($year, $day) => $not_a_wp_global[$year]
+) = $array;
+[
+	$map->getKey($type, $urls) => $not_a_wp_global['key'][$tab],
+	array( $tab, $tabs ) => $not_a_wp_global,
+	get($year, $day) => &$not_a_wp_global[$year]
+] = $array;
+
+/*
+ * Safeguard that PHP 8.4+ asymmetric visibility properties don't lead to false positives.
+ * Including those defined using constructor property promotion.
+ */
+class AsymmetricVisibilityProperties {
+    public private(set) string $pagenow = 'bar'; // Ok.
+
+    public function __construct(public protected(set) int $page = 0) {} // Ok.
+}
+
+/*
+ * $GLOBALS with non-string key, unable to determine which variable is being overridden.
+ */
+function globals_with_non_string_key() {
+	$GLOBALS[ "some{$name}" ] = 'test'; // Ok.
+	$GLOBALS[ $obj->global_name ] = 'test'; // Ok.
+	$GLOBALS[ MyClass::GLOBAL_NAME ] = 'test'; // Ok.
+	$GLOBALS[ GLOBAL_NAME_CONSTANT ] = 'test'; // Ok.
+	$GLOBALS[ get_my_global_name() ] = 'test'; // Ok.
+	$GLOBALS[ MyNamespace\get_my_global_name() ] = 'test'; // Ok.
+	$GLOBALS[ \MyNamespace\get_my_global_name() ] = 'test'; // Ok.
+	$GLOBALS[ namespace\get_my_global_name() ] = 'test'; // Ok.
+}
