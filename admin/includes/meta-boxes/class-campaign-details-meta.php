@@ -171,7 +171,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 
 		ob_start();
 		?>
-		<div class="campaign-details-tabs">
+		<div class="campaign-details-tabs giftflow-meta-box-tabs">
 			<div class="nav-tab-wrapper">
 				<a href="#general-tab" class="nav-tab nav-tab-active"><?php esc_html_e( 'General', 'giftflow' ); ?></a>
 				<a href="#advanced-tab" class="nav-tab"><?php esc_html_e( 'Advanced', 'giftflow' ); ?></a>

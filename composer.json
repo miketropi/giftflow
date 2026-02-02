@@ -6,9 +6,6 @@
 		}
 	},
 	"require": {
-		"omnipay/paypal": "^3.0",
-		"league/omnipay": "^3.2",
-		"omnipay/stripe": "^3.2",
 		"stripe/stripe-php": "^19.2"
 	},
 	"require-dev": {

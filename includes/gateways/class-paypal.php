@@ -349,21 +349,6 @@ class PayPal_Gateway extends Gateway_Base {
 				</div>
 				<div id="giftflow-paypal-button-container"></div>
 			</div>
-			<!-- <style>
-				@scope {
-					#giftflow-paypal-button-container {
-						width: 350px;
-						max-width: 100%;
-						margin: 0 auto;
-					}
-
-					@media(max-width: 512px) {
-						#giftflow-paypal-button-container {
-							width: 100%;
-						}
-					}
-				}
-			</style> -->
 		</div>
 		<?php
 		return ob_get_clean();

@@ -203,9 +203,19 @@ function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
 	return giftflow_send_mail_template(
 		array(
 			'to'      => $admin_email,
-			// translators: %s: Campaign name for the new donation notification email subject.
-			'subject' => sprintf( esc_html__( 'New Donation — %s', 'giftflow' ), $donation_data->campaign_name ),
-			'header'  => esc_html__( 'New donation received', 'giftflow' ),
+			'subject' => apply_filters(
+				'giftflow_new_donation_admin_email_subject',
+				// translators: %s: Campaign name for the new donation notification email subject.
+				sprintf( esc_html__( 'New Donation — %s', 'giftflow' ), $donation_data->campaign_name ),
+				$donation_id,
+				$donation_data
+			),
+			'header'  => apply_filters(
+				'giftflow_new_donation_admin_email_header',
+				esc_html__( 'New donation received', 'giftflow' ),
+				$donation_id,
+				$donation_data
+			),
 			'content' => $content,
 		)
 	);
@@ -257,9 +267,19 @@ function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id,
 	return giftflow_send_mail_template(
 		array(
 			'to'      => $donation_data->donor_email,
-			// translators: %s: Campaign name for donor thank you email subject.
-			'subject' => sprintf( esc_html__( 'Thank You for Your Donation — %s', 'giftflow' ), $donation_data->campaign_name ),
-			'header'  => esc_html__( 'Thank You for Your Donation', 'giftflow' ),
+			'subject' => apply_filters(
+				'giftflow_thanks_donor_email_subject',
+				// translators: %s: Campaign name for donor thank you email subject.
+				sprintf( esc_html__( 'Thank You for Your Donation — %s', 'giftflow' ), $donation_data->campaign_name ),
+				$donation_id,
+				$donation_data
+			),
+			'header'  => apply_filters(
+				'giftflow_thanks_donor_email_header',
+				esc_html__( 'Thanks for supporting us', 'giftflow' ),
+				$donation_id,
+				$donation_data
+			),
 			'content' => $content,
 		)
 	);

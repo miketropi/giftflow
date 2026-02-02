@@ -52,7 +52,7 @@ import GiftFlowGalleryField from './gallery-field';
   }
 
   const navTabHandler = () => {
-    $('.nav-tab').on('click', function(e) {
+    $('.giftflow-meta-box-tabs .nav-tab').on('click', function(e) {
       e.preventDefault();
       
       // Remove active class from all tabs and content

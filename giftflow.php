@@ -9,7 +9,7 @@
  * Text Domain: giftflow
  * Domain Path: /languages
  * Requires at least: 6.0
- * Requires PHP: 8.2
+ * Requires PHP: 7.4
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
@@ -130,10 +130,10 @@ register_activation_hook( __FILE__, 'giftflow_activate' );
  */
 function giftflow_activate() {
 	// Check PHP version.
-	if ( version_compare( PHP_VERSION, '8.2', '<' ) ) {
+	if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'GiftFlow requires PHP 8.2 or higher.', 'giftflow' ),
+			esc_html__( 'GiftFlow requires PHP 7.4 or higher.', 'giftflow' ),
 			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);

@@ -2567,24 +2567,17 @@
   margin-bottom: 0;
 }
 
-.campaign-details-tabs {
-  margin-top: 10px;
-}
-
-.tab-content {
+.giftflow-meta-box-tabs .tab-content {
   display: none;
   padding: 20px 0;
 }
-
-.tab-content.active {
+.giftflow-meta-box-tabs .tab-content.active {
   display: block;
 }
-
-.nav-tab-wrapper {
+.giftflow-meta-box-tabs .nav-tab-wrapper {
   margin-bottom: 20px;
 }
-
-.nav-tab {
+.giftflow-meta-box-tabs .nav-tab {
   padding: 8px 12px;
   text-decoration: none;
   border: 1px solid #ccc;
@@ -2593,10 +2586,13 @@
   transform: translateY(1px);
   -webkit-transform: translateY(1px);
 }
-
-.nav-tab-active {
+.giftflow-meta-box-tabs .nav-tab-active {
   background: #fff;
   border-bottom: 1px solid #fff;
+}
+
+.campaign-details-tabs {
+  margin-top: 10px;
 }
 
 .giftflow-repeater-field {

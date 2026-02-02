@@ -3238,7 +3238,7 @@ __webpack_require__.r(__webpack_exports__);
     });
   };
   var navTabHandler = function navTabHandler() {
-    $('.nav-tab').on('click', function (e) {
+    $('.giftflow-meta-box-tabs .nav-tab').on('click', function (e) {
       e.preventDefault();
 
       // Remove active class from all tabs and content
