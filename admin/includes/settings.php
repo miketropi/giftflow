@@ -255,7 +255,15 @@ function giftflow_initialize_settings() {
 	foreach ( $settings as $section_key => $section ) {
 		// Register setting.
 		// phpcs:ignore PluginCheck.CodeAnalysis.SettingSanitization.register_settingMissing
-		register_setting( $section['option_name'], $section['option_name'] );
+		register_setting(
+			$section['option_name'],
+			$section['option_name'],
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => 'giftflow_sanitize_settings_callback',
+				'default'           => array(),
+			)
+		);
 
 		// Add section.
 		add_settings_section(
@@ -299,6 +307,94 @@ function giftflow_initialize_settings() {
 	}
 }
 add_action( 'admin_init', 'giftflow_initialize_settings' );
+
+/**
+ * Sanitize settings callback.
+ *
+ * Recursively sanitizes all settings data, handling strings, arrays, and nested structures.
+ *
+ * @param mixed $data The data to sanitize.
+ * @return mixed The sanitized data.
+ */
+function giftflow_sanitize_settings_callback( $data ) {
+	if ( ! is_array( $data ) ) {
+		return giftflow_sanitize_setting_value( $data );
+	}
+
+	$sanitized = array();
+
+	foreach ( $data as $key => $value ) {
+		// Sanitize the key.
+		$sanitized_key = sanitize_key( $key );
+
+		// Recursively sanitize arrays, otherwise sanitize the value.
+		if ( is_array( $value ) ) {
+			$sanitized[ $sanitized_key ] = giftflow_sanitize_settings_callback( $value );
+		} else {
+			$sanitized[ $sanitized_key ] = giftflow_sanitize_setting_value( $value, $sanitized_key );
+		}
+	}
+
+	return $sanitized;
+}
+
+/**
+ * Sanitize a single setting value based on its key or type.
+ *
+ * @param mixed  $value The value to sanitize.
+ * @param string $key   Optional. The setting key for context-aware sanitization.
+ * @return mixed The sanitized value.
+ */
+function giftflow_sanitize_setting_value( $value, $key = '' ) {
+	// Handle null or empty values.
+	if ( is_null( $value ) ) {
+		return '';
+	}
+
+	// Handle boolean values.
+	if ( is_bool( $value ) ) {
+		return $value;
+	}
+
+	// Handle numeric values.
+	if ( is_numeric( $value ) && ! is_string( $value ) ) {
+		return $value;
+	}
+
+	// Convert to string for sanitization.
+	$value = (string) $value;
+
+	// Context-aware sanitization based on key patterns.
+	$key_lower = strtolower( $key );
+
+	// Email fields.
+	if ( false !== strpos( $key_lower, 'email' ) && is_email( $value ) ) {
+		return sanitize_email( $value );
+	}
+
+	// URL fields.
+	if ( false !== strpos( $key_lower, 'url' ) || false !== strpos( $key_lower, 'link' ) ) {
+		return esc_url_raw( $value );
+	}
+
+	// Textarea/content fields - allow some HTML.
+	if ( false !== strpos( $key_lower, 'content' ) || false !== strpos( $key_lower, 'template' ) || false !== strpos( $key_lower, 'message' ) ) {
+		return wp_kses_post( $value );
+	}
+
+	// Boolean-like string values.
+	if ( in_array( $value, array( 'true', 'false', '1', '0', 'yes', 'no', 'on', 'off' ), true ) ) {
+		return sanitize_text_field( $value );
+	}
+
+	// API keys - preserve case but sanitize.
+	if ( false !== strpos( $key_lower, 'key' ) || false !== strpos( $key_lower, 'secret' ) || false !== strpos( $key_lower, 'token' ) ) {
+		return sanitize_text_field( $value );
+	}
+
+	// Default: sanitize as text field.
+	return sanitize_text_field( $value );
+}
 
 /**
  * General settings callback.
