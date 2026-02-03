@@ -18,6 +18,9 @@ use Stripe\PaymentIntent;
 use Stripe\StripeClient;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Webhook;
+use Stripe\Customer;
+use Stripe\Subscription;
+use Stripe\Price;
 use GiftFlow\Core\Donations;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -65,6 +68,7 @@ class Stripe_Gateway extends Gateway_Base {
 			'webhooks',
 			'3d_secure',
 			'payment_intents',
+			'recurring',
 		);
 	}
 
@@ -269,8 +273,24 @@ class Stripe_Gateway extends Gateway_Base {
 						'description' => sprintf(
 							// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
 							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
+							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>, <strong>invoice.paid</strong>, <strong>invoice.payment_failed</strong>, <strong>customer.subscription.deleted</strong>, <strong>customer.subscription.updated</strong>.', 'giftflow' )
 						),
+					),
+					'stripe_sandbox_webhook_secret' => array(
+						'id' => 'giftflow_stripe_sandbox_webhook_secret',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Sandbox Webhook Secret', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_sandbox_webhook_secret'] ) ? $payment_options['stripe']['stripe_sandbox_webhook_secret'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe sandbox webhook signing secret (starts with whsec_)', 'giftflow' ),
+					),
+					'stripe_live_webhook_secret' => array(
+						'id' => 'giftflow_stripe_live_webhook_secret',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Live Webhook Secret', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_live_webhook_secret'] ) ? $payment_options['stripe']['stripe_live_webhook_secret'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe live webhook signing secret (starts with whsec_)', 'giftflow' ),
 					),
 					// support Apple Pay + Google Pay.
 					'stripe_apple_pay_google_pay_enabled' => array(
@@ -280,6 +300,41 @@ class Stripe_Gateway extends Gateway_Base {
 						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
 						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . ' <a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
 						'pro_only'    => true,
+					),
+					// Recurring donations settings.
+					'stripe_recurring_enabled' => array(
+						'id' => 'giftflow_stripe_recurring_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Recurring Donations', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_recurring_enabled'] ) ? $payment_options['stripe']['stripe_recurring_enabled'] : false,
+						'description' => __( 'Enable recurring/subscription donations via Stripe. Donors can choose to make recurring contributions.', 'giftflow' ),
+					),
+					'stripe_recurring_intervals' => array(
+						'id' => 'giftflow_stripe_recurring_intervals',
+						'type' => 'select',
+						'label' => __( 'Available Recurring Intervals', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_recurring_intervals'] ) ? $payment_options['stripe']['stripe_recurring_intervals'] : array( 'monthly' ),
+						'options' => array(
+							'weekly' => __( 'Weekly', 'giftflow' ),
+							'monthly' => __( 'Monthly', 'giftflow' ),
+							'quarterly' => __( 'Quarterly', 'giftflow' ),
+							'yearly' => __( 'Yearly', 'giftflow' ),
+						),
+						'multiple' => true,
+						'description' => __( 'Select which recurring intervals donors can choose from.', 'giftflow' ),
+					),
+					'stripe_default_recurring_interval' => array(
+						'id' => 'giftflow_stripe_default_recurring_interval',
+						'type' => 'select',
+						'label' => __( 'Default Recurring Interval', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_default_recurring_interval'] ) ? $payment_options['stripe']['stripe_default_recurring_interval'] : 'monthly',
+						'options' => array(
+							'weekly' => __( 'Weekly', 'giftflow' ),
+							'monthly' => __( 'Monthly', 'giftflow' ),
+							'quarterly' => __( 'Quarterly', 'giftflow' ),
+							'yearly' => __( 'Yearly', 'giftflow' ),
+						),
+						'description' => __( 'Default interval pre-selected for recurring donations.', 'giftflow' ),
 					),
 				),
 			),
@@ -383,6 +438,13 @@ class Stripe_Gateway extends Gateway_Base {
 
 			// Return URL handler.
 			add_action( 'init', array( $this, 'handle_return_url' ) );
+
+			// Admin AJAX handlers for subscription management.
+			add_action( 'wp_ajax_giftflow_cancel_stripe_subscription', array( $this, 'ajax_cancel_subscription' ) );
+			add_action( 'wp_ajax_giftflow_pause_stripe_subscription', array( $this, 'ajax_pause_subscription' ) );
+			add_action( 'wp_ajax_giftflow_resume_stripe_subscription', array( $this, 'ajax_resume_subscription' ) );
+			add_action( 'wp_ajax_giftflow_get_subscription_status', array( $this, 'ajax_get_subscription_status' ) );
+			add_action( 'wp_ajax_giftflow_update_subscription_payment_method', array( $this, 'ajax_update_subscription_payment_method' ) );
 	}
 
 	/**
@@ -401,6 +463,17 @@ class Stripe_Gateway extends Gateway_Base {
 			return new \WP_Error( 'stripe_error', __( 'Donation ID is required', 'giftflow' ) );
 		}
 
+		// Check if this is a recurring payment.
+		$is_recurring = ! empty( $data['recurring_interval'] ) &&
+						'one-time' !== $data['recurring_interval'] &&
+						'once' !== $data['recurring_interval'];
+
+		// Route to recurring payment handler if applicable.
+		if ( $is_recurring ) {
+			return $this->process_recurring_payment( $data, $donation_id );
+		}
+
+		// Process one-time payment.
 		try {
 			// Prepare payment intent data.
 			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id );
@@ -410,6 +483,7 @@ class Stripe_Gateway extends Gateway_Base {
 
 			// Store payment intent ID.
 			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
+			update_post_meta( $donation_id, '_donation_type', 'one-time' );
 
 			return $this->handle_payment_intent_response( $payment_intent, $donation_id );
 		} catch ( ApiErrorException $e ) {
@@ -626,6 +700,151 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
+	 * AJAX handler for canceling a subscription
+	 */
+	public function ajax_cancel_subscription() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'giftflow' ) ) );
+		}
+
+		$donation_id = isset( $_POST['donation_id'] ) ? intval( $_POST['donation_id'] ) : 0;
+		$immediately = isset( $_POST['immediately'] ) && 'true' === $_POST['immediately'];
+
+		if ( ! $donation_id ) {
+			wp_send_json_error( array( 'message' => __( 'Donation ID is required', 'giftflow' ) ) );
+		}
+
+		$result = $this->cancel_subscription( $donation_id, $immediately );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => $immediately
+					? __( 'Subscription cancelled immediately', 'giftflow' )
+					: __( 'Subscription will be cancelled at the end of the billing period', 'giftflow' ),
+			)
+		);
+	}
+
+	/**
+	 * AJAX handler for pausing a subscription
+	 */
+	public function ajax_pause_subscription() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'giftflow' ) ) );
+		}
+
+		$donation_id = isset( $_POST['donation_id'] ) ? intval( $_POST['donation_id'] ) : 0;
+		$resumes_at = isset( $_POST['resumes_at'] ) ? sanitize_text_field( wp_unslash( $_POST['resumes_at'] ) ) : null;
+
+		if ( ! $donation_id ) {
+			wp_send_json_error( array( 'message' => __( 'Donation ID is required', 'giftflow' ) ) );
+		}
+
+		$result = $this->pause_subscription( $donation_id, $resumes_at );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Subscription paused successfully', 'giftflow' ) ) );
+	}
+
+	/**
+	 * AJAX handler for resuming a subscription
+	 */
+	public function ajax_resume_subscription() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'giftflow' ) ) );
+		}
+
+		$donation_id = isset( $_POST['donation_id'] ) ? intval( $_POST['donation_id'] ) : 0;
+
+		if ( ! $donation_id ) {
+			wp_send_json_error( array( 'message' => __( 'Donation ID is required', 'giftflow' ) ) );
+		}
+
+		$result = $this->resume_subscription( $donation_id );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Subscription resumed successfully', 'giftflow' ) ) );
+	}
+
+	/**
+	 * AJAX handler for getting subscription status
+	 */
+	public function ajax_get_subscription_status() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'giftflow' ) ) );
+		}
+
+		$donation_id = isset( $_POST['donation_id'] ) ? intval( $_POST['donation_id'] ) : 0;
+
+		if ( ! $donation_id ) {
+			wp_send_json_error( array( 'message' => __( 'Donation ID is required', 'giftflow' ) ) );
+		}
+
+		$result = $this->get_subscription_status( $donation_id );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX handler for updating subscription payment method
+	 */
+	public function ajax_update_subscription_payment_method() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		// Allow both admins and the original donor to update payment method.
+		$donation_id = isset( $_POST['donation_id'] ) ? intval( $_POST['donation_id'] ) : 0;
+		$payment_method_id = isset( $_POST['payment_method_id'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method_id'] ) ) : '';
+
+		if ( ! $donation_id || ! $payment_method_id ) {
+			wp_send_json_error( array( 'message' => __( 'Donation ID and payment method are required', 'giftflow' ) ) );
+		}
+
+		// Check permissions - admin or donor with matching email.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$donor_id = get_post_meta( $donation_id, '_donor_id', true );
+			$donor_email = '';
+			if ( $donor_id ) {
+				$donor_email = get_post_meta( $donor_id, '_donor_email', true );
+			}
+
+			$current_user = wp_get_current_user();
+			if ( ! $current_user->ID || $current_user->user_email !== $donor_email ) {
+				wp_send_json_error( array( 'message' => __( 'Permission denied', 'giftflow' ) ) );
+			}
+		}
+
+		$result = $this->update_subscription_payment_method( $donation_id, $payment_method_id );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'message' => __( 'Payment method updated successfully', 'giftflow' ) ) );
+	}
+
+	/**
 	 * Handle webhook notifications
 	 */
 	public function handle_webhook() {
@@ -676,6 +895,23 @@ class Stripe_Gateway extends Gateway_Base {
 
 				case 'payment_intent.canceled':
 					$this->handle_payment_intent_canceled( $event->data->object );
+					break;
+
+				// Subscription-related webhook events.
+				case 'invoice.paid':
+					$this->handle_invoice_paid( $event->data->object );
+					break;
+
+				case 'invoice.payment_failed':
+					$this->handle_invoice_payment_failed( $event->data->object );
+					break;
+
+				case 'customer.subscription.deleted':
+					$this->handle_subscription_deleted( $event->data->object );
+					break;
+
+				case 'customer.subscription.updated':
+					$this->handle_subscription_updated( $event->data->object );
 					break;
 			}
 
@@ -849,6 +1085,686 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
+	 * Handle invoice.paid webhook event
+	 *
+	 * Creates a new donation record for subscription renewals.
+	 *
+	 * @param object $invoice Invoice object from webhook.
+	 */
+	private function handle_invoice_paid( $invoice ) {
+		// Skip if not a subscription invoice.
+		if ( empty( $invoice->subscription ) ) {
+			return;
+		}
+
+		// Skip the first invoice (handled by subscription creation).
+		if ( 'subscription_create' === $invoice->billing_reason ) {
+			return;
+		}
+
+		$subscription_id = $invoice->subscription;
+		$customer_id = $invoice->customer;
+
+		// Find the original donation by subscription ID.
+		$original_donations = get_posts(
+			array(
+				'post_type' => 'donation',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key' => '_stripe_subscription_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $subscription_id,
+				'posts_per_page' => 1,
+				'orderby' => 'date',
+				'order' => 'ASC',
+			)
+		);
+
+		if ( empty( $original_donations ) ) {
+			$this->log_error( 'invoice_paid_no_parent', 'No parent donation found for subscription: ' . $subscription_id, 0 );
+			return;
+		}
+
+		$original_donation_id = $original_donations[0]->ID;
+
+		// Get data from original donation.
+		$campaign_id = get_post_meta( $original_donation_id, '_campaign_id', true );
+		$donor_id = get_post_meta( $original_donation_id, '_donor_id', true );
+		$recurring_interval = get_post_meta( $original_donation_id, '_recurring_interval', true );
+
+		// Convert amount from cents.
+		$amount = $invoice->amount_paid / 100;
+
+		// Create renewal donation.
+		$donations_class = new Donations();
+		$renewal_data = array(
+			'amount' => $amount,
+			'campaign_id' => $campaign_id,
+			'donor_id' => $donor_id,
+			'payment_method' => 'stripe',
+			'donation_type' => 'recurring',
+			'recurring_interval' => $recurring_interval,
+		);
+
+		$renewal_donation_id = $donations_class->create( $renewal_data );
+
+		if ( is_wp_error( $renewal_donation_id ) ) {
+			$this->log_error( 'renewal_creation_failed', $renewal_donation_id->get_error_message(), $original_donation_id );
+			return;
+		}
+
+		// Store renewal-specific meta.
+		update_post_meta( $renewal_donation_id, '_parent_donation_id', $original_donation_id );
+		update_post_meta( $renewal_donation_id, '_is_renewal', 'yes' );
+		update_post_meta( $renewal_donation_id, '_stripe_subscription_id', $subscription_id );
+		update_post_meta( $renewal_donation_id, '_stripe_customer_id', $customer_id );
+		update_post_meta( $renewal_donation_id, '_stripe_invoice_id', $invoice->id );
+		update_post_meta( $renewal_donation_id, '_transaction_id', $invoice->payment_intent );
+
+		// Update status to completed.
+		$donations_class->update_status( $renewal_donation_id, 'completed' );
+
+		// Update next payment date on original donation.
+		if ( ! empty( $invoice->lines->data[0]->period->end ) ) {
+			update_post_meta( $original_donation_id, '_next_payment_date', gmdate( 'Y-m-d H:i:s', $invoice->lines->data[0]->period->end ) );
+		}
+
+		do_action( 'giftflow_stripe_subscription_renewal', $renewal_donation_id, $original_donation_id, $invoice );
+	}
+
+	/**
+	 * Handle invoice.payment_failed webhook event
+	 *
+	 * @param object $invoice Invoice object from webhook.
+	 */
+	private function handle_invoice_payment_failed( $invoice ) {
+		// Skip if not a subscription invoice.
+		if ( empty( $invoice->subscription ) ) {
+			return;
+		}
+
+		$subscription_id = $invoice->subscription;
+
+		// Find the original donation by subscription ID.
+		$original_donations = get_posts(
+			array(
+				'post_type' => 'donation',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key' => '_stripe_subscription_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $subscription_id,
+				'posts_per_page' => 1,
+				'orderby' => 'date',
+				'order' => 'ASC',
+			)
+		);
+
+		if ( empty( $original_donations ) ) {
+			return;
+		}
+
+		$original_donation_id = $original_donations[0]->ID;
+
+		// Get error message.
+		$error_message = __( 'Subscription payment failed', 'giftflow' );
+		if ( ! empty( $invoice->last_finalization_error->message ) ) {
+			$error_message = $invoice->last_finalization_error->message;
+		}
+
+		// Store failure info.
+		update_post_meta( $original_donation_id, '_last_payment_error', $error_message );
+		update_post_meta( $original_donation_id, '_last_payment_error_date', current_time( 'mysql' ) );
+
+		$this->log_error( 'subscription_payment_failed', $error_message, $original_donation_id );
+
+		do_action( 'giftflow_stripe_subscription_payment_failed', $original_donation_id, $invoice );
+	}
+
+	/**
+	 * Handle customer.subscription.deleted webhook event
+	 *
+	 * @param object $subscription Subscription object from webhook.
+	 */
+	private function handle_subscription_deleted( $subscription ) {
+		$subscription_id = $subscription->id;
+
+		// Find donations with this subscription ID.
+		$donations = get_posts(
+			array(
+				'post_type' => 'donation',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key' => '_stripe_subscription_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $subscription_id,
+				'posts_per_page' => -1,
+			)
+		);
+
+		foreach ( $donations as $donation ) {
+			update_post_meta( $donation->ID, '_subscription_status', 'cancelled' );
+
+			// Only update the parent donation (not renewals).
+			$is_renewal = get_post_meta( $donation->ID, '_is_renewal', true );
+			if ( 'yes' !== $is_renewal ) {
+				do_action( 'giftflow_stripe_subscription_cancelled', $donation->ID, $subscription );
+			}
+		}
+	}
+
+	/**
+	 * Handle customer.subscription.updated webhook event
+	 *
+	 * @param object $subscription Subscription object from webhook.
+	 */
+	private function handle_subscription_updated( $subscription ) {
+		$subscription_id = $subscription->id;
+
+		// Find the original donation by subscription ID.
+		$original_donations = get_posts(
+			array(
+				'post_type' => 'donation',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key' => '_stripe_subscription_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $subscription_id,
+				'posts_per_page' => 1,
+				'orderby' => 'date',
+				'order' => 'ASC',
+			)
+		);
+
+		if ( empty( $original_donations ) ) {
+			return;
+		}
+
+		$donation_id = $original_donations[0]->ID;
+
+		// Update subscription status.
+		$status_map = array(
+			'active' => 'active',
+			'past_due' => 'past_due',
+			'unpaid' => 'unpaid',
+			'canceled' => 'cancelled',
+			'incomplete' => 'incomplete',
+			'incomplete_expired' => 'expired',
+			'trialing' => 'trialing',
+			'paused' => 'paused',
+		);
+
+		$new_status = isset( $status_map[ $subscription->status ] ) ? $status_map[ $subscription->status ] : $subscription->status;
+		update_post_meta( $donation_id, '_subscription_status', $new_status );
+
+		// Update next payment date.
+		if ( ! empty( $subscription->current_period_end ) ) {
+			update_post_meta( $donation_id, '_next_payment_date', gmdate( 'Y-m-d H:i:s', $subscription->current_period_end ) );
+		}
+
+		// Handle pause/resume.
+		if ( ! empty( $subscription->pause_collection ) ) {
+			update_post_meta( $donation_id, '_subscription_paused', 'yes' );
+			if ( ! empty( $subscription->pause_collection->resumes_at ) ) {
+				update_post_meta( $donation_id, '_subscription_resumes_at', gmdate( 'Y-m-d H:i:s', $subscription->pause_collection->resumes_at ) );
+			}
+		} else {
+			delete_post_meta( $donation_id, '_subscription_paused' );
+			delete_post_meta( $donation_id, '_subscription_resumes_at' );
+		}
+
+		do_action( 'giftflow_stripe_subscription_updated', $donation_id, $subscription );
+	}
+
+	/**
+	 * Get or create a Stripe customer
+	 *
+	 * @param string $donor_email Donor email address.
+	 * @param string $donor_name Donor name.
+	 * @param string $payment_method_id Payment method ID from Stripe.js.
+	 * @param int    $donation_id Donation ID for metadata.
+	 * @return Customer|\WP_Error Stripe Customer object or WP_Error.
+	 */
+	private function get_or_create_stripe_customer( $donor_email, $donor_name, $payment_method_id, $donation_id = 0 ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		try {
+			// First, check if a customer with this email already exists.
+			$existing_customers = $this->stripe->customers->all(
+				array(
+					'email' => $donor_email,
+					'limit' => 1,
+				)
+			);
+
+			if ( ! empty( $existing_customers->data ) ) {
+				$customer = $existing_customers->data[0];
+
+				// Attach the new payment method to existing customer.
+				$this->stripe->paymentMethods->attach(
+					$payment_method_id,
+					array( 'customer' => $customer->id )
+				);
+
+				// Set as default payment method.
+				$this->stripe->customers->update(
+					$customer->id,
+					array(
+						'invoice_settings' => array(
+							'default_payment_method' => $payment_method_id,
+						),
+					)
+				);
+
+				return $customer;
+			}
+
+			// Create a new customer.
+			$customer_data = array(
+				'email' => $donor_email,
+				'name' => $donor_name,
+				'payment_method' => $payment_method_id,
+				'invoice_settings' => array(
+					'default_payment_method' => $payment_method_id,
+				),
+				'metadata' => array(
+					'source' => 'giftflow',
+					'site_url' => home_url(),
+				),
+			);
+
+			if ( $donation_id ) {
+				$customer_data['metadata']['first_donation_id'] = (string) $donation_id;
+			}
+
+			$customer = $this->stripe->customers->create( $customer_data );
+
+			return $customer;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'customer_creation_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Get or create a Stripe Price for the subscription
+	 *
+	 * @param float  $amount Amount in standard currency units (e.g., dollars).
+	 * @param string $currency Currency code (e.g., 'usd').
+	 * @param string $interval Billing interval (weekly, monthly, quarterly, yearly).
+	 * @return Price|\WP_Error Stripe Price object or WP_Error.
+	 */
+	private function get_or_create_price( $amount, $currency, $interval ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		// Convert amount to cents.
+		$amount_in_cents = (int) ( (float) $amount * 100 );
+		$currency = strtolower( $currency );
+
+		// Map GiftFlow intervals to Stripe intervals.
+		$interval_map = array(
+			'weekly' => array(
+				'interval' => 'week',
+				'interval_count' => 1,
+			),
+			'monthly' => array(
+				'interval' => 'month',
+				'interval_count' => 1,
+			),
+			'quarterly' => array(
+				'interval' => 'month',
+				'interval_count' => 3,
+			),
+			'yearly' => array(
+				'interval' => 'year',
+				'interval_count' => 1,
+			),
+		);
+
+		if ( ! isset( $interval_map[ $interval ] ) ) {
+			return new \WP_Error( 'stripe_error', __( 'Invalid billing interval', 'giftflow' ) );
+		}
+
+		$stripe_interval = $interval_map[ $interval ]['interval'];
+		$interval_count = $interval_map[ $interval ]['interval_count'];
+
+		// Create a unique lookup key for this price.
+		$lookup_key = sprintf( 'giftflow_%d_%s_%s', $amount_in_cents, $currency, $interval );
+
+		try {
+			// Try to find existing price with this lookup key.
+			$existing_prices = $this->stripe->prices->all(
+				array(
+					'lookup_keys' => array( $lookup_key ),
+					'limit' => 1,
+				)
+			);
+
+			if ( ! empty( $existing_prices->data ) ) {
+				return $existing_prices->data[0];
+			}
+
+			// Create a product for this recurring donation if needed.
+			$product = $this->get_or_create_donation_product();
+
+			if ( is_wp_error( $product ) ) {
+				return $product;
+			}
+
+			// Create the price.
+			$price = $this->stripe->prices->create(
+				array(
+					'unit_amount' => $amount_in_cents,
+					'currency' => $currency,
+					'recurring' => array(
+						'interval' => $stripe_interval,
+						'interval_count' => $interval_count,
+					),
+					'product' => $product->id,
+					'lookup_key' => $lookup_key,
+					'metadata' => array(
+						'giftflow_interval' => $interval,
+						'source' => 'giftflow',
+					),
+				)
+			);
+
+			return $price;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'price_creation_failed', $e->getMessage(), 0, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Get or create the GiftFlow donation product in Stripe
+	 *
+	 * @return \Stripe\Product|\WP_Error Stripe Product object or WP_Error.
+	 */
+	private function get_or_create_donation_product() {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$product_id = 'giftflow_recurring_donation';
+
+		try {
+			// Try to retrieve existing product.
+			$product = $this->stripe->products->retrieve( $product_id );
+			return $product;
+		} catch ( ApiErrorException $e ) {
+			// Product doesn't exist, create it.
+			if ( 'resource_missing' === $e->getStripeCode() ) {
+				try {
+					$product = $this->stripe->products->create(
+						array(
+							'id' => $product_id,
+							'name' => sprintf(
+								// translators: %s: Site name.
+								__( 'Recurring Donation - %s', 'giftflow' ),
+								get_bloginfo( 'name' )
+							),
+							'description' => __( 'Recurring donation subscription', 'giftflow' ),
+							'metadata' => array(
+								'source' => 'giftflow',
+								'site_url' => home_url(),
+							),
+						)
+					);
+					return $product;
+				} catch ( ApiErrorException $create_error ) {
+					$this->log_error( 'product_creation_failed', $create_error->getMessage(), 0, $create_error->getStripeCode() );
+					return new \WP_Error( 'stripe_error', $create_error->getMessage() );
+				}
+			}
+
+			$this->log_error( 'product_retrieval_failed', $e->getMessage(), 0, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Process recurring payment using Stripe Subscriptions
+	 *
+	 * @param array $data Payment data.
+	 * @param int   $donation_id Donation ID.
+	 * @return array|\WP_Error Result array or WP_Error.
+	 */
+	private function process_recurring_payment( $data, $donation_id ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		// Check if recurring is enabled.
+		if ( ! $this->get_setting( 'stripe_recurring_enabled', false ) ) {
+			return new \WP_Error( 'stripe_error', __( 'Recurring donations are not enabled', 'giftflow' ) );
+		}
+
+		$donor_email = sanitize_email( $data['donor_email'] );
+		$donor_name = sanitize_text_field( $data['donor_name'] );
+		$payment_method_id = sanitize_text_field( $data['payment_method_id'] );
+		$amount = (float) $data['donation_amount'];
+		$interval = sanitize_text_field( $data['recurring_interval'] );
+		$currency = $this->get_currency();
+		$campaign_id = isset( $data['campaign_id'] ) ? intval( $data['campaign_id'] ) : 0;
+
+		try {
+			// Step 1: Get or create Stripe Customer.
+			$customer = $this->get_or_create_stripe_customer( $donor_email, $donor_name, $payment_method_id, $donation_id );
+
+			if ( is_wp_error( $customer ) ) {
+				return $customer;
+			}
+
+			// Store customer ID.
+			update_post_meta( $donation_id, '_stripe_customer_id', $customer->id );
+
+			// Step 2: Get or create Price for this amount/interval.
+			$price = $this->get_or_create_price( $amount, $currency, $interval );
+
+			if ( is_wp_error( $price ) ) {
+				return $price;
+			}
+
+			// Store price ID.
+			update_post_meta( $donation_id, '_stripe_price_id', $price->id );
+
+			// Step 3: Create the Subscription.
+			$subscription_data = array(
+				'customer' => $customer->id,
+				'items' => array(
+					array( 'price' => $price->id ),
+				),
+				'default_payment_method' => $payment_method_id,
+				'payment_behavior' => 'default_incomplete',
+				'payment_settings' => array(
+					'save_default_payment_method' => 'on_subscription',
+					'payment_method_types' => array( 'card' ),
+				),
+				'expand' => array( 'latest_invoice.payment_intent' ),
+				'metadata' => array(
+					'donation_id' => (string) $donation_id,
+					'campaign_id' => (string) $campaign_id,
+					'donor_email' => $donor_email,
+					'donor_name' => $donor_name,
+					'site_url' => home_url(),
+					'giftflow_interval' => $interval,
+				),
+			);
+
+			$subscription = $this->stripe->subscriptions->create( $subscription_data );
+
+			// Store subscription data.
+			update_post_meta( $donation_id, '_stripe_subscription_id', $subscription->id );
+			update_post_meta( $donation_id, '_subscription_status', $subscription->status );
+			update_post_meta( $donation_id, '_donation_type', 'recurring' );
+			update_post_meta( $donation_id, '_recurring_interval', $interval );
+			update_post_meta( $donation_id, '_payment_method', 'stripe' );
+
+			if ( $subscription->current_period_end ) {
+				update_post_meta( $donation_id, '_next_payment_date', gmdate( 'Y-m-d H:i:s', $subscription->current_period_end ) );
+			}
+
+			// Handle subscription status.
+			return $this->handle_subscription_response( $subscription, $donation_id );
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'subscription_creation_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Handle subscription creation response
+	 *
+	 * @param Subscription $subscription Stripe Subscription object.
+	 * @param int          $donation_id Donation ID.
+	 * @return array|\WP_Error Result array or WP_Error.
+	 */
+	private function handle_subscription_response( $subscription, $donation_id ) {
+		$status = $subscription->status;
+
+		switch ( $status ) {
+			case 'active':
+				// Subscription is active and first payment succeeded.
+				return $this->handle_successful_subscription( $subscription, $donation_id );
+
+			case 'incomplete':
+				// Requires payment confirmation (3D Secure).
+				$payment_intent = $subscription->latest_invoice->payment_intent;
+
+				if ( $payment_intent && 'requires_action' === $payment_intent->status ) {
+					update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
+
+					return array(
+						'success' => false,
+						'requires_action' => true,
+						'subscription_id' => $subscription->id,
+						'payment_intent_id' => $payment_intent->id,
+						'client_secret' => $payment_intent->client_secret,
+						'status' => 'requires_action',
+						'message' => __( 'Payment requires additional authentication', 'giftflow' ),
+					);
+				}
+
+				if ( $payment_intent && 'requires_payment_method' === $payment_intent->status ) {
+					return $this->handle_failed_subscription( $subscription, $donation_id, __( 'Payment method was declined', 'giftflow' ) );
+				}
+
+				// Payment is processing.
+				return array(
+					'success' => false,
+					'processing' => true,
+					'subscription_id' => $subscription->id,
+					'status' => 'processing',
+					'message' => __( 'Payment is being processed', 'giftflow' ),
+				);
+
+			case 'incomplete_expired':
+			case 'canceled':
+				return $this->handle_failed_subscription( $subscription, $donation_id, __( 'Subscription could not be created', 'giftflow' ) );
+
+			case 'trialing':
+				// If using trial periods (future feature).
+				return $this->handle_successful_subscription( $subscription, $donation_id );
+
+			default:
+				return $this->handle_failed_subscription( $subscription, $donation_id, __( 'Subscription status unknown', 'giftflow' ) );
+		}
+	}
+
+	/**
+	 * Handle successful subscription creation
+	 *
+	 * @param Subscription $subscription Stripe Subscription object.
+	 * @param int          $donation_id Donation ID.
+	 * @return array Success response array.
+	 */
+	private function handle_successful_subscription( $subscription, $donation_id ) {
+		$transaction_id = $subscription->id;
+
+		// Get the first invoice's payment intent/charge for transaction tracking.
+		$invoice = $subscription->latest_invoice;
+		$charge_id = '';
+
+		if ( $invoice && $invoice->payment_intent ) {
+			$payment_intent = $invoice->payment_intent;
+			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
+
+			if ( is_object( $payment_intent ) && ! empty( $payment_intent->charges->data ) ) {
+				$charge_id = $payment_intent->charges->data[0]->id;
+			}
+		}
+
+		// Update donation meta.
+		update_post_meta( $donation_id, '_transaction_id', $transaction_id );
+		update_post_meta( $donation_id, '_stripe_charge_id', $charge_id );
+		update_post_meta( $donation_id, '_subscription_status', 'active' );
+		update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $subscription->toArray() ) );
+
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'completed' );
+
+		$this->log_success( $transaction_id, $donation_id );
+
+		do_action( 'giftflow_stripe_subscription_created', $donation_id, $transaction_id, $subscription->toArray() );
+
+		return array(
+			'success' => true,
+			'status' => 'active',
+			'subscription_id' => $transaction_id,
+			'message' => __( 'Recurring donation set up successfully', 'giftflow' ),
+		);
+	}
+
+	/**
+	 * Handle failed subscription creation
+	 *
+	 * @param Subscription $subscription Stripe Subscription object.
+	 * @param int          $donation_id Donation ID.
+	 * @param string       $default_message Default error message.
+	 * @return \WP_Error Error response.
+	 */
+	private function handle_failed_subscription( $subscription, $donation_id, $default_message = '' ) {
+		$error_message = $default_message;
+
+		// Try to get error from latest invoice's payment intent.
+		if ( $subscription->latest_invoice && $subscription->latest_invoice->payment_intent ) {
+			$payment_intent = $subscription->latest_invoice->payment_intent;
+			if ( is_object( $payment_intent ) && ! empty( $payment_intent->last_payment_error ) ) {
+				$error_message = $payment_intent->last_payment_error->message;
+			}
+		}
+
+		if ( empty( $error_message ) ) {
+			$error_message = __( 'Subscription creation failed', 'giftflow' );
+		}
+
+		$this->log_error( 'subscription_failed', $error_message, $donation_id );
+
+		update_post_meta( $donation_id, '_payment_status', 'failed' );
+		update_post_meta( $donation_id, '_subscription_status', 'failed' );
+		update_post_meta( $donation_id, '_payment_error', $error_message );
+
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'failed' );
+
+		// Cancel the subscription in Stripe.
+		try {
+			$this->stripe->subscriptions->cancel( $subscription->id );
+		} catch ( ApiErrorException $e ) {
+			// Log but don't fail - subscription is already in failed state.
+			$this->log_error( 'subscription_cancel_cleanup', $e->getMessage(), $donation_id );
+		}
+
+		return new \WP_Error( 'stripe_error', $error_message );
+	}
+
+	/**
 	 * Get currency code
 	 *
 	 * @return string
@@ -911,6 +1827,231 @@ class Stripe_Gateway extends Gateway_Base {
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		error_log( '[GiftFlow Stripe Success] ' . wp_json_encode( $log_data ) );
+	}
+
+	/**
+	 * Cancel a subscription
+	 *
+	 * @param int  $donation_id Donation ID with the subscription.
+	 * @param bool $immediately Whether to cancel immediately or at period end.
+	 * @return bool|\WP_Error True on success, WP_Error on failure.
+	 */
+	public function cancel_subscription( $donation_id, $immediately = false ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_stripe_subscription_id', true );
+
+		if ( empty( $subscription_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'No subscription found for this donation', 'giftflow' ) );
+		}
+
+		try {
+			if ( $immediately ) {
+				// Cancel immediately.
+				$this->stripe->subscriptions->cancel( $subscription_id );
+				update_post_meta( $donation_id, '_subscription_status', 'cancelled' );
+			} else {
+				// Cancel at end of billing period.
+				$this->stripe->subscriptions->update(
+					$subscription_id,
+					array( 'cancel_at_period_end' => true )
+				);
+				update_post_meta( $donation_id, '_subscription_status', 'cancelling' );
+				update_post_meta( $donation_id, '_cancel_at_period_end', 'yes' );
+			}
+
+			do_action( 'giftflow_stripe_subscription_cancel_requested', $donation_id, $subscription_id, $immediately );
+
+			return true;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'subscription_cancel_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Pause a subscription
+	 *
+	 * @param int         $donation_id Donation ID with the subscription.
+	 * @param string|null $resumes_at Optional timestamp when to resume (YYYY-MM-DD format or null for indefinite).
+	 * @return bool|\WP_Error True on success, WP_Error on failure.
+	 */
+	public function pause_subscription( $donation_id, $resumes_at = null ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_stripe_subscription_id', true );
+
+		if ( empty( $subscription_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'No subscription found for this donation', 'giftflow' ) );
+		}
+
+		try {
+			$pause_collection = array(
+				'behavior' => 'void', // Don't create invoices while paused.
+			);
+
+			if ( $resumes_at ) {
+				$pause_collection['resumes_at'] = strtotime( $resumes_at );
+			}
+
+			$this->stripe->subscriptions->update(
+				$subscription_id,
+				array( 'pause_collection' => $pause_collection )
+			);
+
+			update_post_meta( $donation_id, '_subscription_status', 'paused' );
+			update_post_meta( $donation_id, '_subscription_paused', 'yes' );
+
+			if ( $resumes_at ) {
+				update_post_meta( $donation_id, '_subscription_resumes_at', $resumes_at );
+			}
+
+			do_action( 'giftflow_stripe_subscription_paused', $donation_id, $subscription_id );
+
+			return true;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'subscription_pause_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Resume a paused subscription
+	 *
+	 * @param int $donation_id Donation ID with the subscription.
+	 * @return bool|\WP_Error True on success, WP_Error on failure.
+	 */
+	public function resume_subscription( $donation_id ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_stripe_subscription_id', true );
+
+		if ( empty( $subscription_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'No subscription found for this donation', 'giftflow' ) );
+		}
+
+		try {
+			// Remove pause_collection to resume.
+			$this->stripe->subscriptions->update(
+				$subscription_id,
+				array( 'pause_collection' => '' )
+			);
+
+			update_post_meta( $donation_id, '_subscription_status', 'active' );
+			delete_post_meta( $donation_id, '_subscription_paused' );
+			delete_post_meta( $donation_id, '_subscription_resumes_at' );
+
+			do_action( 'giftflow_stripe_subscription_resumed', $donation_id, $subscription_id );
+
+			return true;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'subscription_resume_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Get subscription status from Stripe
+	 *
+	 * @param int $donation_id Donation ID with the subscription.
+	 * @return array|\WP_Error Subscription status data or WP_Error.
+	 */
+	public function get_subscription_status( $donation_id ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_stripe_subscription_id', true );
+
+		if ( empty( $subscription_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'No subscription found for this donation', 'giftflow' ) );
+		}
+
+		try {
+			$subscription = $this->stripe->subscriptions->retrieve( $subscription_id );
+
+			$status_data = array(
+				'id' => $subscription->id,
+				'status' => $subscription->status,
+				'current_period_start' => gmdate( 'Y-m-d H:i:s', $subscription->current_period_start ),
+				'current_period_end' => gmdate( 'Y-m-d H:i:s', $subscription->current_period_end ),
+				'cancel_at_period_end' => $subscription->cancel_at_period_end,
+				'canceled_at' => $subscription->canceled_at ? gmdate( 'Y-m-d H:i:s', $subscription->canceled_at ) : null,
+				'ended_at' => $subscription->ended_at ? gmdate( 'Y-m-d H:i:s', $subscription->ended_at ) : null,
+				'pause_collection' => $subscription->pause_collection,
+			);
+
+			// Sync status to local meta.
+			update_post_meta( $donation_id, '_subscription_status', $subscription->status );
+			update_post_meta( $donation_id, '_next_payment_date', gmdate( 'Y-m-d H:i:s', $subscription->current_period_end ) );
+
+			return $status_data;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'subscription_status_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Update subscription payment method
+	 *
+	 * @param int    $donation_id Donation ID with the subscription.
+	 * @param string $payment_method_id New payment method ID from Stripe.js.
+	 * @return bool|\WP_Error True on success, WP_Error on failure.
+	 */
+	public function update_subscription_payment_method( $donation_id, $payment_method_id ) {
+		if ( ! $this->stripe ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_stripe_subscription_id', true );
+		$customer_id = get_post_meta( $donation_id, '_stripe_customer_id', true );
+
+		if ( empty( $subscription_id ) || empty( $customer_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'No subscription found for this donation', 'giftflow' ) );
+		}
+
+		try {
+			// Attach payment method to customer.
+			$this->stripe->paymentMethods->attach(
+				$payment_method_id,
+				array( 'customer' => $customer_id )
+			);
+
+			// Update subscription default payment method.
+			$this->stripe->subscriptions->update(
+				$subscription_id,
+				array( 'default_payment_method' => $payment_method_id )
+			);
+
+			// Update customer default payment method.
+			$this->stripe->customers->update(
+				$customer_id,
+				array(
+					'invoice_settings' => array(
+						'default_payment_method' => $payment_method_id,
+					),
+				)
+			);
+
+			do_action( 'giftflow_stripe_subscription_payment_method_updated', $donation_id, $subscription_id );
+
+			return true;
+
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'payment_method_update_failed', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
 	}
 
 	/**
