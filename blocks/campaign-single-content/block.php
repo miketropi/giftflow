@@ -115,52 +115,6 @@ function giftflow_campaign_single_content_block_render( $attributes, $content, $
 			<?php endforeach; ?>
 		</div>
 	</div>
-	<script>
-		// make vanila script controller show / hide tab content, call in dom inited.
-		document.addEventListener('DOMContentLoaded', function() {
-			const tabWidget = document.querySelector('.giftflow-tab-widget');
-			const tabWidgetContent = document.querySelector('.giftflow-tab-widget-content');
-
-			tabWidget.querySelectorAll('.giftflow-tab-widget-tab-item').forEach(tabItem => {
-				tabItem.addEventListener('click', function(e) {
-					const target = this;
-					const tabId = target.dataset.tabId;
-					const tabContent = tabWidgetContent.querySelector(`.giftflow-tab-widget-content-item[data-tab-id="${tabId}"]`);
-					
-					target.classList.add('active');
-					tabContent.classList.add('active');
-
-					// remove active class from all other tab contents
-					tabWidgetContent.querySelectorAll('.giftflow-tab-widget-content-item').forEach(tabContent => {
-						if (tabContent.dataset.tabId !== tabId) {
-							tabContent.classList.remove('active');
-						}
-					});
-
-					// remove active class from all other tab items
-					tabWidget.querySelectorAll('.giftflow-tab-widget-tab-item').forEach(tabItem => {
-						if (tabItem.dataset.tabId !== tabId) {
-							tabItem.classList.remove('active');
-						}
-					});
-					
-				});
-			});
-
-			// set init active tab
-			const hash = window.location.hash.substring(1);
-			if (hash) {
-				console.log('hash', hash);
-				// if hash include comment then active comments tab
-				if (hash.includes('comment')) {
-					const commentsTab = tabWidget.querySelector('.giftflow-tab-widget-tab-item[data-tab-id="comments"]');
-					if (commentsTab) {
-						commentsTab.click();
-					}
-				}
-			}
-		});
-	</script>
 	<?php
 	return ob_get_clean();
 }

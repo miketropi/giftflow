@@ -756,7 +756,14 @@ class GiftFlow_Field {
 		// Generate a unique ID for the gallery.
 		$gallery_id = 'giftflow-gallery-' . $this->id;
 		?>
-		<div class="giftflow-gallery-field" id="<?php echo esc_attr( $gallery_id ); ?>">
+		<div 
+			class="giftflow-gallery-field" 
+			id="<?php echo esc_attr( $gallery_id ); ?>"
+			data-max-images="<?php echo esc_attr( $this->gallery_settings['max_images'] ); ?>"
+			data-image-size="<?php echo esc_attr( $this->gallery_settings['image_size'] ); ?>"
+			data-button-text="<?php echo esc_attr( $this->gallery_settings['button_text'] ); ?>"
+			data-remove-text="<?php echo esc_attr( $this->gallery_settings['remove_text'] ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_gallery_nonce' ) ); ?>">
 			<!-- Hidden input to store image IDs -->
 			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( implode( ',', $image_ids ) ); ?>" />
 			
@@ -790,7 +797,7 @@ class GiftFlow_Field {
 			</div><!-- End gallery controls -->
 			
 			<!-- JavaScript for gallery functionality -->
-			<script type="text/javascript">
+			<!-- <script type="text/javascript">
 				jQuery(document).ready(function($) {
 					var galleryFrame;
 					var $gallery = $("#<?php echo esc_js( $gallery_id ); ?>");
@@ -926,7 +933,7 @@ class GiftFlow_Field {
 						}
 					}
 				});
-			</script>
+			</script> -->
 		</div><!-- End gallery field -->
 		<?php
 
@@ -965,7 +972,12 @@ class GiftFlow_Field {
 		// Get Google Maps API key from settings or use a default.
 		$api_key = defined( 'GIFTFLOW_GOOGLE_MAPS_API_KEY' ) ? GIFTFLOW_GOOGLE_MAPS_API_KEY : '';
 		?>
-		<div class="giftflow-googlemap-field" id="<?php echo esc_attr( $map_id ); ?>">
+		<div 
+			class="giftflow-googlemap-field" 
+			id="<?php echo esc_attr( $map_id ); ?>" 
+			data-api-key="<?php echo esc_attr( $api_key ); ?>"
+			data-lat="<?php echo esc_attr( $lat ); ?>"
+			data-lng="<?php echo esc_attr( $lng ); ?>">
 			<!-- Hidden input to store location data -->
 			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( $value ); ?>" />
 			
@@ -985,134 +997,6 @@ class GiftFlow_Field {
 					<strong><?php esc_html_e( 'Longitude:', 'giftflow' ); ?></strong> <span class="giftflow-googlemap-lng"><?php echo esc_html( $lng ); ?></span>
 				</p>
 			</div>
-			
-			<!-- JavaScript for Google Maps functionality -->
-			<script type="text/javascript">
-				jQuery(document).ready(function($) {
-					var $mapField = $("#<?php echo esc_js( $map_id ); ?>");
-					var $input = $mapField.find("input[type=hidden]");
-					var $addressInput = $mapField.find(".giftflow-googlemap-address-input");
-					var $searchButton = $mapField.find(".giftflow-googlemap-search");
-					var $mapContainer = $mapField.find(".giftflow-googlemap-container");
-					var $latDisplay = $mapField.find(".giftflow-googlemap-lat");
-					var $lngDisplay = $mapField.find(".giftflow-googlemap-lng");
-					
-					var map, marker, geocoder;
-					var defaultLat = <?php echo ! empty( $lat ) ? esc_js( $lat ) : esc_js( '40.7128' ); ?>;
-					var defaultLng = <?php echo ! empty( $lng ) ? esc_js( $lng ) : esc_js( '-74.0060' ); ?>;
-					var defaultZoom = <?php echo ! empty( $lat ) && ! empty( $lng ) ? esc_js( '15' ) : esc_js( '2' ); ?>;
-					
-					// Initialize the map
-					function initMap() {
-						// Create map
-						map = new google.maps.Map($mapContainer[0], {
-							center: { lat: parseFloat(defaultLat), lng: parseFloat(defaultLng) },
-							zoom: defaultZoom,
-							mapTypeControl: true,
-							streetViewControl: true,
-							fullscreenControl: true
-						});
-						
-						// Create geocoder
-						geocoder = new google.maps.Geocoder();
-						
-						// Create marker
-						marker = new google.maps.Marker({
-							map: map,
-							draggable: true,
-							position: { lat: parseFloat(defaultLat), lng: parseFloat(defaultLng) }
-						});
-						
-						// Add marker drag event
-						marker.addListener('dragend', function() {
-							updateLocationFromMarker();
-						});
-						
-						// Add map click event
-						map.addListener('click', function(event) {
-							marker.setPosition(event.latLng);
-							updateLocationFromMarker();
-						});
-						
-						// If we have coordinates, reverse geocode to get the address
-						if (defaultLat && defaultLng) {
-							reverseGeocode({ lat: parseFloat(defaultLat), lng: parseFloat(defaultLng) });
-						}
-					}
-					
-					// Update location from marker position
-					function updateLocationFromMarker() {
-						var position = marker.getPosition();
-						reverseGeocode(position);
-					}
-					
-					// Reverse geocode to get address from coordinates
-					function reverseGeocode(position) {
-						geocoder.geocode({ location: position }, function(results, status) {
-							if (status === 'OK') {
-								if (results[0]) {
-									$addressInput.val(results[0].formatted_address);
-									updateLocationData(position.lat(), position.lng(), results[0].formatted_address);
-								}
-							}
-						});
-					}
-					
-					// Update location data
-					function updateLocationData(lat, lng, address) {
-						$latDisplay.text(lat);
-						$lngDisplay.text(lng);
-						
-						var locationData = {
-							lat: lat,
-							lng: lng,
-							address: address
-						};
-						
-						$input.val(JSON.stringify(locationData));
-					}
-					
-					// Search for address
-					$searchButton.on('click', function() {
-						var address = $addressInput.val();
-						if (address) {
-							geocoder.geocode({ address: address }, function(results, status) {
-								if (status === 'OK') {
-									var position = results[0].geometry.location;
-									map.setCenter(position);
-									map.setZoom(15);
-									marker.setPosition(position);
-									updateLocationData(position.lat(), position.lng(), results[0].formatted_address);
-								} else {
-									alert('<?php esc_html_e( 'Geocode was not successful for the following reason: ', 'giftflow' ); ?>' + status);
-								}
-							});
-						}
-					});
-					
-					// Allow pressing Enter in the address field to search
-					$addressInput.on('keypress', function(e) {
-						if (e.which === 13) {
-							e.preventDefault();
-							$searchButton.click();
-						}
-					});
-					
-					// Load Google Maps API and initialize the map
-					if (typeof google === 'undefined') {
-						var script = document.createElement('script');
-						script.src = 'https://maps.googleapis.com/maps/api/js?key=<?php echo esc_js( $api_key ); ?>&callback=initMap';
-						script.async = true;
-						script.defer = true;
-						document.head.appendChild(script);
-						
-						// Define the callback function
-						window.initMap = initMap;
-					} else {
-						initMap();
-					}
-				});
-			</script>
 		</div><!-- End Google Maps field -->
 		<?php
 
@@ -1405,88 +1289,6 @@ class GiftFlow_Field {
 				?>
 			</div>
 		</div>
-		
-		<!-- JavaScript for accordion functionality -->
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				var $accordion = $("#<?php echo esc_js( $accordion_id ); ?>");
-				var $header = $accordion.find(".giftflow-accordion-header");
-				var $content = $accordion.find(".giftflow-accordion-content");
-				var $icon = $header.find(".dashicons");
-				
-				// Toggle accordion
-				$header.on("click", function() {
-					$accordion.toggleClass("open");
-					$content.slideToggle(200);
-					
-					// Rotate icon
-					if ($accordion.hasClass("open")) {
-						$icon.css("transform", "rotate(180deg)");
-					} else {
-						$icon.css("transform", "rotate(0deg)");
-					}
-				});
-				
-				// Initialize state
-				if ($accordion.hasClass("open")) {
-					$content.show();
-					$icon.css("transform", "rotate(180deg)");
-				} else {
-					$content.hide();
-					$icon.css("transform", "rotate(0deg)");
-				}
-			});
-		</script>
-		
-		<!-- Styles for accordion -->
-		<style type="text/css">
-			{
-				border: 1px solid #ddd;
-				margin-bottom: 10px;
-				border-radius: 4px;
-			}
-			
-			.giftflow-accordion-header {
-				background: #f5f5f5;
-				padding: 10px 15px;
-				cursor: pointer;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-			}
-			
-			.giftflow-accordion-header h3 {
-				margin: 0;
-				font-size: 14px;
-				font-weight: 600;
-			}
-			
-			.giftflow-accordion-header .dashicons {
-				transition: transform 0.2s ease;
-			}
-			
-			.giftflow-accordion-content {
-				padding: 15px;
-				display: none;
-				background: #fafafa;
-			}
-			
-			.giftflow-accordion-content .description {
-				margin-top: 0;
-			}
-			
-			.giftflow-accordion-fields {
-				margin-top: 15px;
-			}
-			
-			.giftflow-accordion-field {
-				margin-bottom: 15px;
-			}
-			
-			.giftflow-accordion-field:last-child {
-				margin-bottom: 0;
-			}
-		</style>
 		<?php
 
 		// Return the buffered content.

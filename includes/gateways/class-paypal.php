@@ -124,6 +124,26 @@ class PayPal_Gateway extends Gateway_Base {
 				),
 			)
 		);
+
+		$css_inline = '
+			#giftflow-paypal-button-container {
+				width: 350px;
+				max-width: 100%;
+				margin: 0 auto;
+			}
+
+			@media(max-width: 512px) {
+				#giftflow-paypal-button-container {
+					width: 100%;
+				}
+			}
+		';
+
+		// Custom inline styles for PayPal buttons container.
+		$this->add_style_inline(
+			'giftflow-donation-form',
+			$css_inline
+		);
 	}
 
 	/**
@@ -329,21 +349,6 @@ class PayPal_Gateway extends Gateway_Base {
 				</div>
 				<div id="giftflow-paypal-button-container"></div>
 			</div>
-			<style>
-				@scope {
-					#giftflow-paypal-button-container {
-						width: 350px;
-						max-width: 100%;
-						margin: 0 auto;
-					}
-
-					@media(max-width: 512px) {
-						#giftflow-paypal-button-container {
-							width: 100%;
-						}
-					}
-				}
-			</style>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -981,7 +986,12 @@ class PayPal_Gateway extends Gateway_Base {
 			exit;
 		}
 
+		// PayPal sends webhook payload as raw JSON.
+		// The raw request body is required to verify the webhook signature.
+		// Therefore, sanitization is intentionally skipped at this stage.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$event = json_decode( $payload, true );
 
 		if ( ! $event || ! isset( $event['event_type'] ) ) {

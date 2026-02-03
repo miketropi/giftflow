@@ -2892,6 +2892,379 @@ var useModal = function useModal() {
 
 /***/ }),
 
+/***/ "./admin/js/modules/accordion-section.js":
+/*!***********************************************!*\
+  !*** ./admin/js/modules/accordion-section.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Accordion Section Class
+ *
+ * A reusable class for managing accordion/collapsible sections.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+
+var $ = jQuery.noConflict();
+var GiftFlowAccordion = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The accordion container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowAccordion(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, GiftFlowAccordion);
+    this.$accordion = typeof selector === 'string' ? $(selector) : $(selector);
+    if (!this.$accordion.length) {
+      console.warn('GiftFlowAccordion: Accordion element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowAccordion.defaults), options);
+    this.isOpen = false;
+    this.cacheElements();
+    this.bindEvents();
+    this.initState();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(GiftFlowAccordion, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$header = this.$accordion.find(this.options.headerSelector);
+      this.$content = this.$accordion.find(this.options.contentSelector);
+      this.$icon = this.$header.find(this.options.iconSelector);
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this = this;
+      this.$header.on('click.giftflowAccordion', function (e) {
+        e.preventDefault();
+        _this.toggle();
+      });
+
+      // Keyboard accessibility
+      this.$header.on('keydown.giftflowAccordion', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _this.toggle();
+        }
+      });
+    }
+
+    /**
+     * Initialize the accordion state
+     */
+  }, {
+    key: "initState",
+    value: function initState() {
+      // Check if already has open class or option set
+      var shouldBeOpen = this.$accordion.hasClass(this.options.openClass) || this.options.initialOpen;
+      if (shouldBeOpen) {
+        this.isOpen = true;
+        this.$accordion.addClass(this.options.openClass);
+        this.$content.show();
+        this.rotateIcon(true);
+      } else {
+        this.isOpen = false;
+        this.$accordion.removeClass(this.options.openClass);
+        this.$content.hide();
+        this.rotateIcon(false);
+      }
+
+      // Set ARIA attributes for accessibility
+      this.$header.attr({
+        role: 'button',
+        tabindex: '0',
+        'aria-expanded': this.isOpen
+      });
+      this.$content.attr({
+        role: 'region',
+        'aria-hidden': !this.isOpen
+      });
+    }
+
+    /**
+     * Rotate the icon based on state
+     *
+     * @param {boolean} isOpen - Whether the accordion is open.
+     */
+  }, {
+    key: "rotateIcon",
+    value: function rotateIcon(isOpen) {
+      var rotation = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      this.$icon.css('transform', rotation);
+    }
+
+    /**
+     * Update ARIA attributes
+     */
+  }, {
+    key: "updateAria",
+    value: function updateAria() {
+      this.$header.attr('aria-expanded', this.isOpen);
+      this.$content.attr('aria-hidden', !this.isOpen);
+    }
+
+    /**
+     * Toggle the accordion open/closed
+     *
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "toggle",
+    value: function toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+      return this;
+    }
+
+    /**
+     * Open the accordion
+     *
+     * @param {boolean} animate - Whether to animate. Default true.
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "open",
+    value: function open() {
+      var _this2 = this;
+      var animate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      if (this.isOpen) {
+        return this;
+      }
+      this.isOpen = true;
+      this.$accordion.addClass(this.options.openClass);
+      this.rotateIcon(true);
+      this.updateAria();
+      if (animate) {
+        this.$content.slideDown(this.options.duration, function () {
+          _this2.$accordion.trigger('giftflow:accordion:opened', [_this2]);
+        });
+      } else {
+        this.$content.show();
+        this.$accordion.trigger('giftflow:accordion:opened', [this]);
+      }
+      return this;
+    }
+
+    /**
+     * Close the accordion
+     *
+     * @param {boolean} animate - Whether to animate. Default true.
+     * @returns {GiftFlowAccordion} Returns this for chaining.
+     */
+  }, {
+    key: "close",
+    value: function close() {
+      var _this3 = this;
+      var animate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      if (!this.isOpen) {
+        return this;
+      }
+      this.isOpen = false;
+      this.$accordion.removeClass(this.options.openClass);
+      this.rotateIcon(false);
+      this.updateAria();
+      if (animate) {
+        this.$content.slideUp(this.options.duration, function () {
+          _this3.$accordion.trigger('giftflow:accordion:closed', [_this3]);
+        });
+      } else {
+        this.$content.hide();
+        this.$accordion.trigger('giftflow:accordion:closed', [this]);
+      }
+      return this;
+    }
+
+    /**
+     * Check if accordion is currently open
+     *
+     * @returns {boolean} Whether the accordion is open.
+     */
+  }, {
+    key: "isOpened",
+    value: function isOpened() {
+      return this.isOpen;
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.$header.off('.giftflowAccordion');
+      this.$header.removeAttr('role tabindex aria-expanded');
+      this.$content.removeAttr('role aria-hidden');
+      this.$icon.css('transform', '');
+      this.$accordion.removeClass(this.options.openClass);
+    }
+
+    /**
+     * Initialize all accordions matching a selector
+     *
+     * @param {string} selector - Selector for accordion containers.
+     * @param {Object} options - Configuration options.
+     * @returns {GiftFlowAccordion[]} Array of accordion instances.
+     */
+  }], [{
+    key: "initAll",
+    value: function initAll(selector) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var instances = [];
+      $(selector).each(function () {
+        instances.push(new GiftFlowAccordion(this, options));
+      });
+      return instances;
+    }
+  }]);
+}();
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowAccordion, "defaults", {
+  duration: 200,
+  openClass: 'open',
+  headerSelector: '.giftflow-accordion-header',
+  contentSelector: '.giftflow-accordion-content',
+  iconSelector: '.dashicons',
+  initialOpen: false
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowAccordion);
+
+/***/ }),
+
+/***/ "./admin/js/modules/custom-fields.js":
+/*!*******************************************!*\
+  !*** ./admin/js/modules/custom-fields.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _googlemap_field__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./googlemap-field */ "./admin/js/modules/googlemap-field.js");
+/* harmony import */ var _accordion_section__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./accordion-section */ "./admin/js/modules/accordion-section.js");
+/* harmony import */ var _gallery_field__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./gallery-field */ "./admin/js/modules/gallery-field.js");
+
+
+
+
+(function (w, $) {
+  'use strict';
+
+  var handleMapField = function handleMapField() {
+    var mapFields = $('.giftflow-googlemap-field');
+    if (mapFields.length === 0) {
+      return;
+    }
+    mapFields.each(function (index, mapField) {
+      new _googlemap_field__WEBPACK_IMPORTED_MODULE_1__["default"](mapField, {
+        apiKey: mapField.data('api-key'),
+        lat: mapField.data('lat'),
+        lng: mapField.data('lng')
+      });
+    });
+  };
+  var handleAccordion = function handleAccordion() {
+    var accordionSections = $('.giftflow-accordion-section');
+    if (accordionSections.length === 0) {
+      return;
+    }
+    accordionSections.each(function (index, accordionSection) {
+      new _accordion_section__WEBPACK_IMPORTED_MODULE_2__["default"](accordionSection);
+    });
+  };
+  var handleGalleryField = function handleGalleryField() {
+    var selector = document.querySelectorAll('.giftflow-gallery-field');
+    if (!selector || selector.length === 0) {
+      return;
+    }
+    (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(selector).forEach(function (element) {
+      var options = {
+        maxImages: element.dataset.maxImages,
+        imageSize: element.dataset.imageSize,
+        buttonText: element.dataset.buttonText,
+        removeText: element.dataset.removeText,
+        nonce: element.dataset.nonce
+      };
+      new _gallery_field__WEBPACK_IMPORTED_MODULE_3__["default"](element, options);
+    });
+  };
+  var navTabHandler = function navTabHandler() {
+    $('.giftflow-meta-box-tabs .nav-tab').on('click', function (e) {
+      e.preventDefault();
+
+      // Remove active class from all tabs and content
+      $('.nav-tab').removeClass('nav-tab-active');
+      $('.tab-content').removeClass('active');
+
+      // Add active class to clicked tab
+      $(this).addClass('nav-tab-active');
+
+      // Show corresponding content
+      var target = $(this).attr('href');
+      $(target).addClass('active');
+    });
+  };
+
+  // window load 
+  w.addEventListener('load', function () {
+    handleMapField();
+    handleAccordion();
+    handleGalleryField();
+    navTabHandler();
+  });
+})(window, jQuery);
+
+/***/ }),
+
 /***/ "./admin/js/modules/dashboard-view.js":
 /*!********************************************!*\
   !*** ./admin/js/modules/dashboard-view.js ***!
@@ -2924,6 +3297,915 @@ __webpack_require__.r(__webpack_exports__);
     DashboardView_Init();
   });
 })(window);
+
+/***/ }),
+
+/***/ "./admin/js/modules/gallery-field.js":
+/*!*******************************************!*\
+  !*** ./admin/js/modules/gallery-field.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Gallery Field Class
+ *
+ * A reusable class for managing gallery/media fields with WordPress media library integration.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+
+var $ = jQuery.noConflict();
+var GiftFlowGalleryField = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The gallery field container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowGalleryField(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, GiftFlowGalleryField);
+    this.$gallery = typeof selector === 'string' ? $(selector) : $(selector);
+    if (!this.$gallery.length) {
+      console.warn('GiftFlowGalleryField: Gallery element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowGalleryField.defaults), options);
+    this.mediaFrame = null;
+    this.cacheElements();
+    this.bindEvents();
+    this.initSortable();
+    this.updateButtonStates();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowGalleryField, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$input = this.$gallery.find('input[type=hidden]');
+      this.$preview = this.$gallery.find('.giftflow-gallery-preview');
+      this.$addButton = this.$gallery.find('.giftflow-gallery-add');
+      this.$removeAllButton = this.$gallery.find('.giftflow-gallery-remove-all');
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this = this;
+      // Add images button
+      this.$addButton.on('click.giftflowGallery', function (e) {
+        e.preventDefault();
+        _this.openMediaFrame();
+      });
+
+      // Remove single image (delegated)
+      this.$gallery.on('click.giftflowGallery', '.giftflow-gallery-remove', function (e) {
+        e.preventDefault();
+        var $image = $(e.currentTarget).parent();
+        var imageId = $image.data('id');
+        _this.removeImage(imageId);
+      });
+
+      // Remove all images
+      this.$removeAllButton.on('click.giftflowGallery', function (e) {
+        e.preventDefault();
+        _this.clearAll();
+      });
+    }
+
+    /**
+     * Initialize sortable functionality
+     */
+  }, {
+    key: "initSortable",
+    value: function initSortable() {
+      var _this2 = this;
+      if (!this.options.sortable || typeof $.fn.sortable !== 'function') {
+        return;
+      }
+      this.$preview.sortable({
+        items: '.giftflow-gallery-image',
+        cursor: 'move',
+        placeholder: 'giftflow-gallery-placeholder',
+        tolerance: 'pointer',
+        update: function update() {
+          _this2.updateInputFromPreview();
+          _this2.$gallery.trigger('giftflow:gallery:reordered', [_this2.getImageIds(), _this2]);
+        }
+      });
+    }
+
+    /**
+     * Open WordPress media frame
+     */
+  }, {
+    key: "openMediaFrame",
+    value: function openMediaFrame() {
+      var _this3 = this;
+      // Check if max images already reached
+      if (this.isMaxReached()) {
+        alert(this.options.i18n.maxImagesReached);
+        return;
+      }
+
+      // Reuse existing frame if available
+      if (this.mediaFrame) {
+        this.mediaFrame.open();
+        return;
+      }
+
+      // Create the media frame
+      this.mediaFrame = wp.media({
+        title: this.options.i18n.frameTitle,
+        button: {
+          text: this.options.i18n.frameButton
+        },
+        multiple: true,
+        library: {
+          type: 'image'
+        }
+      });
+
+      // Handle selection
+      this.mediaFrame.on('select', function () {
+        _this3.handleMediaSelection();
+      });
+      this.mediaFrame.open();
+    }
+
+    /**
+     * Handle media frame selection
+     */
+  }, {
+    key: "handleMediaSelection",
+    value: function handleMediaSelection() {
+      var _this4 = this;
+      var selection = this.mediaFrame.state().get('selection');
+      var currentIds = this.getImageIds();
+      var newIds = [];
+      selection.each(function (attachment) {
+        var data = attachment.toJSON();
+        var idStr = data.id.toString();
+
+        // Check max limit
+        if (_this4.options.maxImages > 0 && currentIds.length + newIds.length >= _this4.options.maxImages) {
+          return;
+        }
+
+        // Avoid duplicates
+        if (!currentIds.includes(idStr) && !newIds.includes(idStr)) {
+          newIds.push(idStr);
+        }
+      });
+      if (newIds.length > 0) {
+        var allIds = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(currentIds), newIds);
+        this.setImageIds(allIds);
+        this.refreshPreview();
+        this.$gallery.trigger('giftflow:gallery:added', [newIds, this]);
+      }
+    }
+
+    /**
+     * Remove a single image by ID
+     *
+     * @param {string|number} imageId - The image ID to remove.
+     * @returns {GiftFlowGalleryField} Returns this for chaining.
+     */
+  }, {
+    key: "removeImage",
+    value: function removeImage(imageId) {
+      var idStr = imageId.toString();
+      var currentIds = this.getImageIds().filter(function (id) {
+        return id !== idStr;
+      });
+      this.setImageIds(currentIds);
+
+      // Remove from preview
+      this.$preview.find(".giftflow-gallery-image[data-id=\"".concat(imageId, "\"]")).remove();
+      this.updateButtonStates();
+      this.$gallery.trigger('giftflow:gallery:removed', [idStr, this]);
+      return this;
+    }
+
+    /**
+     * Clear all images
+     *
+     * @returns {GiftFlowGalleryField} Returns this for chaining.
+     */
+  }, {
+    key: "clearAll",
+    value: function clearAll() {
+      var removedIds = this.getImageIds();
+      this.$input.val('');
+      this.$preview.empty();
+      this.updateButtonStates();
+      this.$gallery.trigger('giftflow:gallery:cleared', [removedIds, this]);
+      return this;
+    }
+
+    /**
+     * Refresh the gallery preview via AJAX
+     *
+     * @returns {GiftFlowGalleryField} Returns this for chaining.
+     */
+  }, {
+    key: "refreshPreview",
+    value: function refreshPreview() {
+      var _this5 = this;
+      var currentIds = this.getImageIds();
+      if (currentIds.length === 0) {
+        this.$preview.empty();
+        this.updateButtonStates();
+        return this;
+      }
+      $.ajax({
+        url: window.ajaxurl,
+        type: 'POST',
+        data: {
+          action: this.options.ajaxAction,
+          ids: currentIds,
+          size: this.options.imageSize,
+          nonce: this.options.nonce
+        },
+        success: function success(response) {
+          if (response.success && response.data) {
+            _this5.renderPreview(response.data);
+          }
+        },
+        error: function error(xhr, status, _error) {
+          console.error('GiftFlowGalleryField: Failed to load images', _error);
+        }
+      });
+      return this;
+    }
+
+    /**
+     * Render the preview images
+     *
+     * @param {Object} images - Object of image data keyed by ID.
+     */
+  }, {
+    key: "renderPreview",
+    value: function renderPreview(images) {
+      var _this6 = this;
+      this.$preview.empty();
+
+      // Maintain order from input
+      var orderedIds = this.getImageIds();
+      orderedIds.forEach(function (id) {
+        var image = images[id];
+        if (image) {
+          var $imageEl = _this6.createImageElement(id, image);
+          _this6.$preview.append($imageEl);
+        }
+      });
+      this.updateButtonStates();
+      this.$gallery.trigger('giftflow:gallery:rendered', [orderedIds, this]);
+    }
+
+    /**
+     * Create an image element for the preview
+     *
+     * @param {string} id - Image ID.
+     * @param {Object} image - Image data with url and alt.
+     * @returns {jQuery} The image element.
+     */
+  }, {
+    key: "createImageElement",
+    value: function createImageElement(id, image) {
+      var $container = $('<div>', {
+        "class": 'giftflow-gallery-image',
+        'data-id': id
+      });
+      var $img = $('<img>', {
+        src: image.url,
+        alt: image.alt || ''
+      });
+      var $remove = $('<span>', {
+        "class": 'giftflow-gallery-remove',
+        title: this.options.i18n.removeImage,
+        html: '&times;'
+      });
+      $container.append($img, $remove);
+      return $container;
+    }
+
+    /**
+     * Update the hidden input from preview order
+     */
+  }, {
+    key: "updateInputFromPreview",
+    value: function updateInputFromPreview() {
+      var ids = [];
+      this.$preview.find('.giftflow-gallery-image').each(function () {
+        ids.push($(this).data('id').toString());
+      });
+      this.setImageIds(ids);
+    }
+
+    /**
+     * Update button visibility states
+     */
+  }, {
+    key: "updateButtonStates",
+    value: function updateButtonStates() {
+      var hasImages = this.getImageIds().length > 0;
+      var maxReached = this.isMaxReached();
+
+      // Toggle remove all button
+      if (hasImages) {
+        this.$removeAllButton.show();
+      } else {
+        this.$removeAllButton.hide();
+      }
+
+      // Toggle add button state
+      if (maxReached) {
+        this.$addButton.addClass('disabled').prop('disabled', true);
+      } else {
+        this.$addButton.removeClass('disabled').prop('disabled', false);
+      }
+    }
+
+    /**
+     * Check if max images limit is reached
+     *
+     * @returns {boolean} True if max reached.
+     */
+  }, {
+    key: "isMaxReached",
+    value: function isMaxReached() {
+      if (this.options.maxImages <= 0) {
+        return false;
+      }
+      return this.getImageIds().length >= this.options.maxImages;
+    }
+
+    /**
+     * Get current image IDs
+     *
+     * @returns {string[]} Array of image IDs.
+     */
+  }, {
+    key: "getImageIds",
+    value: function getImageIds() {
+      var value = this.$input.val();
+      return value ? value.split(',').filter(function (id) {
+        return id.trim() !== '';
+      }) : [];
+    }
+
+    /**
+     * Set image IDs
+     *
+     * @param {string[]|number[]} ids - Array of image IDs.
+     * @returns {GiftFlowGalleryField} Returns this for chaining.
+     */
+  }, {
+    key: "setImageIds",
+    value: function setImageIds(ids) {
+      this.$input.val(ids.join(','));
+      this.$input.trigger('change');
+      this.updateButtonStates();
+      return this;
+    }
+
+    /**
+     * Add images by IDs
+     *
+     * @param {string[]|number[]} ids - Array of image IDs to add.
+     * @returns {GiftFlowGalleryField} Returns this for chaining.
+     */
+  }, {
+    key: "addImages",
+    value: function addImages(ids) {
+      var currentIds = this.getImageIds();
+      var newIds = ids.map(function (id) {
+        return id.toString();
+      }).filter(function (id) {
+        return !currentIds.includes(id);
+      });
+      if (newIds.length > 0) {
+        var allIds = [].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(currentIds), (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(newIds));
+
+        // Respect max limit
+        if (this.options.maxImages > 0) {
+          allIds.splice(this.options.maxImages);
+        }
+        this.setImageIds(allIds);
+        this.refreshPreview();
+      }
+      return this;
+    }
+
+    /**
+     * Get image count
+     *
+     * @returns {number} Number of images.
+     */
+  }, {
+    key: "getCount",
+    value: function getCount() {
+      return this.getImageIds().length;
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.$addButton.off('.giftflowGallery');
+      this.$removeAllButton.off('.giftflowGallery');
+      this.$gallery.off('.giftflowGallery');
+      if (this.$preview.data('ui-sortable')) {
+        this.$preview.sortable('destroy');
+      }
+      if (this.mediaFrame) {
+        this.mediaFrame.off('select');
+        this.mediaFrame = null;
+      }
+    }
+
+    /**
+     * Initialize all gallery fields matching a selector
+     *
+     * @param {string} selector - Selector for gallery containers.
+     * @param {Object} options - Configuration options.
+     * @returns {GiftFlowGalleryField[]} Array of gallery instances.
+     */
+  }], [{
+    key: "initAll",
+    value: function initAll(selector) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var instances = [];
+      $(selector).each(function () {
+        instances.push(new GiftFlowGalleryField(this, options));
+      });
+      return instances;
+    }
+  }]);
+}();
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_3__["default"])(GiftFlowGalleryField, "defaults", {
+  maxImages: 0,
+  // 0 = unlimited
+  imageSize: 'thumbnail',
+  ajaxAction: 'giftflow_get_gallery_images',
+  nonce: '',
+  sortable: true,
+  i18n: {
+    frameTitle: 'Select Images',
+    frameButton: 'Add to Gallery',
+    removeImage: 'Remove Image',
+    maxImagesReached: 'Maximum number of images reached.'
+  }
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowGalleryField);
+
+/***/ }),
+
+/***/ "./admin/js/modules/googlemap-field.js":
+/*!*********************************************!*\
+  !*** ./admin/js/modules/googlemap-field.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Google Map Field Class
+ *
+ * A reusable class for managing Google Maps location picker fields.
+ *
+ * @package GiftFlow
+ * @since 1.0.0
+ */
+
+var $ = jQuery.noConflict();
+var GiftFlowGoogleMapField = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   *
+   * @param {string|HTMLElement} selector - The map field container selector or element.
+   * @param {Object} options - Configuration options.
+   */
+  function GiftFlowGoogleMapField(selector) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__["default"])(this, GiftFlowGoogleMapField);
+    this.$mapField = typeof selector === 'string' ? $(selector) : $(selector);
+    if (!this.$mapField.length) {
+      console.warn('GiftFlowGoogleMapField: Map field element not found.');
+      return;
+    }
+    this.options = _objectSpread(_objectSpread({}, GiftFlowGoogleMapField.defaults), options);
+    this.map = null;
+    this.marker = null;
+    this.geocoder = null;
+    this.cacheElements();
+    this.init();
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__["default"])(GiftFlowGoogleMapField, [{
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$input = this.$mapField.find('input[type=hidden]');
+      this.$addressInput = this.$mapField.find('.giftflow-googlemap-address-input');
+      this.$searchButton = this.$mapField.find('.giftflow-googlemap-search');
+      this.$mapContainer = this.$mapField.find('.giftflow-googlemap-container');
+      this.$latDisplay = this.$mapField.find('.giftflow-googlemap-lat');
+      this.$lngDisplay = this.$mapField.find('.giftflow-googlemap-lng');
+    }
+
+    /**
+     * Initialize the map field
+     */
+  }, {
+    key: "init",
+    value: function init() {
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        this.loadGoogleMapsAPI();
+      } else {
+        this.initMap();
+      }
+    }
+
+    /**
+     * Load Google Maps API dynamically
+     */
+  }, {
+    key: "loadGoogleMapsAPI",
+    value: function loadGoogleMapsAPI() {
+      var _this = this;
+      // Check if script is already being loaded
+      if (window.giftflowGoogleMapsLoading) {
+        // Wait for existing load to complete
+        window.giftflowGoogleMapsCallbacks = window.giftflowGoogleMapsCallbacks || [];
+        window.giftflowGoogleMapsCallbacks.push(function () {
+          return _this.initMap();
+        });
+        return;
+      }
+      window.giftflowGoogleMapsLoading = true;
+      window.giftflowGoogleMapsCallbacks = window.giftflowGoogleMapsCallbacks || [];
+      window.giftflowGoogleMapsCallbacks.push(function () {
+        return _this.initMap();
+      });
+
+      // Define global callback
+      window.giftflowGoogleMapsCallback = function () {
+        window.giftflowGoogleMapsLoading = false;
+        window.giftflowGoogleMapsCallbacks.forEach(function (callback) {
+          return callback();
+        });
+        window.giftflowGoogleMapsCallbacks = [];
+      };
+      var script = document.createElement('script');
+      script.src = "https://maps.googleapis.com/maps/api/js?key=".concat(this.options.apiKey, "&callback=giftflowGoogleMapsCallback");
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    /**
+     * Initialize the Google Map
+     */
+  }, {
+    key: "initMap",
+    value: function initMap() {
+      var _this$options = this.options,
+        lat = _this$options.lat,
+        lng = _this$options.lng;
+      var hasCoordinates = lat && lng && lat !== GiftFlowGoogleMapField.defaults.lat;
+      var zoom = hasCoordinates ? 15 : this.options.zoom;
+      var center = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+
+      // Create map instance
+      this.map = new google.maps.Map(this.$mapContainer[0], {
+        center: center,
+        zoom: zoom,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+      });
+
+      // Create geocoder
+      this.geocoder = new google.maps.Geocoder();
+
+      // Create draggable marker
+      this.marker = new google.maps.Marker({
+        map: this.map,
+        draggable: true,
+        position: center
+      });
+      this.bindEvents();
+
+      // Reverse geocode initial position if coordinates exist
+      if (hasCoordinates) {
+        this.reverseGeocode(center);
+      }
+    }
+
+    /**
+     * Bind event listeners
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      var _this2 = this;
+      // Marker drag event
+      this.marker.addListener('dragend', function () {
+        _this2.updateLocationFromMarker();
+      });
+
+      // Map click event
+      this.map.addListener('click', function (event) {
+        _this2.marker.setPosition(event.latLng);
+        _this2.updateLocationFromMarker();
+      });
+
+      // Search button click
+      this.$searchButton.on('click', function (e) {
+        e.preventDefault();
+        _this2.searchAddress();
+      });
+
+      // Enter key in address field
+      this.$addressInput.on('keypress', function (e) {
+        if (e.which === 13) {
+          e.preventDefault();
+          _this2.searchAddress();
+        }
+      });
+    }
+
+    /**
+     * Update location from marker position
+     */
+  }, {
+    key: "updateLocationFromMarker",
+    value: function updateLocationFromMarker() {
+      var position = this.marker.getPosition();
+      this.reverseGeocode({
+        lat: position.lat(),
+        lng: position.lng()
+      });
+    }
+
+    /**
+     * Reverse geocode to get address from coordinates
+     *
+     * @param {Object} position - Position object with lat and lng.
+     */
+  }, {
+    key: "reverseGeocode",
+    value: function reverseGeocode(position) {
+      var _this3 = this;
+      var latLng = position.lat && position.lng ? position : {
+        lat: position.lat(),
+        lng: position.lng()
+      };
+      this.geocoder.geocode({
+        location: latLng
+      }, function (results, status) {
+        if (status === 'OK' && results[0]) {
+          _this3.$addressInput.val(results[0].formatted_address);
+          _this3.updateLocationData(latLng.lat, latLng.lng, results[0].formatted_address);
+        }
+      });
+    }
+
+    /**
+     * Update location data in the hidden input and display elements
+     *
+     * @param {number} lat - Latitude.
+     * @param {number} lng - Longitude.
+     * @param {string} address - Formatted address.
+     */
+  }, {
+    key: "updateLocationData",
+    value: function updateLocationData(lat, lng, address) {
+      // Update display elements
+      this.$latDisplay.text(lat);
+      this.$lngDisplay.text(lng);
+
+      // Update hidden input with JSON data
+      var locationData = {
+        lat: lat,
+        lng: lng,
+        address: address
+      };
+      this.$input.val(JSON.stringify(locationData));
+
+      // Trigger change event for external listeners
+      this.$input.trigger('change', [locationData]);
+    }
+
+    /**
+     * Search for an address and update the map
+     */
+  }, {
+    key: "searchAddress",
+    value: function searchAddress() {
+      var _this4 = this;
+      var address = this.$addressInput.val().trim();
+      if (!address) {
+        return;
+      }
+      this.geocoder.geocode({
+        address: address
+      }, function (results, status) {
+        if (status === 'OK') {
+          var position = results[0].geometry.location;
+          _this4.map.setCenter(position);
+          _this4.map.setZoom(15);
+          _this4.marker.setPosition(position);
+          _this4.updateLocationData(position.lat(), position.lng(), results[0].formatted_address);
+        } else {
+          alert(_this4.options.i18n.geocodeError + status);
+        }
+      });
+    }
+
+    /**
+     * Set map location programmatically
+     *
+     * @param {number} lat - Latitude.
+     * @param {number} lng - Longitude.
+     * @param {number} zoom - Optional zoom level.
+     */
+  }, {
+    key: "setLocation",
+    value: function setLocation(lat, lng) {
+      var zoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 15;
+      var position = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+      if (this.map && this.marker) {
+        this.map.setCenter(position);
+        this.map.setZoom(zoom);
+        this.marker.setPosition(position);
+        this.reverseGeocode(position);
+      }
+    }
+
+    /**
+     * Get current location data
+     *
+     * @returns {Object|null} Location data or null if not set.
+     */
+  }, {
+    key: "getLocation",
+    value: function getLocation() {
+      var value = this.$input.val();
+      if (value) {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Clear the map location
+     */
+  }, {
+    key: "clear",
+    value: function clear() {
+      this.$addressInput.val('');
+      this.$latDisplay.text('');
+      this.$lngDisplay.text('');
+      this.$input.val('');
+
+      // Reset to defaults
+      var center = {
+        lat: GiftFlowGoogleMapField.defaults.lat,
+        lng: GiftFlowGoogleMapField.defaults.lng
+      };
+      if (this.map && this.marker) {
+        this.map.setCenter(center);
+        this.map.setZoom(GiftFlowGoogleMapField.defaults.zoom);
+        this.marker.setPosition(center);
+      }
+    }
+
+    /**
+     * Destroy the instance and clean up
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      // Remove event listeners
+      this.$searchButton.off('click');
+      this.$addressInput.off('keypress');
+      if (this.marker) {
+        google.maps.event.clearInstanceListeners(this.marker);
+      }
+      if (this.map) {
+        google.maps.event.clearInstanceListeners(this.map);
+      }
+      this.map = null;
+      this.marker = null;
+      this.geocoder = null;
+    }
+  }]);
+}();
+/**
+ * Default configuration options
+ *
+ * @type {Object}
+ */
+(0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowGoogleMapField, "defaults", {
+  lat: 40.7128,
+  lng: -74.006,
+  zoom: 2,
+  apiKey: '',
+  i18n: {
+    geocodeError: 'Geocode was not successful for the following reason: '
+  }
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowGoogleMapField);
 
 /***/ }),
 
@@ -3461,6 +4743,25 @@ function _arrayWithHoles(r) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithoutHoles)
+/* harmony export */ });
+/* harmony import */ var _arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayLikeToArray.js */ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js");
+
+function _arrayWithoutHoles(r) {
+  if (Array.isArray(r)) return (0,_arrayLikeToArray_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r);
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js":
 /*!*********************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js ***!
@@ -3500,6 +4801,50 @@ function _asyncToGenerator(n) {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/classCallCheck.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _classCallCheck)
+/* harmony export */ });
+function _classCallCheck(a, n) {
+  if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/createClass.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/createClass.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _createClass)
+/* harmony export */ });
+/* harmony import */ var _toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./toPropertyKey.js */ "./node_modules/@babel/runtime/helpers/esm/toPropertyKey.js");
+
+function _defineProperties(e, r) {
+  for (var t = 0; t < r.length; t++) {
+    var o = r[t];
+    o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, (0,_toPropertyKey_js__WEBPACK_IMPORTED_MODULE_0__["default"])(o.key), o);
+  }
+}
+function _createClass(e, r, t) {
+  return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
+    writable: !1
+  }), e;
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js":
 /*!*******************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/defineProperty.js ***!
@@ -3519,6 +4864,23 @@ function _defineProperty(e, r, t) {
     configurable: !0,
     writable: !0
   }) : e[r] = t, e;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArray.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArray)
+/* harmony export */ });
+function _iterableToArray(r) {
+  if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
 }
 
 
@@ -3582,6 +4944,23 @@ function _nonIterableRest() {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableSpread)
+/* harmony export */ });
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js":
 /*!******************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js ***!
@@ -3602,6 +4981,31 @@ __webpack_require__.r(__webpack_exports__);
 
 function _slicedToArray(r, e) {
   return (0,_arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r) || (0,_iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__["default"])(r, e) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(r, e) || (0,_nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _toConsumableArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithoutHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithoutHoles.js");
+/* harmony import */ var _iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArray.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableSpread.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableSpread.js");
+
+
+
+
+function _toConsumableArray(r) {
+  return (0,_arrayWithoutHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r) || (0,_iterableToArray_js__WEBPACK_IMPORTED_MODULE_1__["default"])(r) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(r) || (0,_nonIterableSpread_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
 }
 
 
@@ -21710,6 +23114,8 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_test_send_mail__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/test-send-mail */ "./admin/js/modules/test-send-mail.js");
 /* harmony import */ var _modules_dashboard_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/dashboard-view */ "./admin/js/modules/dashboard-view.js");
+/* harmony import */ var _modules_custom_fields__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/custom-fields */ "./admin/js/modules/custom-fields.js");
+
 
 
 })();

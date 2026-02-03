@@ -444,7 +444,8 @@ $mobile: 480px;
   }
 
   // Form fields
-  &__fields {
+  &__fields,
+  &__card-fields {
     display: grid;
     gap: 1rem;
   }
@@ -564,11 +565,17 @@ $mobile: 480px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      color: $text-color;
+
+      svg {
+        stroke: $text-color;
+      }
     }
 
     svg {
       width: 20px;
       height: 20px;
+      stroke: black;
       
       @include mobile {
         width: 16px;
@@ -792,6 +799,10 @@ $mobile: 480px;
     }
   }
 
+  &__bank-instructions {
+    color: $text-color;
+  }
+
   &__bank-detail {
     display: grid;
     grid-template-columns: 140px 1fr;
@@ -906,6 +917,49 @@ $mobile: 480px;
     // line-height: .8;
 
     &--stripe {
+      // Payment Request Button (Apple Pay / Google Pay)
+      .payment-request-button-wrapper {
+        margin-bottom: 1.5rem;
+
+        #payment-request-button {
+          // Stripe Payment Request Button will be mounted here
+          button {
+            width: 100%;
+            height: 48px;
+            border-radius: $border-radius;
+            transition: $transition;
+
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+        }
+      }
+
+      // Separator between wallet and card payment
+      .payment-request-separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        // margin: 1.5rem 0;
+        color: $text-color;
+        font-size: 0.8rem;
+
+        &::before,
+        &::after {
+          content: '';
+          flex: 1;
+          border-bottom: 1px solid $border-color;
+        }
+
+        span {
+          padding: 0 1rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.025em;
+        }
+      }
+
       #STRIPE-CARD-ELEMENT {
         margin-top: 1rem;
         padding: 1rem;
@@ -924,6 +978,17 @@ $mobile: 480px;
         .StripeElement {
           width: 100%;
           min-height: 40px;
+        }
+      }
+
+      @include mobile {
+        .payment-request-button-wrapper {
+          margin-bottom: 1rem;
+        }
+
+        .payment-request-separator {
+          margin: 1rem 0;
+          font-size: 0.8125rem;
         }
       }
     }

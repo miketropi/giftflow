@@ -141,7 +141,10 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 			<?php endif; ?>
 
 			<?php if ( $show_email ) : ?>
-				<a href="<?php echo esc_url( giftflow_get_email_share_url( $share_url, $share_title, $share_description ) ); ?>" 
+				<a 
+					data-network="email"
+					data-url="<?php echo esc_attr( $share_url ); ?>"
+					href="<?php echo esc_url( giftflow_get_email_share_url( $share_url, $share_title, $share_description ) ); ?>" 
 					class="giftflow-share__button giftflow-share__button--email"
 					title="<?php esc_attr_e( 'Share via Email', 'giftflow' ); ?>"
 					target="_blank"
@@ -154,8 +157,7 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 				<a href="#"
 					class="giftflow-share__button giftflow-share__button--copy-url"
 					data-url="<?php echo esc_attr( $share_url ); ?>"
-					title="<?php esc_attr_e( 'Copy URL to clipboard', 'giftflow' ); ?>"
-					onclick="giftflowCopyUrlToClipboard('<?php echo esc_js( $share_url ); ?>', this)">
+					title="<?php esc_attr_e( 'Copy URL to clipboard', 'giftflow' ); ?>" >
 					<span class="giftflow-share__text"><?php esc_html_e( 'Copy Link', 'giftflow' ); ?></span>
 				</a>
 			<?php endif; ?>
@@ -171,7 +173,7 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 		<?php endif; ?>
 	</div>
 
-	<script>
+	<!-- <script>
 	function giftflowCopyUrlToClipboard(url, button) {
 		if (navigator.clipboard && window.isSecureContext) {
 			// Use modern clipboard API.
@@ -218,7 +220,7 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 			}, 2000);
 		}
 	}
-	</script>
+	</script> -->
 	<?php
 	return ob_get_clean();
 }
@@ -270,6 +272,8 @@ function giftflow_render_social_share_button( $platform, $url, $title, $descript
 		class="giftflow-share__button giftflow-share__button--<?php echo esc_attr( $platform ); ?>"
 		title="<?php echo esc_attr( $a_title ); ?>"
 		target="_blank"
+		data-network="<?php echo esc_attr( $platform ); ?>"
+		data-url="<?php echo esc_attr( $url ); ?>"
 		rel="noopener noreferrer">
 		<span class="giftflow-share__text"><?php echo esc_html( $platform_name ); ?></span>
 	</a>

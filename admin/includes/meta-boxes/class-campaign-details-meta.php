@@ -171,7 +171,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 
 		ob_start();
 		?>
-		<div class="campaign-details-tabs">
+		<div class="campaign-details-tabs giftflow-meta-box-tabs">
 			<div class="nav-tab-wrapper">
 				<a href="#general-tab" class="nav-tab nav-tab-active"><?php esc_html_e( 'General', 'giftflow' ); ?></a>
 				<a href="#advanced-tab" class="nav-tab"><?php esc_html_e( 'Advanced', 'giftflow' ); ?></a>
@@ -237,56 +237,8 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 				?>
 			</div>
 		</div>
-
-		<style>
-			.campaign-details-tabs {
-				margin-top: 10px;
-			}
-			.tab-content {
-				display: none;
-				padding: 20px 0;
-			}
-			.tab-content.active {
-				display: block;
-			}
-			.nav-tab-wrapper {
-				margin-bottom: 20px;
-			}
-			.nav-tab {
-				padding: 8px 12px;
-				text-decoration: none;
-				border: 1px solid #ccc;
-				background: #f1f1f1;
-				margin-right: 5px;
-				transform: translateY(1px);
-				-webkit-transform: translateY(1px);
-			}
-			.nav-tab-active {
-				background: #fff;
-				border-bottom: 1px solid #fff;
-			}
-		</style>
-
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				$('.nav-tab').on('click', function(e) {
-					e.preventDefault();
-					
-					// Remove active class from all tabs and content
-					$('.nav-tab').removeClass('nav-tab-active');
-					$('.tab-content').removeClass('active');
-					
-					// Add active class to clicked tab
-					$(this).addClass('nav-tab-active');
-					
-					// Show corresponding content
-					var target = $(this).attr('href');
-					$(target).addClass('active');
-				});
-			});
-		</script>
 		<?php
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo ob_get_clean();
 	}
 

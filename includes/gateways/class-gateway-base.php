@@ -94,6 +94,13 @@ abstract class Gateway_Base extends Base {
 	protected $styles = array();
 
 	/**
+	 * Gateway inline styles
+	 *
+	 * @var array
+	 */
+	protected $inline_styles = array();
+
+	/**
 	 * Template HTML
 	 *
 	 * @var string
@@ -244,6 +251,13 @@ abstract class Gateway_Base extends Base {
 			}
 		}
 
+		// Add inline styles.
+		foreach ( $this->inline_styles as $handle => $inline_style ) {
+			if ( in_array( $inline_style['context'], array( 'frontend', 'both' ), true ) && ! empty( $inline_style['css'] ) ) {
+				wp_add_inline_style( $handle, $inline_style['css'] );
+			}
+		}
+
 		// Allow additional frontend assets.
 		do_action( 'giftflow_gateway_enqueue_frontend_assets', $this->id );
 	}
@@ -287,6 +301,13 @@ abstract class Gateway_Base extends Base {
 			}
 		}
 
+		// Add inline styles.
+		foreach ( $this->inline_styles as $handle => $inline_style ) {
+			if ( in_array( $inline_style['context'], array( 'admin', 'both' ), true ) && ! empty( $inline_style['css'] ) ) {
+				wp_add_inline_style( $handle, $inline_style['css'] );
+			}
+		}
+
 		// Allow additional admin assets.
 		do_action( 'giftflow_gateway_enqueue_admin_assets', $this->id );
 	}
@@ -309,6 +330,24 @@ abstract class Gateway_Base extends Base {
 	 */
 	protected function add_style( $handle, $style_args ) {
 		$this->styles[ $handle ] = $style_args;
+	}
+
+	/**
+	 * Add inline style to be appended to a registered stylesheet
+	 *
+	 * @param string $handle Style handle to attach inline CSS to.
+	 * @param string $css    The inline CSS to add.
+	 * @param string $context Where to add the inline style: 'frontend', 'admin', or 'both'. Default 'frontend'.
+	 */
+	protected function add_style_inline( $handle, $css, $context = 'frontend' ) {
+		if ( ! isset( $this->inline_styles[ $handle ] ) ) {
+			$this->inline_styles[ $handle ] = array(
+				'css'     => '',
+				'context' => $context,
+			);
+		}
+		$this->inline_styles[ $handle ]['css']    .= $css;
+		$this->inline_styles[ $handle ]['context'] = $context;
 	}
 
 	/**

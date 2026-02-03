@@ -978,13 +978,13 @@ function _regeneratorDefine2(e, r, n, t) {
  * @param {Object} w - Window object.
  */
 (function () {
-  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee4(w) {
+  var _ref = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee6(w) {
     'use strict';
 
     // make donationForm class.
     var donationForm, initDonationForm;
-    return _regenerator().w(function (_context4) {
-      while (1) switch (_context4.n) {
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
         case 0:
           donationForm = /*#__PURE__*/function () {
             /**
@@ -1027,14 +1027,26 @@ function _regeneratorDefine2(e, r, n, t) {
                 }));
 
                 // on change amount field.
-                this.form.addEventListener('input', function (event) {
-                  if (event.target.name === 'donation_amount') {
-                    _this.onUpdateAmountField(event.target.value);
-                  }
-                  if (event.target.name === 'payment_method') {
-                    _this.onChangePaymentMethod(event.target.value);
-                  }
-                });
+                this.form.addEventListener('input', /*#__PURE__*/function () {
+                  var _ref2 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee(event) {
+                    return _regenerator().w(function (_context) {
+                      while (1) switch (_context.n) {
+                        case 0:
+                          if (event.target.name === 'donation_amount') {
+                            _this.onUpdateAmountField(event.target.value);
+                          }
+                          if (event.target.name === 'payment_method') {
+                            _this.onChangePaymentMethod(event.target.value);
+                          }
+                        case 1:
+                          return _context.a(2);
+                      }
+                    }, _callee);
+                  }));
+                  return function (_x2) {
+                    return _ref2.apply(this, arguments);
+                  };
+                }());
 
                 // on click Preset Amount.
                 this.form.addEventListener('click', function (event) {
@@ -1090,16 +1102,17 @@ function _regeneratorDefine2(e, r, n, t) {
               key: "onSetLoading",
               value: function onSetLoading(status) {
                 var self = this;
+                self.form.classList.toggle('gfw-elem-loading-spinner', status);
                 self.form.querySelector('.donation-form__button--submit').classList.toggle('loading', status);
                 self.form.querySelector('.donation-form__button--submit').disabled = status;
               }
             }, {
               key: "onSubmitForm",
               value: function () {
-                var _onSubmitForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee() {
+                var _onSubmitForm = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee2() {
                   var self, pass, response, errorMessage, _response$data, _t;
-                  return _regenerator().w(function (_context) {
-                    while (1) switch (_context.p = _context.n) {
+                  return _regenerator().w(function (_context2) {
+                    while (1) switch (_context2.p = _context2.n) {
                       case 0:
                         self = this;
                         self.onSetLoading(true);
@@ -1107,34 +1120,34 @@ function _regeneratorDefine2(e, r, n, t) {
                         // validate fields.
                         pass = self.onValidateFieldsCurrentStep(); // console.log('pass', pass);
                         if (pass) {
-                          _context.n = 1;
+                          _context2.n = 1;
                           break;
                         }
                         self.onSetLoading(false);
-                        return _context.a(2);
+                        return _context2.a(2);
                       case 1:
-                        _context.p = 1;
-                        _context.n = 2;
+                        _context2.p = 1;
+                        _context2.n = 2;
                         return self.eventHub.emit('donationFormBeforeSubmit', {
                           self: self,
                           fields: self.getFields()
                         });
                       case 2:
-                        _context.n = 4;
+                        _context2.n = 4;
                         break;
                       case 3:
-                        _context.p = 3;
-                        _t = _context.v;
+                        _context2.p = 3;
+                        _t = _context2.v;
                         console.error('Error in onDoHooks:', _t);
                         self.onSetLoading(false);
-                        return _context.a(2);
+                        return _context2.a(2);
                       case 4:
-                        _context.n = 5;
+                        _context2.n = 5;
                         return self.onSendData(self.getFields());
                       case 5:
-                        response = _context.v;
+                        response = _context2.v;
                         if (!(!response || !response.success)) {
-                          _context.n = 6;
+                          _context2.n = 6;
                           break;
                         }
                         // show error section.
@@ -1147,23 +1160,23 @@ function _regeneratorDefine2(e, r, n, t) {
                           errorMessage.innerHTML = "\n\t\t\t\t\t\t<h3 class=\"donation-form__error-title\">Error</h3>\n\t\t\t\t\t\t<p class=\"donation-form__error-text\">".concat((response === null || response === void 0 || (_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'An error occurred. Please try again.', "</p>\n\t\t\t\t\t");
                         }
                         self.onSetLoading(false);
-                        return _context.a(2);
+                        return _context2.a(2);
                       case 6:
                         if (!(response && response.success)) {
-                          _context.n = 7;
+                          _context2.n = 7;
                           break;
                         }
                         // show thank you section.
                         self.form.querySelector('.donation-form__step-panel.is-active').classList.remove('is-active');
                         self.form.querySelector('#donation-thank-you').classList.add('is-active');
                         self.onSetLoading(false);
-                        return _context.a(2);
+                        return _context2.a(2);
                       case 7:
                         self.onSetLoading(false);
                       case 8:
-                        return _context.a(2);
+                        return _context2.a(2);
                     }
-                  }, _callee, this, [[1, 3]]);
+                  }, _callee2, this, [[1, 3]]);
                 }));
                 function onSubmitForm() {
                   return _onSubmitForm.apply(this, arguments);
@@ -1195,13 +1208,13 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onSendData",
               value: function () {
-                var _onSendData = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee2(data) {
+                var _onSendData = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee3(data) {
                   var ajaxurl, response;
-                  return _regenerator().w(function (_context2) {
-                    while (1) switch (_context2.n) {
+                  return _regenerator().w(function (_context3) {
+                    while (1) switch (_context3.n) {
                       case 0:
                         ajaxurl = "".concat(window.giftflowDonationForms.ajaxurl, "?action=giftflow_donation_form&wp_nonce=").concat(data.wp_nonce);
-                        _context2.n = 1;
+                        _context3.n = 1;
                         return fetch(ajaxurl, {
                           method: 'POST',
                           body: JSON.stringify(data),
@@ -1214,12 +1227,12 @@ function _regeneratorDefine2(e, r, n, t) {
                           return error;
                         });
                       case 1:
-                        response = _context2.v;
-                        return _context2.a(2, response);
+                        response = _context3.v;
+                        return _context3.a(2, response);
                     }
-                  }, _callee2);
+                  }, _callee3);
                 }));
-                function onSendData(_x2) {
+                function onSendData(_x3) {
                   return _onSendData.apply(this, arguments);
                 }
                 return onSendData;
@@ -1227,13 +1240,13 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onDoHooks",
               value: function () {
-                var _onDoHooks = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee3() {
+                var _onDoHooks = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee4() {
                   var self;
-                  return _regenerator().w(function (_context3) {
-                    while (1) switch (_context3.n) {
+                  return _regenerator().w(function (_context4) {
+                    while (1) switch (_context4.n) {
                       case 0:
                         self = this; // allow developer add hooks from outside support async function and return promise.
-                        return _context3.a(2, new Promise(function (resolve, reject) {
+                        return _context4.a(2, new Promise(function (resolve, reject) {
                           self.form.dispatchEvent(new CustomEvent('donationFormBeforeSubmit', {
                             detail: {
                               self: self,
@@ -1244,7 +1257,7 @@ function _regeneratorDefine2(e, r, n, t) {
                           }));
                         }));
                     }
-                  }, _callee3, this);
+                  }, _callee4, this);
                 }));
                 function onDoHooks() {
                   return _onDoHooks.apply(this, arguments);
@@ -1315,27 +1328,47 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onListenerFormFieldUpdate",
               value: function onListenerFormFieldUpdate() {
+                var _this3 = this;
                 var self = this;
-                this.form.addEventListener('change', function (event) {
-                  self.fields[event.target.name] = event.target.value;
-                  var value = event.target.value;
+                this.form.addEventListener('change', /*#__PURE__*/function () {
+                  var _ref3 = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/_regenerator().m(function _callee5(event) {
+                    var value, fieldName;
+                    return _regenerator().w(function (_context5) {
+                      while (1) switch (_context5.n) {
+                        case 0:
+                          self.fields[event.target.name] = event.target.value;
+                          value = event.target.value; // validate event.target is checkbox field.
+                          if (event.target.type === 'checkbox') {
+                            value = event.target.checked;
+                          }
 
-                  // console.log(event.target.name, value);
+                          // validate event.target is radio field.
+                          if (event.target.type === 'radio') {
+                            fieldName = event.target.name;
+                            value = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked")).value;
+                          }
 
-                  // validate event.target is checkbox field.
-                  if (event.target.type === 'checkbox') {
-                    value = event.target.checked;
-                  }
-
-                  // validate event.target is radio field.
-                  if (event.target.type === 'radio') {
-                    var fieldName = event.target.name;
-                    value = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked")).value;
-                  }
-
-                  // update UI by field.
-                  self.onUpdateUIByField(event.target.name, value);
-                });
+                          // emit event donationAmountChanged if event.target.name is donation_amount.
+                          if (!(event.target.name === 'donation_amount')) {
+                            _context5.n = 1;
+                            break;
+                          }
+                          _context5.n = 1;
+                          return _this3.eventHub.emit('donationAmountChanged', {
+                            amount: event.target.value
+                          });
+                        case 1:
+                          // update UI by field.
+                          self.onUpdateUIByField(event.target.name, value);
+                        case 2:
+                          return _context5.a(2);
+                      }
+                    }, _callee5);
+                  }));
+                  return function (_x4) {
+                    return _ref3.apply(this, arguments);
+                  };
+                }());
               }
             }, {
               key: "onChangePaymentMethod",
@@ -1390,7 +1423,7 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onUpdateOutputField",
               value: function onUpdateOutputField(field, value) {
-                var _this3 = this;
+                var _this4 = this;
                 var outputField = this.form.querySelectorAll("[data-output=\"".concat(field, "\"]"));
                 if (!outputField || outputField.length === 0) {
                   return;
@@ -1406,7 +1439,7 @@ function _regeneratorDefine2(e, r, n, t) {
                     }
 
                     // update output value.
-                    _this3.updateOutputValue(output, __v);
+                    _this4.updateOutputValue(output, __v);
                   });
                   return;
                 }
@@ -1461,7 +1494,7 @@ function _regeneratorDefine2(e, r, n, t) {
             }, {
               key: "onValidateFieldsCurrentStep",
               value: function onValidateFieldsCurrentStep() {
-                var _this4 = this;
+                var _this5 = this;
                 var self = this;
                 var currentStepWrapper = this.form.querySelector('.donation-form__step-panel.is-active');
                 var pass = true;
@@ -1484,7 +1517,7 @@ function _regeneratorDefine2(e, r, n, t) {
                   var fieldValue = field.value;
                   var fieldValidate = field.dataset.validate;
                   var extraData = field.dataset.extraData ? JSON.parse(field.dataset.extraData) : null;
-                  if (!_this4.onValidateValue(fieldValidate, fieldValue, extraData)) {
+                  if (!_this5.onValidateValue(fieldValidate, fieldValue, extraData)) {
                     pass = false;
                   }
                   self.onUpdateUIByField(fieldName, fieldValue);
@@ -1540,9 +1573,9 @@ function _regeneratorDefine2(e, r, n, t) {
           * }));
           */
           document.addEventListener('initDonationForm', function (event) {
-            var _ref2 = event.detail || {},
-              formSelector = _ref2.formSelector,
-              options = _ref2.options;
+            var _ref4 = event.detail || {},
+              formSelector = _ref4.formSelector,
+              options = _ref4.options;
             if (formSelector) {
               // Initialize specific forms matching the selector
               document.querySelectorAll(formSelector).forEach(function (form) {
@@ -1575,9 +1608,9 @@ function _regeneratorDefine2(e, r, n, t) {
             });
           });
         case 1:
-          return _context4.a(2);
+          return _context6.a(2);
       }
-    }, _callee4);
+    }, _callee6);
   }));
   return function (_x) {
     return _ref.apply(this, arguments);

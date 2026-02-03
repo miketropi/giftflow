@@ -26,8 +26,21 @@ const excludeList = [
   // "tailwind.config.js",
   // "webpack.mix.js",
   // "build-package.js",
+  // "composer.json",
+  // "composer.lock",
   "giftflow.zip"
 ];
+
+const excludeExtensions = [
+  ".sh"
+];
+
+const excludeVendorDirs = [
+  "vendor/**/tests",
+  "vendor/**/docs",
+  "vendor/**/examples"
+];
+
 // ========================
 
 // 1. Read version from plugin header
@@ -64,8 +77,34 @@ archive.pipe(output);
 
 // 3. Build list file to include
 function shouldInclude(filePath) {
-  return !excludeList.some(exclude => filePath.startsWith(exclude));
+  // Normalize path (Windows safe)
+  const normalizedPath = filePath.replace(/\\/g, "/");
+
+  // Exclude by exact path prefix
+  if (excludeList.some(exclude => normalizedPath.startsWith(exclude))) {
+    return false;
+  }
+
+  // Exclude by extension (e.g. .sh)
+  const ext = path.extname(normalizedPath);
+  if (excludeExtensions.includes(ext)) {
+    return false;
+  }
+
+  // Exclude vendor sub folders (tests, docs, examples)
+  if (
+    normalizedPath.startsWith("vendor/") &&
+    excludeVendorDirs.some(pattern => {
+      const base = pattern.replace("**/", "");
+      return normalizedPath.includes(base);
+    })
+  ) {
+    return false;
+  }
+
+  return true;
 }
+
 
 function addFilesFromDir(dirPath) {
   fs.readdirSync(dirPath).forEach(file => {

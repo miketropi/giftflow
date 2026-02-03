@@ -74,10 +74,14 @@ class Forms extends Base {
 	 */
 	public function process_donation() {
 		// get fields from fetch post data.
+		// The raw donation submission payload is intentionally kept unchanged.
+		// This allows proper validation and error handling per field later in the process.
+		// Data is sanitized only at the point of use, when it is actually used.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$fields = json_decode( file_get_contents( 'php://input' ), true );
 
 		// convert amout to float.
-		$fields['donation_amount'] = floatval( $fields['donation_amount'] );
+		$fields['donation_amount'] = floatval( wp_unslash( $fields['donation_amount'] ) );
 
 		// add filter to fields.
 		$fields = apply_filters( 'giftflow_donation_form_fields', $fields );

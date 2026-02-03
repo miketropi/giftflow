@@ -1,15 +1,15 @@
 <?php
 /**
  * Plugin Name: GiftFlow
- * Plugin URI: https://giftflow.com
+ * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
  * Version: 1.0.1
  * Author: Beplus
- * Author URI: https://giftflow.beplus.com
+ * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
  * Domain Path: /languages
  * Requires at least: 6.0
- * Requires PHP: 8.2
+ * Requires PHP: 7.4
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
@@ -58,6 +58,7 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-role.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-ajax.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-donations.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-campaigns.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-block-template.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-wp-block-custom-hooks.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'blocks/index.php';
@@ -129,10 +130,10 @@ register_activation_hook( __FILE__, 'giftflow_activate' );
  */
 function giftflow_activate() {
 	// Check PHP version.
-	if ( version_compare( PHP_VERSION, '8.2', '<' ) ) {
+	if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'GiftFlow requires PHP 8.2 or higher.', 'giftflow' ),
+			esc_html__( 'GiftFlow requires PHP 7.4 or higher.', 'giftflow' ),
 			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);
@@ -253,9 +254,9 @@ function giftflow_add_first_activation_notice() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		isset( $_GET['page'], $_GET['tab'] )
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
-		&& $_GET['page'] === 'giftflow-dashboard'
+		&& sanitize_text_field( wp_unslash( $_GET['page'] ) ) === 'giftflow-dashboard'
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.PHP.YodaConditions.NotYoda
-		&& $_GET['tab'] === 'help'
+		&& sanitize_text_field( wp_unslash( $_GET['tab'] ) ) === 'help'
 	) {
 		$is_giftflow_help_page = true;
 	}

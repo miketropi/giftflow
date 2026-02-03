@@ -1,10 +1,11 @@
 === GiftFlow ===
-Contributors: BePlus
-Donate link: https://github.com/miketropi/giftflow
+Contributors: bearsthemes
+Author: Beplus
+Author URI: https://beplusthemes.com
 Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
-Requires PHP: 8.2
+Requires PHP: 7.4
 Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -126,6 +127,50 @@ GiftFlow requires WordPress 6.0 or higher, PHP 8.2 or higher, and an SSL certifi
 4. Payment Settings - Configure Stripe, PayPal, and other payment gateways
 5. Donor Management - Comprehensive donor profiles and donation history
 6. Reports & Analytics - Track donations and campaign performance
+
+== External services ==
+
+This plugin connects to external third-party services under certain circumstances:
+
+= Stripe =
+
+When the Stripe payment gateway is enabled, the plugin connects to Stripe's payment processing service to handle credit and debit card donations.
+
+* **What data is sent:** Donor payment information (card details), donation amount, currency, and transaction metadata.
+* **When it's used:** During the checkout process when a donor selects Stripe as their payment method.
+* **Service website:** [https://stripe.com](https://stripe.com)
+* **Terms of service:** [https://stripe.com/legal](https://stripe.com/legal)
+* **Privacy policy:** [https://stripe.com/privacy](https://stripe.com/privacy)
+
+= PayPal =
+
+When the PayPal payment gateway is enabled, the plugin connects to PayPal's payment processing service to handle PayPal and card donations via PayPal Smart Buttons.
+
+* **What data is sent:** Donor payment information, donation amount, currency, and transaction metadata.
+* **When it's used:** During the checkout process when a donor selects PayPal as their payment method.
+* **Service website:** [https://www.paypal.com](https://www.paypal.com)
+* **Terms of service:** [https://www.paypal.com/webapps/mpp/ua/useragreement-full](https://www.paypal.com/webapps/mpp/ua/useragreement-full)
+* **Privacy policy:** [https://www.paypal.com/webapps/mpp/ua/privacy-full](https://www.paypal.com/webapps/mpp/ua/privacy-full)
+
+= Google reCAPTCHA =
+
+When reCAPTCHA is enabled in the plugin settings, the plugin connects to Google's reCAPTCHA service to protect donation forms from spam and abuse.
+
+* **What data is sent:** User interaction data, IP address, browser information, and site key for verification.
+* **When it's used:** When a donor submits a donation form with reCAPTCHA protection enabled.
+* **Service website:** [https://www.google.com/recaptcha](https://www.google.com/recaptcha)
+* **Terms of service:** [https://policies.google.com/terms](https://policies.google.com/terms)
+* **Privacy policy:** [https://policies.google.com/privacy](https://policies.google.com/privacy)
+
+= Google Maps API =
+
+When Google Maps integration is enabled, the plugin connects to Google Maps API to display maps on campaign pages or donor location features.
+
+* **What data is sent:** Location data, map coordinates, and API key for authentication.
+* **When it's used:** When displaying campaign locations or address-related features on the frontend.
+* **Service website:** [https://developers.google.com/maps](https://developers.google.com/maps)
+* **Terms of service:** [https://cloud.google.com/maps-platform/terms](https://cloud.google.com/maps-platform/terms)
+* **Privacy policy:** [https://policies.google.com/privacy](https://policies.google.com/privacy)
 
 == Changelog ==
 

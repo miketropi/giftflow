@@ -1036,3 +1036,67 @@ function giftflow_donation_form_validate_recaptcha( $fields ) {
 		wp_send_json_error( array( 'message' => __( 'Internal error: reCAPTCHA verification failed. Please try again!', 'giftflow' ) ) );
 	}
 }
+
+/**
+ * Prepare campaign status bar data
+ *
+ * @param int $post_id Campaign post ID.
+ * @return array Campaign status bar template data.
+ */
+function giftflow_prepare_campaign_status_bar_data( $post_id ) {
+	$post_id = intval( $post_id );
+
+	// Prepare template data.
+	$template_data = array(
+		'post_id' => $post_id,
+	);
+
+	// If post_id is valid, get campaign data.
+	if ( ! empty( $post_id ) ) {
+		$goal_amount = get_post_meta( $post_id, '_goal_amount', true );
+		$raised_amount = giftflow_get_campaign_raised_amount( $post_id );
+		$progress_percentage = giftflow_get_campaign_progress_percentage( $post_id );
+		$days_left = giftflow_get_campaign_days_left( $post_id );
+
+		// Get donation count.
+		$donations = get_posts(
+			array(
+				'post_type' => 'donation',
+				'posts_per_page' => -1,
+				'fields' => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'meta_query' => array(
+					array(
+						'key' => '_campaign_id',
+						'value' => $post_id,
+						'compare' => '=',
+					),
+					array(
+						'key' => '_status',
+						'value' => 'completed',
+						'compare' => '=',
+					),
+				),
+			)
+		);
+		$donation_count = count( $donations );
+
+		$template_data['goal_amount'] = $goal_amount;
+		$template_data['raised_amount'] = $raised_amount;
+		$template_data['progress_percentage'] = $progress_percentage;
+		$template_data['days_left'] = $days_left;
+		$template_data['donation_count'] = $donation_count;
+		$template_data['raised_amount_formatted'] = giftflow_render_currency_formatted_amount( $raised_amount );
+		$template_data['goal_amount_formatted'] = giftflow_render_currency_formatted_amount( $goal_amount );
+	}
+
+	/**
+	 * Filter campaign status bar template data.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $template_data Template data array.
+	 * @param int   $post_id Campaign post ID.
+	 */
+	return apply_filters( 'giftflow_campaign_status_bar_data', $template_data, $post_id );
+}

@@ -2,18 +2,22 @@
 /**
  * Stripe Payment Gateway for GiftFlow
  *
- * This class implements Stripe payment processing using Omnipay v3
- * with support for Payment Intents, 3D Secure, and webhooks.
+ * This class implements Stripe payment processing using Stripe PHP SDK
+ * with support for Payment Intents, 3D Secure (SCA), and webhooks.
  *
  * @package GiftFlow
  * @subpackage Gateways
  * @since 1.0.0
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 namespace GiftFlow\Gateways;
 
-use Omnipay\Omnipay;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+use Stripe\StripeClient;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Webhook;
 use GiftFlow\Core\Donations;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,18 +29,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Stripe_Gateway extends Gateway_Base {
 	/**
-	 * Omnipay gateway instance.
+	 * Stripe Client instance.
 	 *
-	 * @var PaymentIntentsGateway
+	 * @var StripeClient
 	 */
-	private $gateway;
+	private $stripe;
 
 	/**
-	 * API key.
+	 * API Secret Key.
 	 *
 	 * @var string
 	 */
 	private $api_key;
+
+	/**
+	 * Webhook Secret.
+	 *
+	 * @var string
+	 */
+	private $webhook_secret;
 
 	/**
 	 * Initialize gateway properties
@@ -63,20 +74,29 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return void
 	 */
 	protected function ready() {
-		// Initialize Omnipay gateway.
-		$this->init_omnipay_gateway();
+		// Initialize Stripe SDK.
+		$this->init_stripe_sdk();
 
 		// Add Stripe-specific assets.
 		$this->add_stripe_assets();
 	}
 
 	/**
-	 * Initialize Omnipay gateway
+	 * Initialize Stripe SDK
 	 *
 	 * @return void
 	 */
-	private function init_omnipay_gateway() {
+	private function init_stripe_sdk() {
 		$this->api_key = $this->get_api_key();
+		$this->webhook_secret = $this->get_webhook_secret();
+
+		if ( ! empty( $this->api_key ) ) {
+			// Set the API key globally.
+			Stripe::setApiKey( $this->api_key );
+
+			// Create Stripe client instance.
+			$this->stripe = new StripeClient( $this->api_key );
+		}
 	}
 
 	/**
@@ -107,6 +127,21 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		return $this->get_setting( 'stripe_sandbox_publishable_key' );
+	}
+
+	/**
+	 * Get webhook secret based on mode
+	 *
+	 * @return string
+	 */
+	private function get_webhook_secret() {
+		$mode = $this->get_setting( 'stripe_mode', 'sandbox' );
+
+		if ( 'live' === $mode ) {
+			return $this->get_setting( 'stripe_live_webhook_secret', '' );
+		}
+
+		return $this->get_setting( 'stripe_sandbox_webhook_secret', '' );
 	}
 
 	/**
@@ -146,6 +181,10 @@ class Stripe_Gateway extends Gateway_Base {
 				'mode' => $this->get_setting( 'stripe_mode', 'sandbox' ),
 				'nonce' => wp_create_nonce( 'giftflow_stripe_nonce' ),
 				'return_url' => add_query_arg( 'giftflow_stripe_return', '1', home_url() ),
+				'currency' => $this->get_currency(),
+				'country' => $this->get_country_code(),
+				'site_name' => get_bloginfo( 'name' ),
+				'apple_pay_google_pay_enabled' => $this->get_setting( 'stripe_apple_pay_google_pay_enabled', false ),
 				'messages' => array(
 					'processing' => __( 'Processing payment...', 'giftflow' ),
 					'error' => __( 'Payment failed. Please try again.', 'giftflow' ),
@@ -233,6 +272,15 @@ class Stripe_Gateway extends Gateway_Base {
 							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
 						),
 					),
+					// support Apple Pay + Google Pay.
+					'stripe_apple_pay_google_pay_enabled' => array(
+						'id' => 'giftflow_stripe_apple_pay_google_pay_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Apple Pay + Google Pay', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
+						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . ' <a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
+						'pro_only'    => true,
+					),
 				),
 			),
 		);
@@ -286,33 +334,35 @@ class Stripe_Gateway extends Gateway_Base {
 							</div>
 					</div>
 
-					<?php // name on card field. ?>
-					<div class="donation-form__field">
-							<label for="card_name" class="donation-form__field-label"><?php esc_html_e( 'Name on card', 'giftflow' ); ?></label>
-							<input type="text" id="card_name" name="card_name" class="donation-form__field-input" data-validate="required">
+					<div class="donation-form__card-fields">
+						<?php // name on card field. ?>
+						<div class="donation-form__field">
+								<label for="card_name" class="donation-form__field-label"><?php esc_html_e( 'Name on card', 'giftflow' ); ?></label>
+								<input type="text" id="card_name" name="card_name" class="donation-form__field-input" data-validate="required">
 
-							<div class="donation-form__field-error custom-error-message">
-							<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
-							<span class="custom-error-message-text">
-									<?php esc_html_e( 'Name on card is required', 'giftflow' ); ?>
-							</span>
-							</div>
-					</div>
-					
-					<?php // card element. ?>
-					<div 
-							class="donation-form__field" 
-							data-custom-validate="true" 
-							data-custom-validate-status="false" >
-							<label for="card_number" class="donation-form__field-label"><?php esc_html_e( 'Card number', 'giftflow' ); ?></label>
-							<div id="STRIPE-CARD-ELEMENT"></div> <?php // Render card via stripe.js. ?>
+								<div class="donation-form__field-error custom-error-message">
+								<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
+								<span class="custom-error-message-text">
+										<?php esc_html_e( 'Name on card is required', 'giftflow' ); ?>
+								</span>
+								</div>
+						</div>
+						
+						<?php // card element. ?>
+						<div 
+								class="donation-form__field" 
+								data-custom-validate="true" 
+								data-custom-validate-status="false" >
+								<label for="card_number" class="donation-form__field-label"><?php esc_html_e( 'Card number', 'giftflow' ); ?></label>
+								<div id="STRIPE-CARD-ELEMENT"></div> <?php // Render card via stripe.js. ?>
 
-							<div class="donation-form__field-error custom-error-message">
-							<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
-							<span class="custom-error-message-text">
-									<?php esc_html_e( 'Card information is incomplete', 'giftflow' ); ?>
-							</span>
-							</div>
+								<div class="donation-form__field-error custom-error-message">
+								<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
+								<span class="custom-error-message-text">
+										<?php esc_html_e( 'Card information is incomplete', 'giftflow' ); ?>
+								</span>
+								</div>
+						</div>
 					</div>
 			</div>
 			<?php
@@ -343,12 +393,7 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return mixed
 	 */
 	public function process_payment( $data, $donation_id = 0 ) {
-		if ( ! empty( $this->api_key ) ) {
-			$this->gateway = Omnipay::create( 'Stripe' );
-			$this->gateway->setApiKey( $this->api_key );
-		}
-
-		if ( ! $this->gateway ) {
+		if ( ! $this->stripe ) {
 			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
 		}
 
@@ -357,10 +402,19 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		try {
-			$payment_data = $this->prepare_payment_data( $data, $donation_id );
-			$response = $this->gateway->purchase( $payment_data )->send();
+			// Prepare payment intent data.
+			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id );
 
-			return $this->handle_payment_response( $response, $donation_id );
+			// Create Payment Intent.
+			$payment_intent = $this->stripe->paymentIntents->create( $payment_intent_data );
+
+			// Store payment intent ID.
+			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
+
+			return $this->handle_payment_intent_response( $payment_intent, $donation_id );
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id, $e->getStripeCode() );
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		} catch ( \Exception $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id );
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
@@ -368,138 +422,183 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * Prepare payment data for Omnipay
+	 * Prepare payment intent data for Stripe API
 	 *
 	 * @param array $data Payment data.
 	 * @param int $donation_id Donation ID.
 	 * @return array
 	 */
-	private function prepare_payment_data( $data, $donation_id ) {
+	private function prepare_payment_intent_data( $data, $donation_id ) {
 		$statement_descriptor = $this->get_setting( 'statement_descriptor', get_bloginfo( 'name' ) );
 		$statement_descriptor = substr( $statement_descriptor, 0, 22 ); // Stripe limit.
 
-		$stripe_data = array(
-			'amount' => number_format( (float) $data['donation_amount'], 2, '.', '' ),
+		// Convert amount to cents (Stripe expects smallest currency unit).
+		$amount_in_cents = (int) ( (float) $data['donation_amount'] * 100 );
+
+		$payment_intent_data = array(
+			'amount' => $amount_in_cents,
 			'currency' => strtolower( $this->get_currency() ),
-			'token' => $data['stripe_token'],
+			'payment_method' => $data['payment_method_id'], // Payment Method ID from frontend.
+			'confirmation_method' => 'manual',
+			'confirm' => true,
+			'return_url' => $this->get_return_url( $donation_id ),
 			// translators: 1: donor name, 2: campaign id or name.
 			'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
 			'metadata' => array(
-				'donation_id' => $donation_id,
-				'campaign_id' => $data['campaign_id'],
+				'donation_id' => (string) $donation_id,
+				'campaign_id' => (string) $data['campaign_id'],
 				'donor_email' => sanitize_email( $data['donor_email'] ),
 				'donor_name' => sanitize_text_field( $data['donor_name'] ),
 				'site_url' => home_url(),
 			),
 		);
 
-		return apply_filters( 'giftflow_stripe_prepare_payment_data', $stripe_data, $data, $donation_id );
+		// Add receipt email.
+		if ( ! empty( $data['donor_email'] ) ) {
+			$payment_intent_data['receipt_email'] = sanitize_email( $data['donor_email'] );
+		}
+
+		return apply_filters( 'giftflow_stripe_prepare_payment_intent_data', $payment_intent_data, $data, $donation_id );
 	}
 
 	/**
-	 * Handle payment response
+	 * Handle payment intent response
 	 *
-	 * @param mixed $response Response from Stripe.
+	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
 	 * @param int $donation_id Donation ID.
 	 * @return array|\WP_Error
 	 */
-	private function handle_payment_response( $response, $donation_id ) {
-		if ( $response->isSuccessful() ) {
-				return $this->handle_successful_payment( $response, $donation_id );
-		} elseif ( $response->isRedirect() ) {
-				return $this->handle_redirect_payment( $response, $donation_id );
-		} elseif ( method_exists( $response, 'requiresAction' ) && $response->requiresAction() ) {
-				return $this->handle_action_required( $response, $donation_id );
-		} else {
-				return $this->handle_failed_payment( $response, $donation_id );
+	private function handle_payment_intent_response( $payment_intent, $donation_id ) {
+		$status = $payment_intent->status;
+
+		switch ( $status ) {
+			case 'succeeded':
+				return $this->handle_successful_payment_intent( $payment_intent, $donation_id );
+
+			case 'requires_action':
+			case 'requires_source_action':
+				return $this->handle_action_required_intent( $payment_intent, $donation_id );
+
+			case 'requires_payment_method':
+			case 'requires_source':
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment method was declined', 'giftflow' ) );
+
+			case 'processing':
+				return $this->handle_processing_intent( $payment_intent, $donation_id );
+
+			case 'canceled':
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment was canceled', 'giftflow' ) );
+
+			default:
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment could not be processed', 'giftflow' ) );
 		}
 	}
 
 	/**
-	 * Handle successful payment
+	 * Handle successful payment intent
 	 *
-	 * @param mixed $response Response from Stripe.
+	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
 	 * @param int $donation_id Donation ID.
 	 * @return array
 	 */
-	private function handle_successful_payment( $response, $donation_id ) {
-			$transaction_id = $response->getTransactionReference();
-			$all_data = $response->getData();
+	private function handle_successful_payment_intent( $payment_intent, $donation_id ) {
+		$transaction_id = $payment_intent->id;
+		$charge_id = ! empty( $payment_intent->charges->data ) ? $payment_intent->charges->data[0]->id : '';
 
-			// Update donation meta.
-			update_post_meta( $donation_id, '_transaction_id', $transaction_id );
-			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $all_data ) );
-			update_post_meta( $donation_id, '_payment_method', 'stripe' );
+		// Update donation meta.
+		update_post_meta( $donation_id, '_transaction_id', $transaction_id );
+		update_post_meta( $donation_id, '_stripe_charge_id', $charge_id );
+		update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $payment_intent->toArray() ) );
+		update_post_meta( $donation_id, '_payment_method', 'stripe' );
 
-			// Use centralized Donations class to update status.
-			$donations_class = new Donations();
-			$donations_class->update_status( $donation_id, 'completed' );
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'completed' );
 
-			$this->log_success( $transaction_id, $donation_id );
+		$this->log_success( $transaction_id, $donation_id );
 
-			do_action( 'giftflow_stripe_payment_completed', $donation_id, $transaction_id, $all_data );
+		do_action( 'giftflow_stripe_payment_completed', $donation_id, $transaction_id, $payment_intent->toArray() );
 
-			// return true when payment is successful.
-			return true;
-	}
-
-	/**
-	 * Handle redirect payment (3D Secure)
-	 *
-	 * @param mixed $response Response from Stripe.
-	 * @param int $donation_id Donation ID.
-	 * @return array
-	 */
-	private function handle_redirect_payment( $response, $donation_id ) {
-			$payment_intent_id = $response->getPaymentIntentReference();
-
-			// Store payment intent for later verification.
-			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent_id );
-			update_post_meta( $donation_id, '_payment_status', 'processing' );
-
-			return array(
-				'success' => false,
-				'redirect' => true,
-				'redirect_url' => $response->getRedirectUrl(),
-				'message' => __( '3D Secure authentication required', 'giftflow' ),
-			);
-	}
-
-	/**
-	 * Handle action required payment
-	 *
-	 * @param mixed $response Response from Stripe.
-	 * @param int $donation_id Donation ID.
-	 * @return array
-	 */
-	private function handle_action_required( $response, $donation_id ) {
-		$client_secret = method_exists( $response, 'getPaymentIntentClientSecret' )
-			? $response->getPaymentIntentClientSecret()
-			: '';
-
+		// Return success response for AJAX.
 		return array(
-			'success' => false,
-			'requires_action' => true,
-			'client_secret' => $client_secret,
-			'message' => esc_html__( 'Payment requires additional authentication', 'giftflow' ),
+			'success' => true,
+			'status' => 'succeeded',
+			'payment_intent_id' => $transaction_id,
+			'message' => __( 'Payment successful', 'giftflow' ),
 		);
 	}
 
 	/**
-	 * Handle failed payment
+	 * Handle action required payment intent (3D Secure / SCA)
 	 *
-	 * @param mixed $response Response from Stripe.
+	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
 	 * @param int $donation_id Donation ID.
+	 * @return array
+	 */
+	private function handle_action_required_intent( $payment_intent, $donation_id ) {
+		// Store payment intent for later verification.
+		update_post_meta( $donation_id, '_payment_status', 'processing' );
+
+		return array(
+			'success' => false,
+			'requires_action' => true,
+			'payment_intent_id' => $payment_intent->id,
+			'client_secret' => $payment_intent->client_secret,
+			'status' => $payment_intent->status,
+			'message' => __( 'Payment requires additional authentication', 'giftflow' ),
+		);
+	}
+
+	/**
+	 * Handle processing payment intent
+	 *
+	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
+	 * @param int $donation_id Donation ID.
+	 * @return array
+	 */
+	private function handle_processing_intent( $payment_intent, $donation_id ) {
+		update_post_meta( $donation_id, '_payment_status', 'processing' );
+
+		return array(
+			'success' => false,
+			'processing' => true,
+			'payment_intent_id' => $payment_intent->id,
+			'status' => 'processing',
+			'message' => __( 'Payment is being processed', 'giftflow' ),
+		);
+	}
+
+	/**
+	 * Handle failed payment intent
+	 *
+	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
+	 * @param int $donation_id Donation ID.
+	 * @param string $default_message Default error message.
 	 * @return \WP_Error
 	 */
-	private function handle_failed_payment( $response, $donation_id ) {
-		$error_message = $response->getMessage() ? $response->getMessage() : esc_html__( 'Payment failed', 'giftflow' );
-		$error_code = method_exists( $response, 'getCode' ) ? $response->getCode() : '';
+	private function handle_failed_payment_intent( $payment_intent, $donation_id, $default_message = '' ) {
+		$error_message = $default_message;
+		$error_code = '';
+
+		// Get error details from payment intent.
+		if ( ! empty( $payment_intent->last_payment_error ) ) {
+			$error = $payment_intent->last_payment_error;
+			$error_message = ! empty( $error->message ) ? $error->message : $default_message;
+			$error_code = ! empty( $error->code ) ? $error->code : '';
+		}
+
+		if ( empty( $error_message ) ) {
+			$error_message = __( 'Payment failed', 'giftflow' );
+		}
 
 		$this->log_error( 'payment_failed', $error_message, $donation_id, $error_code );
 
 		update_post_meta( $donation_id, '_payment_status', 'failed' );
 		update_post_meta( $donation_id, '_payment_error', $error_message );
+
+		// Use centralized Donations class to update status.
+		$donations_class = new Donations();
+		$donations_class->update_status( $donation_id, 'failed' );
 
 		return new \WP_Error( 'stripe_error', $error_message );
 	}
@@ -531,35 +630,66 @@ class Stripe_Gateway extends Gateway_Base {
 	 */
 	public function handle_webhook() {
 		if ( ! $this->get_setting( 'stripe_webhook_enabled', '1' ) ) {
-				status_header( 200 );
-				exit;
+			status_header( 200 );
+			exit;
 		}
 
-			$payload = file_get_contents( 'php://input' );
-			$event = json_decode( $payload, true );
-
-		if ( ! $event || ! isset( $event['type'] ) ) {
-				status_header( 400 );
-				exit;
-		}
+		// Stripe sends webhook payload as raw JSON.
+		// The raw request body is required to verify the webhook signature.
+		// Therefore, sanitization is intentionally skipped at this stage.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$payload = file_get_contents( 'php://input' );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$sig_header = isset( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ) : '';
 
 		try {
-			switch ( $event['type'] ) {
+			// Verify webhook signature if webhook secret is configured.
+			if ( ! empty( $this->webhook_secret ) ) {
+				$event = Webhook::constructEvent(
+					$payload,
+					$sig_header,
+					$this->webhook_secret
+				);
+			} else {
+				// Fallback: parse without verification (not recommended for production).
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$event = json_decode( $payload, false );
+				if ( ! $event || ! isset( $event->type ) ) {
+					status_header( 400 );
+					exit;
+				}
+			}
+
+			// Handle different event types.
+			switch ( $event->type ) {
 				case 'payment_intent.succeeded':
-					$this->handle_payment_intent_succeeded( $event['data']['object'] );
+					$this->handle_payment_intent_succeeded( $event->data->object );
 					break;
+
 				case 'payment_intent.payment_failed':
-					$this->handle_payment_intent_failed( $event['data']['object'] );
+					$this->handle_payment_intent_failed( $event->data->object );
 					break;
+
 				case 'charge.refunded':
-					// Handle charge refunded if needed.
-					$this->handle_payment_charge_refunded( $event['data']['object'] );
+					$this->handle_payment_charge_refunded( $event->data->object );
+					break;
+
+				case 'payment_intent.canceled':
+					$this->handle_payment_intent_canceled( $event->data->object );
 					break;
 			}
 
 			status_header( 200 );
 			echo 'OK';
 
+		} catch ( \UnexpectedValueException $e ) {
+			// Invalid payload.
+			$this->log_error( 'webhook_error', 'Invalid webhook payload: ' . $e->getMessage(), 0 );
+			status_header( 400 );
+		} catch ( \Stripe\Exception\SignatureVerificationException $e ) {
+			// Invalid signature.
+			$this->log_error( 'webhook_error', 'Invalid webhook signature: ' . $e->getMessage(), 0 );
+			status_header( 400 );
 		} catch ( \Exception $e ) {
 			$this->log_error( 'webhook_error', $e->getMessage(), 0 );
 			status_header( 500 );
@@ -569,7 +699,10 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * Handle return URL from 3D Secure
+	 * Handle return URL from 3D Secure / SCA
+	 *
+	 * @return void
+	 * @throws \Exception If Stripe is not configured.
 	 */
 	public function handle_return_url() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -585,7 +718,7 @@ class Stripe_Gateway extends Gateway_Base {
 			array(
 				'post_type' => 'donation',
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_transaction_id',
+				'meta_key' => '_stripe_payment_intent_id',
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 				'meta_value' => $payment_intent_id,
 				'posts_per_page' => 1,
@@ -595,19 +728,23 @@ class Stripe_Gateway extends Gateway_Base {
 		if ( ! empty( $donations ) ) {
 			$donation_id = $donations[0]->ID;
 
-			// Verify payment intent status.
+			// Retrieve and verify payment intent status.
 			try {
-				$response = $this->gateway->completePurchase(
-					array(
-						'paymentIntentReference' => $payment_intent_id,
-					)
-				)->send();
+				if ( ! $this->stripe ) {
+					throw new \Exception( __( 'Stripe is not configured', 'giftflow' ) );
+				}
 
-				if ( $response->isSuccessful() ) {
-					$this->handle_successful_payment( $response, $donation_id );
+				$payment_intent = $this->stripe->paymentIntents->retrieve( $payment_intent_id );
+
+				if ( 'succeeded' === $payment_intent->status ) {
+					$this->handle_successful_payment_intent( $payment_intent, $donation_id );
 					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'success', home_url() ) ) );
+				} elseif ( in_array( $payment_intent->status, array( 'processing', 'requires_capture' ), true ) ) {
+					// Payment is processing.
+					update_post_meta( $donation_id, '_payment_status', 'processing' );
+					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'processing', home_url() ) ) );
 				} else {
-					$this->handle_failed_payment( $response, $donation_id );
+					$this->handle_failed_payment_intent( $payment_intent, $donation_id );
 					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'failed', home_url() ) ) );
 				}
 			} catch ( \Exception $e ) {
@@ -622,17 +759,26 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Handle successful payment intent webhook
 	 *
-	 * @param array $payment_intent Payment intent data.
+	 * @param object $payment_intent Payment intent object from webhook.
 	 */
 	private function handle_payment_intent_succeeded( $payment_intent ) {
-		$donation_id = isset( $payment_intent['metadata']['donation_id'] )
-			? intval( $payment_intent['metadata']['donation_id'] )
+		$donation_id = isset( $payment_intent->metadata->donation_id )
+			? intval( $payment_intent->metadata->donation_id )
 			: 0;
 
 		if ( $donation_id ) {
+			$transaction_id = $payment_intent->id;
+			$charge_id = ! empty( $payment_intent->charges->data ) ? $payment_intent->charges->data[0]->id : '';
+
+			// Update donation meta.
+			update_post_meta( $donation_id, '_transaction_id', $transaction_id );
+			update_post_meta( $donation_id, '_stripe_charge_id', $charge_id );
+			update_post_meta( $donation_id, '_payment_status', 'completed' );
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
+
 			do_action( 'giftflow_stripe_webhook_payment_completed', $donation_id, $payment_intent );
 		}
 	}
@@ -640,41 +786,64 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Handle failed payment intent webhook
 	 *
-	 * @param array $payment_intent Payment intent data.
+	 * @param object $payment_intent Payment intent object from webhook.
 	 */
 	private function handle_payment_intent_failed( $payment_intent ) {
-			$donation_id = isset( $payment_intent['metadata']['donation_id'] )
-				? intval( $payment_intent['metadata']['donation_id'] )
-				: 0;
+		$donation_id = isset( $payment_intent->metadata->donation_id )
+			? intval( $payment_intent->metadata->donation_id )
+			: 0;
 
 		if ( $donation_id ) {
-			$error_message = isset( $payment_intent['last_payment_error']['message'] )
-				? $payment_intent['last_payment_error']['message']
+			$error_message = isset( $payment_intent->last_payment_error->message )
+				? $payment_intent->last_payment_error->message
 				: __( 'Payment failed', 'giftflow' );
 
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'failed' );
 			update_post_meta( $donation_id, '_payment_error', $error_message );
+			update_post_meta( $donation_id, '_payment_status', 'failed' );
 
 			do_action( 'giftflow_stripe_webhook_payment_failed', $donation_id, $payment_intent );
 		}
 	}
 
 	/**
+	 * Handle canceled payment intent webhook
+	 *
+	 * @param object $payment_intent Payment intent object from webhook.
+	 */
+	private function handle_payment_intent_canceled( $payment_intent ) {
+		$donation_id = isset( $payment_intent->metadata->donation_id )
+			? intval( $payment_intent->metadata->donation_id )
+			: 0;
+
+		if ( $donation_id ) {
+			// Use centralized Donations class to update status.
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'cancelled' );
+			update_post_meta( $donation_id, '_payment_status', 'canceled' );
+
+			do_action( 'giftflow_stripe_webhook_payment_canceled', $donation_id, $payment_intent );
+		}
+	}
+
+	/**
 	 * Handle payment charge refunded
 	 *
-	 * @param array $charge Charge data.
+	 * @param object $charge Charge object from webhook.
 	 */
 	private function handle_payment_charge_refunded( $charge ) {
-		$donation_id = isset( $charge['metadata']['donation_id'] )
-			? intval( $charge['metadata']['donation_id'] )
+		$donation_id = isset( $charge->metadata->donation_id )
+			? intval( $charge->metadata->donation_id )
 			: 0;
 
 		if ( $donation_id ) {
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'refunded' );
+			update_post_meta( $donation_id, '_payment_status', 'refunded' );
+
 			do_action( 'giftflow_stripe_webhook_charge_refunded', $donation_id, $charge );
 		}
 	}
@@ -686,6 +855,15 @@ class Stripe_Gateway extends Gateway_Base {
 	 */
 	private function get_currency() {
 			return apply_filters( 'giftflow_stripe_currency', 'USD' );
+	}
+
+	/**
+	 * Get country code for Payment Request Button
+	 *
+	 * @return string
+	 */
+	private function get_country_code() {
+			return apply_filters( 'giftflow_stripe_country_code', 'US' );
 	}
 
 	/**
