@@ -23428,6 +23428,35 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+(function (w, $) {
+  'use strict';
+
+  /**
+   * Handle first activation notice
+   * @returns {void}
+   */
+  var firstActivationNotice = function firstActivationNotice() {
+    var notice = $('.giftflow-first-activation-notice');
+    if (notice.length === 0) {
+      return;
+    }
+    var nonce = notice.data('nonce');
+    if (!nonce) {
+      return;
+    }
+    notice.on('click', '.notice-dismiss', function () {
+      $.post(ajaxurl, {
+        action: 'giftflow_dismiss_first_activation_notice',
+        _giftflow_nonce: nonce
+      });
+    });
+  };
+
+  // window load
+  $(document).on('DOMContentLoaded', function () {
+    firstActivationNotice();
+  });
+})(window, jQuery);
 })();
 
 /******/ })()

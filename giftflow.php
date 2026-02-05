@@ -276,29 +276,23 @@ function giftflow_add_first_activation_notice() {
 
 				// Prepare URL to documentation. You may want to change this as needed.
 				$docs_url = esc_url( admin_url( 'admin.php?page=giftflow-dashboard&tab=help' ) ); // Update to your actual docs page if needed.
-
 				?>
-			<div class="notice notice-info is-dismissible giftflow-first-activation-notice">
+			<div
+				class="notice notice-info is-dismissible giftflow-first-activation-notice"
+				data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_dismiss_notice' ) ); ?>">
 				<p>
 					<strong><?php esc_html_e( 'Welcome to GiftFlow!', 'giftflow' ); ?></strong>
 					<?php esc_html_e( 'It looks like you\'re using GiftFlow for the first time. We highly recommend visiting the documentation page to quickly get started and make the most out of your donation campaigns.', 'giftflow' ); ?>
 				</p>
 				<p>
-					<a href="<?php echo esc_url( $docs_url ); ?>" class="button button-primary" target="_blank">
+					<a 
+						href="<?php echo esc_url( $docs_url ); ?>" 
+						class="button button-primary" 
+						target="_blank" >
 						<?php esc_html_e( 'View Documentation', 'giftflow' ); ?>
 					</a>
 				</p>
 			</div>
-			<script>
-			(function($){
-				$(document).on('click', '.giftflow-first-activation-notice .notice-dismiss', function() {
-					$.post(ajaxurl, {
-						action: 'giftflow_dismiss_first_activation_notice',
-						_giftflow_nonce: '<?php echo esc_js( wp_create_nonce( 'giftflow_dismiss_notice' ) ); ?>'
-					});
-				});
-			})(jQuery);
-			</script>
 				<?php
 			}
 		);
