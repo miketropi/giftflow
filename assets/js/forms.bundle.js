@@ -1307,22 +1307,28 @@ function _regeneratorDefine2(e, r, n, t) {
                 var _this2 = this;
                 var self = this;
                 var fields = _donationForm3.querySelectorAll('input[name]');
+                if (!fields || fields.length === 0) {
+                  return;
+                }
                 fields.forEach(function (field) {
-                  var value = field.value;
+                  var _field$value, _field$name2;
+                  var value = (_field$value = field === null || field === void 0 ? void 0 : field.value) !== null && _field$value !== void 0 ? _field$value : '';
 
                   // validate event.target is checkbox field.
                   if (field.type === 'checkbox') {
-                    value = field.checked;
+                    var _field$checked;
+                    value = (_field$checked = field === null || field === void 0 ? void 0 : field.checked) !== null && _field$checked !== void 0 ? _field$checked : false;
                   }
 
                   // validate event.target is radio field.
-                  if (field.type === 'radio') {
+                  if ((field === null || field === void 0 ? void 0 : field.type) === 'radio') {
+                    var _field$name, _self$form$querySelec, _self$form$querySelec2;
                     // get field name.
-                    var fieldName = field.name;
+                    var fieldName = (_field$name = field === null || field === void 0 ? void 0 : field.name) !== null && _field$name !== void 0 ? _field$name : '';
                     // const fieldValue = field.value;
-                    value = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked")).value;
+                    value = (_self$form$querySelec = (_self$form$querySelec2 = self.form.querySelector("input[name=\"".concat(fieldName, "\"]:checked"))) === null || _self$form$querySelec2 === void 0 ? void 0 : _self$form$querySelec2.value) !== null && _self$form$querySelec !== void 0 ? _self$form$querySelec : '';
                   }
-                  _this2.fields[field.name] = value;
+                  _this2.fields[(_field$name2 = field === null || field === void 0 ? void 0 : field.name) !== null && _field$name2 !== void 0 ? _field$name2 : ''] = value;
                 });
               }
             }, {

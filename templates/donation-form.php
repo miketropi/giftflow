@@ -79,12 +79,14 @@ $no_payment_methods = count( $gateways ) === 0;
 					<!-- Donation Type -->
 					<fieldset class="
 					<?php
-					echo implode(
-						' ',
-						array(
-							'donation-form__fieldset',
-							'__count-donation-types-' . count( $donation_types ),
-							count( $donation_types ) === 1 ? '__hidden-fieldset' : '',
+					echo esc_attr(
+						implode(
+							' ',
+							array(
+								'donation-form__fieldset',
+								'__count-donation-types-' . count( $donation_types ),
+								count( $donation_types ) === 1 ? '__hidden-fieldset' : '',
+							)
 						)
 					);
 					?>
@@ -267,8 +269,7 @@ $no_payment_methods = count( $gateways ) === 0;
 								foreach ( $gateways as $method ) {
 									if ( $method->is_enabled() ) {
 										echo '<div class="donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . '">';
-										// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-										echo $method->template_html();
+										$method->template_html();
 										echo '</div>';
 									}
 								}

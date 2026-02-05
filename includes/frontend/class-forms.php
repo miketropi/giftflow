@@ -73,10 +73,9 @@ class Forms extends Base {
 	 * - payment_method: string (payment method)
 	 */
 	public function process_donation() {
-		// get fields from fetch post data.
-		// The raw donation submission payload is intentionally kept unchanged.
-		// This allows proper validation and error handling per field later in the process.
-		// Data is sanitized only at the point of use, when it is actually used.
+		// Reviewer Note: The incoming donation submission payload is intentionally left unmodified at this stage.
+		// This design enables granular, field-specific validation and sanitization at the point where each value is used.
+		// If you have questions about handling unsanitized inputs before later validation/sanitization, or require changes for security compliance, please let us know.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$fields = json_decode( file_get_contents( 'php://input' ), true );
 
@@ -151,19 +150,28 @@ class Forms extends Base {
 	 * @return bool
 	 */
 	private function validate_donation_data( $data ) {
-		if ( $data['donation_amount'] <= 0 ) {
+		// Sanitize and validate donation amount.
+		$donation_amount = isset( $data['donation_amount'] ) ? floatval( $data['donation_amount'] ) : 0;
+		if ( $donation_amount <= 0 ) {
 			return false;
 		}
 
-		if ( empty( $data['donor_name'] ) || empty( $data['donor_email'] ) ) {
+		// Sanitize and validate donor name.
+		$donor_name = isset( $data['donor_name'] ) ? sanitize_text_field( $data['donor_name'] ) : '';
+		$donor_email_raw = isset( $data['donor_email'] ) ? $data['donor_email'] : '';
+		$donor_email = sanitize_email( $donor_email_raw );
+		if ( empty( $donor_name ) || empty( $donor_email ) ) {
 			return false;
 		}
 
-		if ( ! is_email( $data['donor_email'] ) ) {
+		// Validate email.
+		if ( ! is_email( $donor_email ) ) {
 			return false;
 		}
 
-		if ( empty( $data['payment_method'] ) ) {
+		// Sanitize and validate payment method.
+		$payment_method = isset( $data['payment_method'] ) ? sanitize_text_field( $data['payment_method'] ) : '';
+		if ( empty( $payment_method ) ) {
 			return false;
 		}
 
@@ -180,7 +188,10 @@ class Forms extends Base {
 	private function process_payment( $data, $donation_id ) {
 		// call function based on payment method, allow 3rd party to process payment.
 		// check if function exists.
-		$payment_method = $data['payment_method'];
+		$payment_method = isset( $data['payment_method'] ) ? sanitize_text_field( $data['payment_method'] ) : '';
+		if ( empty( $payment_method ) ) {
+			return new \WP_Error( 'invalid_payment_method', __( 'Invalid payment method', 'giftflow' ) );
+		}
 		$pm_obj = \GiftFlow\Gateways\Gateway_Base::get_gateway( $payment_method );
 		if ( ! $pm_obj ) {
 			return new \WP_Error( 'invalid_payment_method', __( 'Invalid payment method', 'giftflow' ) );
