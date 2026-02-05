@@ -1,6 +1,7 @@
 import GiftFlowGoogleMapField from './googlemap-field';
 import GiftFlowAccordion from './accordion-section';
 import GiftFlowGalleryField from './gallery-field';
+import GiftFlowRepeaterField from './repeater-field';
 
 ((w, $) => {
 	'use strict';
@@ -68,12 +69,41 @@ import GiftFlowGalleryField from './gallery-field';
     });
   }
 
+  /**
+   * Handle repeater field
+   * @returns {void}
+   */
+  const handleRepeaterField = () => {
+    const repeaterFields = document.querySelectorAll( '.giftflow-repeater-field' );
+    if ( repeaterFields.length === 0 ) {
+      return;
+    }
+
+    [...repeaterFields].forEach( ( repeaterField ) => {
+      const rowTemplate = $( repeaterField ).find( '.giftflow-repeater-row-template' ).html();
+      $( repeaterField ).find( '.giftflow-repeater-row-template' ).remove();
+
+      const options = {
+        repeaterId: repeaterField.dataset.id,
+        maxRows: repeaterField.dataset.maxRows,
+        buttonText: repeaterField.dataset.buttonText,
+        removeText: repeaterField.dataset.removeText,
+        rowTemplate: rowTemplate,
+        rowLabel: repeaterField.dataset.rowLabel,
+        minRows: repeaterField.dataset.minRows,
+      };
+
+      new GiftFlowRepeaterField( repeaterField, options );
+    } );
+  }
+
   // window load 
   w.addEventListener( 'load', () => {
     handleMapField()
     handleAccordion()
     handleGalleryField()
     navTabHandler()
+    handleRepeaterField()
   } );
 
 })( window, jQuery )

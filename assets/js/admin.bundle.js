@@ -3192,6 +3192,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _googlemap_field__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./googlemap-field */ "./admin/js/modules/googlemap-field.js");
 /* harmony import */ var _accordion_section__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./accordion-section */ "./admin/js/modules/accordion-section.js");
 /* harmony import */ var _gallery_field__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./gallery-field */ "./admin/js/modules/gallery-field.js");
+/* harmony import */ var _repeater_field__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./repeater-field */ "./admin/js/modules/repeater-field.js");
+
 
 
 
@@ -3254,12 +3256,38 @@ __webpack_require__.r(__webpack_exports__);
     });
   };
 
+  /**
+   * Handle repeater field
+   * @returns {void}
+   */
+  var handleRepeaterField = function handleRepeaterField() {
+    var repeaterFields = document.querySelectorAll('.giftflow-repeater-field');
+    if (repeaterFields.length === 0) {
+      return;
+    }
+    (0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__["default"])(repeaterFields).forEach(function (repeaterField) {
+      var rowTemplate = $(repeaterField).find('.giftflow-repeater-row-template').html();
+      $(repeaterField).find('.giftflow-repeater-row-template').remove();
+      var options = {
+        repeaterId: repeaterField.dataset.id,
+        maxRows: repeaterField.dataset.maxRows,
+        buttonText: repeaterField.dataset.buttonText,
+        removeText: repeaterField.dataset.removeText,
+        rowTemplate: rowTemplate,
+        rowLabel: repeaterField.dataset.rowLabel,
+        minRows: repeaterField.dataset.minRows
+      };
+      new _repeater_field__WEBPACK_IMPORTED_MODULE_4__["default"](repeaterField, options);
+    });
+  };
+
   // window load 
   w.addEventListener('load', function () {
     handleMapField();
     handleAccordion();
     handleGalleryField();
     navTabHandler();
+    handleRepeaterField();
   });
 })(window, jQuery);
 
@@ -4206,6 +4234,288 @@ var GiftFlowGoogleMapField = /*#__PURE__*/function () {
   }
 });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowGoogleMapField);
+
+/***/ }),
+
+/***/ "./admin/js/modules/repeater-field.js":
+/*!********************************************!*\
+  !*** ./admin/js/modules/repeater-field.js ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/esm/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/esm/createClass.js");
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+/**
+ * GiftFlow Repeater Field Class
+ * 
+ * Handles dynamic repeater fields with add/remove functionality.
+ * 
+ * @example
+ * // Initialize via PHP inline script:
+ * new GiftFlowRepeaterField({
+ *   repeaterId: 'my-repeater',
+ *   maxRows: 10,
+ *   rowTemplate: '<div class="giftflow-repeater-row">...</div>',
+ *   rowLabel: 'Item'
+ * });
+ */
+var GiftFlowRepeaterField = /*#__PURE__*/function () {
+  /**
+   * @param {Object} config - Configuration options
+   * @param {string} config.repeaterId - The repeater container element ID
+   * @param {number} config.maxRows - Maximum number of rows allowed (0 = unlimited)
+   * @param {string} config.rowTemplate - HTML template for new rows (use __INDEX__ as placeholder)
+   * @param {string} config.rowLabel - Label text for row titles
+   */
+  function GiftFlowRepeaterField(repeaterElement, config) {
+    (0,_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__["default"])(this, GiftFlowRepeaterField);
+    this.config = _objectSpread({
+      repeaterId: '',
+      maxRows: 0,
+      rowTemplate: '',
+      rowLabel: 'Row'
+    }, config);
+    // console.log(this.config.rowTemplate);
+    this.$ = jQuery;
+    this.$repeater = this.$(repeaterElement);
+    this.$rows = null;
+    this.$addButton = null;
+    this.$hiddenInput = null;
+    this.init();
+  }
+
+  /**
+   * Initialize the repeater field
+   */
+  return (0,_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__["default"])(GiftFlowRepeaterField, [{
+    key: "init",
+    value: function init() {
+      // this.$repeater = this.$(`#${this.config.repeaterId}`);
+
+      if (!this.$repeater.length) {
+        console.warn("GiftFlowRepeaterField: Element #".concat(this.config.repeaterId, " not found"));
+        return;
+      }
+      this.cacheElements();
+      this.bindEvents();
+    }
+
+    /**
+     * Cache DOM elements for performance
+     */
+  }, {
+    key: "cacheElements",
+    value: function cacheElements() {
+      this.$rows = this.$repeater.find('.giftflow-repeater-rows');
+      this.$addButton = this.$repeater.find('.giftflow-repeater-add-row');
+      this.$hiddenInput = this.$repeater.find('input[type=hidden]');
+    }
+
+    /**
+     * Bind event handlers
+     */
+  }, {
+    key: "bindEvents",
+    value: function bindEvents() {
+      this.$addButton.on('click', this.handleAddRow.bind(this));
+      this.$repeater.on('click', '.giftflow-repeater-remove-row', this.handleRemoveRow.bind(this));
+      this.$repeater.on('change', 'input, select, textarea', this.handleFieldChange.bind(this));
+    }
+
+    /**
+     * Handle add row button click
+     * @param {Event} e - Click event
+     */
+  }, {
+    key: "handleAddRow",
+    value: function handleAddRow(e) {
+      e.preventDefault();
+      if (this.isMaxRowsReached()) {
+        return;
+      }
+      var newIndex = this.getRowCount();
+      var newRow = this.$(this.config.rowTemplate.replace(/__INDEX__/g, newIndex));
+      console.log(newRow);
+      this.$rows.append(newRow);
+      this.updateHiddenInput();
+      this.updateAddButtonState();
+    }
+
+    /**
+     * Handle remove row button click
+     * @param {Event} e - Click event
+     */
+  }, {
+    key: "handleRemoveRow",
+    value: function handleRemoveRow(e) {
+      e.preventDefault();
+      var $row = this.$(e.currentTarget).closest('.giftflow-repeater-row');
+      $row.remove();
+      this.reindexRows();
+      this.updateHiddenInput();
+      this.updateAddButtonState();
+    }
+
+    /**
+     * Handle field value change
+     */
+  }, {
+    key: "handleFieldChange",
+    value: function handleFieldChange() {
+      this.updateHiddenInput();
+    }
+
+    /**
+     * Check if maximum rows limit is reached
+     * @returns {boolean}
+     */
+  }, {
+    key: "isMaxRowsReached",
+    value: function isMaxRowsReached() {
+      return this.config.maxRows > 0 && this.getRowCount() >= this.config.maxRows;
+    }
+
+    /**
+     * Get current number of rows
+     * @returns {number}
+     */
+  }, {
+    key: "getRowCount",
+    value: function getRowCount() {
+      return this.$rows.children('.giftflow-repeater-row').length;
+    }
+
+    /**
+     * Update the add button disabled state
+     */
+  }, {
+    key: "updateAddButtonState",
+    value: function updateAddButtonState() {
+      this.$addButton.prop('disabled', this.isMaxRowsReached());
+    }
+
+    /**
+     * Reindex all rows after removal
+     */
+  }, {
+    key: "reindexRows",
+    value: function reindexRows() {
+      var self = this;
+      this.$rows.find('.giftflow-repeater-row').each(function (index) {
+        var $row = self.$(this);
+        $row.attr('data-index', index);
+        $row.find('.giftflow-repeater-row-title').text("".concat(self.config.rowLabel, " ").concat(index + 1).replace('__INDEX__', index + 1));
+        $row.find('input, select, textarea').each(function () {
+          var $field = self.$(this);
+          var name = $field.attr('name');
+          if (name) {
+            $field.attr('name', name.replace(/\[\d+\]/, "[".concat(index, "]")));
+          }
+        });
+      });
+    }
+
+    /**
+     * Update hidden input with serialized row values
+     */
+  }, {
+    key: "updateHiddenInput",
+    value: function updateHiddenInput() {
+      var values = this.collectValues();
+      this.$hiddenInput.val(JSON.stringify(values));
+    }
+
+    /**
+     * Collect all row values
+     * @returns {Array<Object>}
+     */
+  }, {
+    key: "collectValues",
+    value: function collectValues() {
+      var self = this;
+      var values = [];
+      this.$rows.find('.giftflow-repeater-row').each(function () {
+        var rowValues = self.collectRowValues(self.$(this));
+        values.push(rowValues);
+      });
+      return values;
+    }
+
+    /**
+     * Collect values from a single row
+     * @param {jQuery} $row - The row element
+     * @returns {Object}
+     */
+  }, {
+    key: "collectRowValues",
+    value: function collectRowValues($row) {
+      var self = this;
+      var rowValues = {};
+      $row.find('input, select, textarea').each(function () {
+        var $field = self.$(this);
+        var name = $field.attr('name');
+        var matches = name ? name.match(/\[(\d+)\]\[([^\]]+)\]/) : null;
+        if (matches) {
+          var fieldId = matches[2];
+          var fieldType = $field.attr('type');
+          if (fieldType === 'checkbox' || fieldType === 'switch') {
+            rowValues[fieldId] = $field.is(':checked');
+          } else {
+            rowValues[fieldId] = $field.val();
+          }
+        }
+      });
+      return rowValues;
+    }
+
+    /**
+     * Destroy the repeater instance and unbind events
+     */
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.$addButton.off('click');
+      this.$repeater.off('click', '.giftflow-repeater-remove-row');
+      this.$repeater.off('change', 'input, select, textarea');
+    }
+  }]);
+}(); // Export for module systems or attach to window for global access
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GiftFlowRepeaterField);
+
+// if (typeof module !== 'undefined' && module.exports) {
+//   module.exports = GiftFlowRepeaterField;
+// } else {
+//   window.GiftFlowRepeaterField = GiftFlowRepeaterField;
+// }
 
 /***/ }),
 

@@ -172,55 +172,6 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 			</div>
 		<?php endif; ?>
 	</div>
-
-	<!-- <script>
-	function giftflowCopyUrlToClipboard(url, button) {
-		if (navigator.clipboard && window.isSecureContext) {
-			// Use modern clipboard API.
-			navigator.clipboard.writeText(url).then(function() {
-				giftflowShowCopyFeedback(button);
-			}).catch(function(err) {
-				console.error('Failed to copy: ', err);
-				giftflowFallbackCopy(url, button);
-			});
-		} else {
-			// Fallback for older browsers.
-			giftflowFallbackCopy(url, button);
-		}
-	}
-
-	function giftflowFallbackCopy(url, button) {
-		const textArea = document.createElement('textarea');
-		textArea.value = url;
-		textArea.style.position = 'fixed';
-		textArea.style.left = '-999999px';
-		textArea.style.top = '-999999px';
-		document.body.appendChild(textArea);
-		textArea.focus();
-		textArea.select();
-		
-		try {
-			document.execCommand('copy');
-			giftflowShowCopyFeedback(button);
-		} catch (err) {
-			console.error('Fallback copy failed: ', err);
-		}
-		
-		document.body.removeChild(textArea);
-	}
-
-	function giftflowShowCopyFeedback(button) {
-		const container = button.closest('.giftflow-share');
-		const feedback = container.querySelector('.giftflow-share__copy-feedback');
-		
-		if (feedback) {
-			feedback.style.display = 'block';
-			setTimeout(function() {
-				feedback.style.display = 'none';
-			}, 2000);
-		}
-	}
-	</script> -->
 	<?php
 	return ob_get_clean();
 }
