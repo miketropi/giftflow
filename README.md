@@ -321,6 +321,113 @@ add_filter('giftflow_payment_gateways', function($gateways) {
 
 See the [Register New Payment Method](docs/register-new-paymen-method.md) guide for detailed instructions.
 
+## External Services
+
+This plugin relies on the following third-party services to provide its functionality. These services are only used when explicitly enabled by the site administrator. By using these features, data may be transmitted to external servers. Please review the terms and privacy policies of each service before enabling them.
+
+### Stripe (stripe.com)
+
+This plugin uses the Stripe payment gateway to process credit and debit card donations securely.
+
+**Service Provider:** Stripe, Inc.  
+**Service URL:** [https://stripe.com](https://stripe.com)
+
+**Data Transmitted:**
+- Payment card information (processed directly by Stripe, not stored on your server)
+- Donation amount and currency
+- Donor name and email address
+- Billing address (if collected)
+- Transaction metadata (donation ID, campaign ID)
+
+**When Data is Sent:**
+- When a donor submits a donation form using Stripe as the payment method
+- When processing refunds through the admin dashboard
+- When verifying webhook signatures for payment status updates
+
+**Legal:**
+- [Terms of Service](https://stripe.com/legal)
+- [Privacy Policy](https://stripe.com/privacy)
+
+---
+
+### PayPal (paypal.com)
+
+This plugin uses PayPal to process donations through PayPal accounts and PayPal Smart Payment Buttons.
+
+**Service Provider:** PayPal Holdings, Inc.  
+**Service URL:** [https://www.paypal.com](https://www.paypal.com)
+
+**Data Transmitted:**
+- Donation amount and currency
+- Donor name and email address
+- Order description and transaction metadata
+- Return URLs for payment completion
+
+**When Data is Sent:**
+- When a donor initiates a donation using PayPal as the payment method
+- When creating and capturing PayPal orders via the REST API
+- When processing refunds through the admin dashboard
+
+**Legal:**
+- [Terms of Service](https://www.paypal.com/webapps/mpp/ua/useragreement-full)
+- [Privacy Policy](https://www.paypal.com/webapps/mpp/ua/privacy-full)
+
+---
+
+### Google reCAPTCHA (google.com/recaptcha)
+
+This plugin optionally uses Google reCAPTCHA to protect donation forms from spam submissions and automated abuse.
+
+**Service Provider:** Google LLC  
+**Service URL:** [https://www.google.com/recaptcha](https://www.google.com/recaptcha)
+
+**Data Transmitted:**
+- User's IP address
+- Browser user agent and plugins
+- Mouse movements and keystrokes on the page
+- JavaScript environment information
+- reCAPTCHA site key
+
+**When Data is Sent:**
+- When a donation form with reCAPTCHA protection is loaded
+- When a donor interacts with or submits a protected donation form
+
+**Legal:**
+- [Terms of Service](https://policies.google.com/terms)
+- [Privacy Policy](https://policies.google.com/privacy)
+
+---
+
+### Google Maps Platform (developers.google.com/maps)
+
+This plugin optionally uses Google Maps to display campaign locations and geographic information.
+
+**Service Provider:** Google LLC  
+**Service URL:** [https://developers.google.com/maps](https://developers.google.com/maps)
+
+**Data Transmitted:**
+- Map coordinates and location queries
+- User's IP address (by Google when loading map tiles)
+- Google Maps API key
+
+**When Data is Sent:**
+- When a page containing a Google Maps embed is loaded
+- When geocoding addresses for campaign locations
+
+**Legal:**
+- [Terms of Service](https://cloud.google.com/maps-platform/terms)
+- [Privacy Policy](https://policies.google.com/privacy)
+
+---
+
+### Important Privacy Notice
+
+Site administrators are responsible for ensuring compliance with applicable privacy laws (such as GDPR) when using these third-party services. We recommend:
+
+- Disclosing the use of these services in your site's privacy policy
+- Obtaining appropriate consent from users before processing their data
+- Reviewing each service's data processing agreements
+
 ## Support
 
 For support, please visit our [support forum](https://giftflow.com/support) or email support@giftflow.com.
