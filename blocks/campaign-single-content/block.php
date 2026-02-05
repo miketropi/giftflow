@@ -64,20 +64,20 @@ function giftflow_campaign_single_content_block_render( $attributes, $content, $
 		'campaign' => array(
 			'id' => 'campaign',
 			'label' => apply_filters( 'giftflow_campaign_single_content_tab_campaign_label', esc_html__( 'Campaign', 'giftflow' ) ),
-			'content' => apply_filters( 'giftflow_campaign_single_content_tab_campaign', '', $post_id ),
+			'callback' => 'giftflow_campaign_single_content_tab_campaign',
 			'icon' => apply_filters( 'giftflow_campaign_single_content_tab_campaign_icon', $icons['campaign'] ),
 			'is_active' => true,
 		),
 		'donations' => array(
 			'id' => 'donations',
 			'label' => apply_filters( 'giftflow_campaign_single_content_tab_donations_label', esc_html__( 'Donations', 'giftflow' ) ),
-			'content' => apply_filters( 'giftflow_campaign_single_content_tab_donations', '', $post_id ),
+			'callback' => 'giftflow_campaign_single_content_tab_donations',
 			'icon' => apply_filters( 'giftflow_campaign_single_content_tab_donations_icon', $icons['donations'] ),
 		),
 		'comments' => array(
 			'id' => 'comments',
 			'label' => apply_filters( 'giftflow_campaign_single_content_tab_comments_label', esc_html__( 'Comments', 'giftflow' ) ),
-			'content' => apply_filters( 'giftflow_campaign_single_content_tab_comments', '', $post_id ),
+			'callback' => 'giftflow_campaign_single_content_tab_comments',
 			'icon' => apply_filters( 'giftflow_campaign_single_content_tab_comments_icon', $icons['comments'] ),
 		),
 	);
@@ -108,8 +108,13 @@ function giftflow_campaign_single_content_block_render( $attributes, $content, $
 			<?php foreach ( $tabs as $tab ) : ?>
 				<div class="giftflow-tab-widget-content-item <?php echo isset( $tab['is_active'] ) && true === $tab['is_active'] ? 'active' : ''; ?>" data-tab-id="<?php echo esc_attr( $tab['id'] ); ?>">
 					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $tab['content'];
+					if ( isset( $tab['callback'] ) && is_callable( $tab['callback'] ) ) {
+						call_user_func( $tab['callback'], $post_id );
+					} else {
+						?>
+						<p><?php esc_html_e( 'No content available.', 'giftflow' ); ?></p>
+						<?php
+					}
 					?>
 				</div>
 			<?php endforeach; ?>
@@ -119,41 +124,28 @@ function giftflow_campaign_single_content_block_render( $attributes, $content, $
 	return ob_get_clean();
 }
 
-// add filter campaign_single_content_tab_campaign.
-add_filter( 'giftflow_campaign_single_content_tab_campaign', 'giftflow_campaign_single_content_tab_campaign', 10, 2 );
-
 /**
  * Filter campaign single content tab campaign.
  *
- * @param string $content The content of the campaign.
  * @param int $post_id The ID of the campaign.
- * @return string The content of the campaign.
+ * @return void
  */
-function giftflow_campaign_single_content_tab_campaign( $content, $post_id ) {
-	ob_start();
+function giftflow_campaign_single_content_tab_campaign( $post_id ) {
 	?>
 	<div class="campaign-post-content">
 		<!-- Campaign post content by id. -->
 		<?php echo wp_kses_post( get_the_content( $post_id ) ); ?>
 	</div>
 	<?php
-	return ob_get_clean();
 }
-
-/**
- * Add filter campaign single content tab donations.
- */
-add_filter( 'giftflow_campaign_single_content_tab_donations', 'giftflow_campaign_single_content_tab_donations', 10, 2 );
 
 /**
  * Filter campaign single content tab donations.
  *
- * @param string $content The content of the donations.
  * @param int $post_id The ID of the campaign.
- * @return string The content of the donations.
+ * @return void
  */
-function giftflow_campaign_single_content_tab_donations( $content, $post_id ) {
-	ob_start();
+function giftflow_campaign_single_content_tab_donations( $post_id ) {
 	?>
 	<div class="campaign-post-donations">
 		<!-- description -->
@@ -187,23 +179,16 @@ function giftflow_campaign_single_content_tab_donations( $content, $post_id ) {
 		</div>
 	</div>
 	<?php
-	return ob_get_clean();
 }
 
-/**
- * Filter campaign single content tab comments.
- */
-add_filter( 'giftflow_campaign_single_content_tab_comments', 'giftflow_campaign_single_content_tab_comments', 10, 2 );
 
 /**
  * Filter campaign single content tab comments.
  *
- * @param string $content The content of the comments.
  * @param int $post_id The ID of the campaign.
- * @return string The content of the comments.
+ * @return void
  */
-function giftflow_campaign_single_content_tab_comments( $content, $post_id ) {
-	ob_start();
+function giftflow_campaign_single_content_tab_comments( $post_id ) {
 	?>
 	<div class="campaign-post-comments">
 		<!-- description -->
@@ -222,5 +207,4 @@ function giftflow_campaign_single_content_tab_comments( $content, $post_id ) {
 		</div>
 	</div>
 	<?php
-	return ob_get_clean();
 }
