@@ -591,7 +591,7 @@ class Stripe_Gateway extends Gateway_Base {
 
 		// Reviewer Note: Stripe webhooks POST raw JSON data and Stripe's signature verification requires access to this exact, unmodified request body.
 		// As such, we intentionally do not sanitize or alter the raw input at this stage—this is critical for validating webhook authenticity.
-		// The webhook_secret value will be verified in the following logic below.
+		// The webhook_secret value will be verified in the following logic below .
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
