@@ -272,6 +272,24 @@ class Stripe_Gateway extends Gateway_Base {
 							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
 						),
 					),
+					// stripe_sandbox_webhook_secret.
+					'stripe_sandbox_webhook_secret' => array(
+						'id' => 'giftflow_stripe_sandbox_webhook_secret',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Sandbox Webhook Secret', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_sandbox_webhook_secret'] ) ? $payment_options['stripe']['stripe_sandbox_webhook_secret'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe sandbox webhook secret', 'giftflow' ),
+					),
+					// stripe_live_webhook_secret.
+					'stripe_live_webhook_secret' => array(
+						'id' => 'giftflow_stripe_live_webhook_secret',
+						'type' => 'textfield',
+						'label' => __( 'Stripe Live Webhook Secret', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_live_webhook_secret'] ) ? $payment_options['stripe']['stripe_live_webhook_secret'] : '',
+						'input_type' => 'password',
+						'description' => __( 'Enter your Stripe live webhook secret', 'giftflow' ),
+					),
 					// support Apple Pay + Google Pay.
 					'stripe_apple_pay_google_pay_enabled' => array(
 						'id' => 'giftflow_stripe_apple_pay_google_pay_enabled',
@@ -573,7 +591,7 @@ class Stripe_Gateway extends Gateway_Base {
 
 		// Reviewer Note: Stripe webhooks POST raw JSON data and Stripe's signature verification requires access to this exact, unmodified request body.
 		// As such, we intentionally do not sanitize or alter the raw input at this stage—this is critical for validating webhook authenticity.
-		// Please let us know if you have security or compliance questions about this implementation choice.
+		// The webhook_secret value will be verified in the following logic below.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized

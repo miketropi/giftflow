@@ -286,6 +286,13 @@ class PayPal_Gateway extends Gateway_Base {
 								'giftflow'
 							),
 					),
+					'paypal_webhook_id' => array(
+						'id' => 'giftflow_paypal_webhook_id',
+						'type' => 'textfield',
+						'label' => __( 'Webhook ID', 'giftflow' ),
+						'value' => isset( $payment_options['paypal']['paypal_webhook_id'] ) ? $payment_options['paypal']['paypal_webhook_id'] : '',
+						'description' => __( 'Enter the Webhook ID from your PayPal Developer Dashboard. Required for webhook signature verification.', 'giftflow' ),
+					),
 				),
 			),
 		);
@@ -956,6 +963,23 @@ class PayPal_Gateway extends Gateway_Base {
 			exit;
 		}
 
+		// Verify webhook signature.
+		$webhook_id = $this->get_setting( 'paypal_webhook_id', '' );
+
+		if ( ! empty( $webhook_id ) ) {
+			$is_valid = $this->verify_webhook_signature( $payload, $webhook_id );
+
+			if ( ! $is_valid ) {
+				$this->log_error( 'webhook_verification_failed', 'Webhook signature verification failed', 0 );
+				status_header( 401 );
+				echo 'Unauthorized';
+				exit;
+			}
+		} else {
+			// Log warning if webhook ID is not configured.
+			$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped', 0 );
+		}
+
 		try {
 			switch ( $event['event_type'] ) {
 				case 'PAYMENT.SALE.COMPLETED':
@@ -977,6 +1001,101 @@ class PayPal_Gateway extends Gateway_Base {
 		}
 
 		exit;
+	}
+
+	/**
+	 * Verify PayPal webhook signature using PayPal API
+	 *
+	 * @param string $payload Raw webhook payload.
+	 * @param string $webhook_id PayPal Webhook ID.
+	 * @return bool True if signature is valid, false otherwise.
+	 */
+	private function verify_webhook_signature( $payload, $webhook_id ) {
+		$mode = $this->get_setting( 'paypal_mode', 'sandbox' );
+		$base_url = 'sandbox' === $mode
+			? 'https://api.sandbox.paypal.com'
+			: 'https://api.paypal.com';
+
+		// Get access token.
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			$this->log_error( 'webhook_verify_token_failed', 'Failed to get access token for webhook verification', 0 );
+			return false;
+		}
+
+		// Get webhook headers.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_id = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_ID'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_ID'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_time = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_TIME'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_TIME'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$cert_url = isset( $_SERVER['HTTP_PAYPAL_CERT_URL'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_PAYPAL_CERT_URL'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$auth_algo = isset( $_SERVER['HTTP_PAYPAL_AUTH_ALGO'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_AUTH_ALGO'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_sig = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_SIG'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_SIG'] ) ) : '';
+
+		// Check if all required headers are present.
+		if ( empty( $transmission_id ) || empty( $transmission_time ) || empty( $cert_url ) || empty( $auth_algo ) || empty( $transmission_sig ) ) {
+			$this->log_error( 'webhook_missing_headers', 'Missing required PayPal webhook headers', 0 );
+			return false;
+		}
+
+		// Validate cert_url domain (must be from PayPal).
+		$cert_host = wp_parse_url( $cert_url, PHP_URL_HOST );
+		if ( ! $cert_host || ! preg_match( '/\.paypal\.com$/i', $cert_host ) ) {
+			$this->log_error( 'webhook_invalid_cert_url', 'Invalid PayPal certificate URL: ' . $cert_url, 0 );
+			return false;
+		}
+
+		// Prepare verification request data.
+		$verify_data = array(
+			'auth_algo'         => $auth_algo,
+			'cert_url'          => $cert_url,
+			'transmission_id'   => $transmission_id,
+			'transmission_sig'  => $transmission_sig,
+			'transmission_time' => $transmission_time,
+			'webhook_id'        => $webhook_id,
+			'webhook_event'     => json_decode( $payload, true ),
+		);
+
+		// Make API request to verify signature.
+		$response = wp_remote_post(
+			$base_url . '/v1/notifications/verify-webhook-signature',
+			array(
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $access_token,
+				),
+				'body'    => wp_json_encode( $verify_data ),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_error( 'webhook_verify_request_failed', $response->get_error_message(), 0 );
+			return false;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 !== $response_code ) {
+			$error_message = isset( $response_body['message'] ) ? $response_body['message'] : 'Unknown error';
+			$this->log_error( 'webhook_verify_api_error', $error_message, 0 );
+			return false;
+		}
+
+		// Check verification status.
+		$verification_status = isset( $response_body['verification_status'] ) ? $response_body['verification_status'] : '';
+
+		if ( 'SUCCESS' === $verification_status ) {
+			return true;
+		}
+
+		$this->log_error( 'webhook_verify_failed', 'Verification status: ' . $verification_status, 0 );
+		return false;
 	}
 
 	/**
