@@ -132,10 +132,26 @@ function giftflow_campaign_single_content_block_render( $attributes, $content, $
  */
 function giftflow_campaign_single_content_tab_campaign( $post_id ) {
 	?>
+	<?php
+		/**
+		 * Hook before campaign post content in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_campaign_before', $post_id );
+	?>
 	<div class="campaign-post-content">
 		<!-- Campaign post content by id. -->
 		<?php echo wp_kses_post( get_the_content( $post_id ) ); ?>
 	</div>
+	<?php
+		/**
+		 * Hook after campaign post content in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_campaign_after', $post_id );
+	?>
 	<?php
 }
 
@@ -146,6 +162,14 @@ function giftflow_campaign_single_content_tab_campaign( $post_id ) {
  * @return void
  */
 function giftflow_campaign_single_content_tab_donations( $post_id ) {
+	?>
+	<?php
+		/**
+		 * Hook before campaign donations list in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_donations_before', $post_id );
 	?>
 	<div class="campaign-post-donations">
 		<!-- description -->
@@ -179,6 +203,14 @@ function giftflow_campaign_single_content_tab_donations( $post_id ) {
 		</div>
 	</div>
 	<?php
+		/**
+		 * Hook after campaign donations list in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_donations_after', $post_id );
+	?>
+	<?php
 }
 
 
@@ -189,6 +221,14 @@ function giftflow_campaign_single_content_tab_donations( $post_id ) {
  * @return void
  */
 function giftflow_campaign_single_content_tab_comments( $post_id ) {
+	?>
+	<?php
+		/**
+		 * Hook before campaign comments list in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_comments_before', $post_id );
 	?>
 	<div class="campaign-post-comments">
 		<!-- description -->
@@ -206,5 +246,13 @@ function giftflow_campaign_single_content_tab_comments( $post_id ) {
 			?>
 		</div>
 	</div>
+	<?php
+		/**
+		 * Hook after campaign comments list in single campaign content tab.
+		 *
+		 * @param int $post_id The ID of the campaign.
+		 */
+		do_action( 'giftflow_campaign_single_content_tab_comments_after', $post_id );
+	?>
 	<?php
 }

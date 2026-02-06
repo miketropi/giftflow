@@ -941,8 +941,15 @@ class GiftFlow_Field {
 									)
 								);
 
+								/**
+								 * Filter the repeater field output.
+								 *
+								 * @param string         $output The rendered field HTML.
+								 * @param GiftFlow_Field $field  The field instance.
+								 * @param array          $field_args Field arguments array.
+								 */
 								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo $field->render();
+								echo apply_filters( 'giftflow_repeater_field_output', $field->render(), $field, $field_args );
 							endforeach;
 							?>
 						</div>
@@ -999,8 +1006,15 @@ class GiftFlow_Field {
 						)
 					);
 
+					/**
+					 * Filter the repeater field render output.
+					 *
+					 * @param string         $output The rendered field HTML.
+					 * @param GiftFlow_Field $field  The field instance.
+					 * @param array          $field_args Field arguments array.
+					 */
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $field->render();
+					echo apply_filters( 'giftflow_repeater_row_template', $field->render(), $field, $field_args );
 				endforeach;
 				?>
 			</div>
@@ -1070,8 +1084,15 @@ class GiftFlow_Field {
 								)
 							);
 
+							/**
+							 * Filter the accordion field output.
+							 *
+							 * @param string         $output The rendered field HTML.
+							 * @param GiftFlow_Field $field  The field instance.
+							 * @param array          $field_args Field arguments array.
+							 */
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							echo $field->render();
+							echo apply_filters( 'giftflow_accordion_field_output', $field->render(), $field, $field_args );
 						endforeach;
 						?>
 					</div>
