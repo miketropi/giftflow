@@ -129,116 +129,26 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 	/**
 	 * Get payment form HTML
 	 *
-	 * @return string
+	 * @return void
 	 */
 	public function template_html() {
-		ob_start();
 
-		$icons = array(
-			'checked' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-check-icon lucide-badge-check"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>',
+		giftflow_load_template(
+			'payment-gateway/direct-bank-transfer.php',
+			array(
+				'id' => $this->id,
+				'title' => $this->title,
+				'icon' => $this->icon,
+				'instructions' => $this->get_setting( 'instructions' ),
+				'bank_account_name' => $this->get_setting( 'bank_account_name' ),
+				'bank_account_number' => $this->get_setting( 'bank_account_number' ),
+				'bank_routing_number' => $this->get_setting( 'bank_routing_number' ),
+				'bank_name' => $this->get_setting( 'bank_name' ),
+				'bank_iban' => $this->get_setting( 'bank_iban' ),
+				'bank_swift' => $this->get_setting( 'bank_swift' ),
+				'reference_number' => $this->generate_reference_number(),
+			)
 		);
-
-		$bank_account_name   = $this->get_setting( 'bank_account_name' );
-		$bank_account_number = $this->get_setting( 'bank_account_number' );
-		$bank_routing_number = $this->get_setting( 'bank_routing_number' );
-		$bank_name           = $this->get_setting( 'bank_name' );
-		$bank_iban           = $this->get_setting( 'bank_iban' );
-		$bank_swift          = $this->get_setting( 'bank_swift' );
-		$instructions        = $this->get_setting( 'instructions' );
-
-		?>
-		<label class="donation-form__payment-method">
-		<input type="radio" name="payment_method" value="<?php echo esc_attr( $this->id ); ?>" required>
-		<span class="donation-form__payment-method-content">
-			<?php echo wp_kses( $this->icon, giftflow_allowed_svg_tags() ); ?>
-			<span class="donation-form__payment-method-title"><?php echo esc_html( $this->title ); ?></span>
-		</span>
-		</label>
-		<div class="donation-form__payment-method-description donation-form__payment-method-description--direct-bank-transfer donation-form__fields">
-		<div class="donation-form__payment-notification">
-			<span class="notification-icon"><?php echo wp_kses( $icons['checked'], giftflow_allowed_svg_tags() ); ?></span>
-			<div class="notification-message-entry">
-			<p><?php esc_html_e( 'Make your donation directly into our bank account.', 'giftflow' ); ?></p>
-			<hr />
-			<?php
-			// Try to get reference number from request (for thank you page, user, etc.).
-			$reference_number = $this->generate_reference_number();
-			?>
-			<p>
-				<strong><?php esc_html_e( 'Important:', 'giftflow' ); ?></strong>
-				<?php
-					printf(
-						wp_kses(
-							// translators: %s is the reference number for bank transfer.
-							'Please include your Reference Number (<strong class="gfw-monofont">%s</strong>) in the payment description so we can correctly identify your donation.',
-							array(
-								'code'   => array( 'class' => true ),
-								'strong' => array( 'class' => true ),
-							)
-						),
-						$reference_number ? esc_html( $reference_number ) : esc_html__( 'your reference number', 'giftflow' )
-					);
-				?>
-			</p>
-			</div>
-			<input type="hidden" name="reference_number" value="<?php echo esc_attr( $reference_number ); ?>" />
-		</div>
-
-		<?php if ( ! empty( $instructions ) ) : ?>
-			<div class="donation-form__field">
-			<div class="donation-form__bank-instructions">
-				<?php echo wp_kses_post( wpautop( $instructions ) ); ?>
-			</div>
-			</div>
-		<?php endif; ?>
-
-		<div class="donation-form__bank-details gfw-monofont">
-			<?php if ( ! empty( $bank_account_name ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'Account Name:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_account_name ); ?></span>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $bank_account_number ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'Account Number:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_account_number ); ?></span>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $bank_routing_number ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'Routing Number:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_routing_number ); ?></span>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $bank_name ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'Bank Name:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_name ); ?></span>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $bank_iban ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'IBAN:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_iban ); ?></span>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $bank_swift ) ) : ?>
-			<div class="donation-form__bank-detail">
-				<strong><?php esc_html_e( 'SWIFT/BIC:', 'giftflow' ); ?></strong>
-				<span><?php echo esc_html( $bank_swift ); ?></span>
-			</div>
-			<?php endif; ?>
-		</div>
-
-		</div>
-		<?php
-		return ob_get_clean();
 	}
 
 	/**

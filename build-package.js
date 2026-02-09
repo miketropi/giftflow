@@ -38,7 +38,8 @@ const excludeExtensions = [
 const excludeVendorDirs = [
   "vendor/**/tests",
   "vendor/**/docs",
-  "vendor/**/examples"
+  "vendor/**/examples",
+  "vendor/**/CODEGEN_VERSION"
 ];
 
 // ========================

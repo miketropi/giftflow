@@ -286,6 +286,13 @@ class PayPal_Gateway extends Gateway_Base {
 								'giftflow'
 							),
 					),
+					'paypal_webhook_id' => array(
+						'id' => 'giftflow_paypal_webhook_id',
+						'type' => 'textfield',
+						'label' => __( 'Webhook ID', 'giftflow' ),
+						'value' => isset( $payment_options['paypal']['paypal_webhook_id'] ) ? $payment_options['paypal']['paypal_webhook_id'] : '',
+						'description' => __( 'Enter the Webhook ID from your PayPal Developer Dashboard. Required for webhook signature verification.', 'giftflow' ),
+					),
 				),
 			),
 		);
@@ -296,62 +303,19 @@ class PayPal_Gateway extends Gateway_Base {
 	/**
 	 * Template HTML
 	 *
-	 * @return string
+	 * @return void
 	 */
 	public function template_html() {
-		// Get PayPal mode.
-		$mode = $this->get_setting( 'paypal_mode' );
 
-		ob_start();
-		$icons = array(
-			'error' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
-			'checked' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-check-icon lucide-badge-check"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>',
+		giftflow_load_template(
+			'payment-gateway/paypal.php',
+			array(
+				'id' => $this->id,
+				'title' => $this->title,
+				'icon' => $this->icon,
+				'mode' => $this->get_setting( 'paypal_mode' ),
+			)
 		);
-
-		?>
-		<label class="donation-form__payment-method">
-			<input type="radio" name="payment_method" value="<?php echo esc_attr( $this->id ); ?>" required>
-			<span class="donation-form__payment-method-content">
-				<?php echo wp_kses( $this->icon, giftflow_allowed_svg_tags() ); ?>
-				<span class="donation-form__payment-method-title"><?php echo esc_html( $this->title ); ?></span>
-			</span>
-		</label>
-		<div class="donation-form__payment-method-description donation-form__payment-method-description--paypal donation-form__fields">
-			<div class="donation-form__payment-notification">
-				<span class="notification-icon"><?php echo wp_kses( $icons['checked'], giftflow_allowed_svg_tags() ); ?></span>
-				<div class="notification-message-entry">
-					<p><?php esc_html_e( 'Pay securely with PayPal. Click the button below to complete your payment.', 'giftflow' ); ?></p>
-
-					<?php if ( 'sandbox' === $mode ) { ?>
-					<hr />
-					<div role="alert">
-						<p>
-							<strong><?php esc_html_e( 'You are currently in PayPal Sandbox Mode.', 'giftflow' ); ?></strong>
-							<?php esc_html_e( 'This is a test environment. No real payments will be processed.', 'giftflow' ); ?>
-						</p>
-					</div>
-					<?php } ?>
-				</div>
-			</div>
-
-			<?php // PayPal buttons container. ?>
-			<div 
-				class="donation-form__field"
-				data-custom-validate="true" 
-				data-custom-validate-status="false" >
-				<div 
-					class="donation-form__field-error custom-error-message" 
-					style="margin-bottom: 10px;align-items: center; justify-content: center;">
-					<?php echo wp_kses( $icons['error'], giftflow_allowed_svg_tags() ); ?>
-					<span class="custom-error-message-text">
-						<?php esc_html_e( 'Please complete the payment process with PayPal.', 'giftflow' ); ?>
-					</span>
-				</div>
-				<div id="giftflow-paypal-button-container"></div>
-			</div>
-		</div>
-		<?php
-		return ob_get_clean();
 	}
 
 	/**
@@ -986,9 +950,9 @@ class PayPal_Gateway extends Gateway_Base {
 			exit;
 		}
 
-		// PayPal sends webhook payload as raw JSON.
-		// The raw request body is required to verify the webhook signature.
-		// Therefore, sanitization is intentionally skipped at this stage.
+		// Reviewer Note: PayPal webhooks deliver payloads as raw JSON, and the signature verification process requires access to the unmodified request body.
+		// For this reason, input sanitization is deliberately omitted at this point.
+		// We verify the webhook signature later in "verify_webhook_signature" method.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$payload = file_get_contents( 'php://input' );
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -999,16 +963,46 @@ class PayPal_Gateway extends Gateway_Base {
 			exit;
 		}
 
+		// Verify webhook signature.
+		$webhook_id = $this->get_setting( 'paypal_webhook_id', '' );
+
+		if ( ! empty( $webhook_id ) ) {
+			$is_valid = $this->verify_webhook_signature( $payload, $webhook_id );
+
+			if ( ! $is_valid ) {
+				$this->log_error( 'webhook_verification_failed', 'Webhook signature verification failed', 0 );
+				status_header( 401 );
+				echo 'Unauthorized';
+				exit;
+			}
+		} else {
+			// Log warning if webhook ID is not configured.
+			$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped', 0 );
+		}
+
 		try {
 			switch ( $event['event_type'] ) {
+				// Payment completed events.
 				case 'PAYMENT.SALE.COMPLETED':
+				case 'PAYMENT.CAPTURE.COMPLETED':
 					$this->handle_payment_completed( $event['resource'] );
 					break;
+
+				// Payment denied/failed events.
 				case 'PAYMENT.SALE.DENIED':
+				case 'PAYMENT.CAPTURE.DENIED':
 					$this->handle_payment_denied( $event['resource'] );
 					break;
+
+				// Payment refunded events.
+				case 'PAYMENT.SALE.REFUNDED':
 				case 'PAYMENT.CAPTURE.REFUNDED':
 					$this->handle_payment_refunded( $event['resource'] );
+					break;
+
+				default:
+					// Log unhandled event types for debugging.
+					$this->log_error( 'webhook_unhandled_event', 'Unhandled webhook event type: ' . $event['event_type'], 0 );
 					break;
 			}
 
@@ -1023,34 +1017,191 @@ class PayPal_Gateway extends Gateway_Base {
 	}
 
 	/**
+	 * Verify PayPal webhook signature using PayPal API
+	 *
+	 * @param string $payload Raw webhook payload.
+	 * @param string $webhook_id PayPal Webhook ID.
+	 * @return bool True if signature is valid, false otherwise.
+	 */
+	private function verify_webhook_signature( $payload, $webhook_id ) {
+		$mode = $this->get_setting( 'paypal_mode', 'sandbox' );
+		$base_url = 'sandbox' === $mode
+			? 'https://api.sandbox.paypal.com'
+			: 'https://api.paypal.com';
+
+		// Get access token.
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			$this->log_error( 'webhook_verify_token_failed', 'Failed to get access token for webhook verification', 0 );
+			return false;
+		}
+
+		// Get webhook headers.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_id = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_ID'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_ID'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_time = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_TIME'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_TIME'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$cert_url = isset( $_SERVER['HTTP_PAYPAL_CERT_URL'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_PAYPAL_CERT_URL'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$auth_algo = isset( $_SERVER['HTTP_PAYPAL_AUTH_ALGO'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_AUTH_ALGO'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transmission_sig = isset( $_SERVER['HTTP_PAYPAL_TRANSMISSION_SIG'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_PAYPAL_TRANSMISSION_SIG'] ) ) : '';
+
+		// Check if all required headers are present.
+		if ( empty( $transmission_id ) || empty( $transmission_time ) || empty( $cert_url ) || empty( $auth_algo ) || empty( $transmission_sig ) ) {
+			$this->log_error( 'webhook_missing_headers', 'Missing required PayPal webhook headers', 0 );
+			return false;
+		}
+
+		// Validate cert_url domain (must be from PayPal).
+		$cert_host = wp_parse_url( $cert_url, PHP_URL_HOST );
+		if ( ! $cert_host || ! preg_match( '/\.paypal\.com$/i', $cert_host ) ) {
+			$this->log_error( 'webhook_invalid_cert_url', 'Invalid PayPal certificate URL: ' . $cert_url, 0 );
+			return false;
+		}
+
+		// Prepare verification request data.
+		$verify_data = array(
+			'auth_algo'         => $auth_algo,
+			'cert_url'          => $cert_url,
+			'transmission_id'   => $transmission_id,
+			'transmission_sig'  => $transmission_sig,
+			'transmission_time' => $transmission_time,
+			'webhook_id'        => $webhook_id,
+			'webhook_event'     => json_decode( $payload, true ),
+		);
+
+		// Make API request to verify signature.
+		$response = wp_remote_post(
+			$base_url . '/v1/notifications/verify-webhook-signature',
+			array(
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $access_token,
+				),
+				'body'    => wp_json_encode( $verify_data ),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_error( 'webhook_verify_request_failed', $response->get_error_message(), 0 );
+			return false;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 !== $response_code ) {
+			$error_message = isset( $response_body['message'] ) ? $response_body['message'] : 'Unknown error';
+			$this->log_error( 'webhook_verify_api_error', $error_message, 0 );
+			return false;
+		}
+
+		// Check verification status.
+		$verification_status = isset( $response_body['verification_status'] ) ? $response_body['verification_status'] : '';
+
+		if ( 'SUCCESS' === $verification_status ) {
+			return true;
+		}
+
+		$this->log_error( 'webhook_verify_failed', 'Verification status: ' . $verification_status, 0 );
+		return false;
+	}
+
+	/**
+	 * Extract transaction ID from PayPal webhook resource
+	 *
+	 * Attempts to extract transaction ID from multiple locations:
+	 * 1. Direct resource ID (for capture/sale events)
+	 * 2. Links array with rel="up" pointing to captures (for refund events)
+	 * 3. Links array with rel="self" (fallback)
+	 *
+	 * @param array  $_resource Resource data from webhook.
+	 * @param string $link_pattern Pattern to match in link href (e.g., '/captures/', '/payments/sale/').
+	 * @return string Transaction ID or empty string if not found.
+	 */
+	private function extract_transaction_id( $_resource, $link_pattern = '/captures/' ) {
+		// First, try to get ID directly from resource (works for capture/sale completed/denied events).
+		if ( isset( $_resource['id'] ) && ! empty( $_resource['id'] ) ) {
+			return $_resource['id'];
+		}
+
+		// For refund events, extract from links with rel="up".
+		if ( isset( $_resource['links'] ) && is_array( $_resource['links'] ) ) {
+			foreach ( $_resource['links'] as $link ) {
+				if ( isset( $link['rel'], $link['href'] ) && 'up' === $link['rel'] && false !== strpos( $link['href'], $link_pattern ) ) {
+					return basename( $link['href'] );
+				}
+			}
+
+			// Fallback: try self link.
+			foreach ( $_resource['links'] as $link ) {
+				if ( isset( $link['rel'], $link['href'] ) && 'self' === $link['rel'] ) {
+					return basename( $link['href'] );
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Find donation by transaction ID
+	 *
+	 * @param string $transaction_id Transaction ID to search for.
+	 * @return int|false Donation ID or false if not found.
+	 */
+	private function find_donation_by_transaction_id( $transaction_id ) {
+		if ( empty( $transaction_id ) ) {
+			return false;
+		}
+
+		$donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key'       => '_transaction_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'     => $transaction_id,
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			)
+		);
+
+		return ! empty( $donations ) ? $donations[0] : false;
+	}
+
+	/**
 	 * Handle completed payment webhook
 	 *
 	 * @param array $_resource Resource data.
 	 */
 	private function handle_payment_completed( $_resource ) {
-		$transaction_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$transaction_id = $this->extract_transaction_id( $_resource, '/captures/' );
+
+		// Also try sale pattern for PAYMENT.SALE.* events.
+		if ( empty( $transaction_id ) ) {
+			$transaction_id = $this->extract_transaction_id( $_resource, '/payments/sale/' );
+		}
 
 		if ( empty( $transaction_id ) ) {
+			$this->log_error( 'completed_webhook_no_transaction', 'Could not extract transaction ID from completed webhook', 0 );
 			return;
 		}
 
-		// Find donation by transaction ID.
-		$donations = get_posts(
-			array(
-				'post_type' => 'donation',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_transaction_id',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value' => $transaction_id,
-				'posts_per_page' => 1,
-			)
-		);
+		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
-		if ( ! empty( $donations ) ) {
-			$donation_id = $donations[0]->ID;
+		if ( $donation_id ) {
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
+
+			// Store webhook event data.
+			update_post_meta( $donation_id, '_webhook_completed_data', wp_json_encode( $_resource ) );
+
 			do_action( 'giftflow_paypal_webhook_payment_completed', $donation_id, $_resource );
 		}
 	}
@@ -1061,30 +1212,33 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param array $_resource Resource data.
 	 */
 	private function handle_payment_denied( $_resource ) {
-		$transaction_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$transaction_id = $this->extract_transaction_id( $_resource, '/captures/' );
+
+		// Also try sale pattern for PAYMENT.SALE.* events.
+		if ( empty( $transaction_id ) ) {
+			$transaction_id = $this->extract_transaction_id( $_resource, '/payments/sale/' );
+		}
 
 		if ( empty( $transaction_id ) ) {
+			$this->log_error( 'denied_webhook_no_transaction', 'Could not extract transaction ID from denied webhook', 0 );
 			return;
 		}
 
-		// Find donation by transaction ID.
-		$donations = get_posts(
-			array(
-				'post_type' => 'donation',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_transaction_id',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value' => $transaction_id,
-				'posts_per_page' => 1,
-			)
-		);
+		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
-		if ( ! empty( $donations ) ) {
-			$donation_id = $donations[0]->ID;
+		if ( $donation_id ) {
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'failed' );
-			update_post_meta( $donation_id, '_payment_error', __( 'Payment was denied', 'giftflow' ) );
+
+			// Store error details.
+			$error_message = __( 'Payment was denied', 'giftflow' );
+			if ( isset( $_resource['status_details']['reason'] ) ) {
+				$error_message .= ': ' . sanitize_text_field( $_resource['status_details']['reason'] );
+			}
+			update_post_meta( $donation_id, '_payment_error', $error_message );
+			update_post_meta( $donation_id, '_webhook_denied_data', wp_json_encode( $_resource ) );
+
 			do_action( 'giftflow_paypal_webhook_payment_denied', $donation_id, $_resource );
 		}
 	}
@@ -1095,29 +1249,53 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param array $_resource Resource data.
 	 */
 	private function handle_payment_refunded( $_resource ) {
-		$transaction_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		// For refund events, we need to extract the original capture/sale ID from links.
+		// The refund resource ID is the refund ID, not the original transaction.
+		$transaction_id = '';
+
+		// Extract transaction ID (capture ID) from links with rel="up".
+		if ( isset( $_resource['links'] ) && is_array( $_resource['links'] ) ) {
+			foreach ( $_resource['links'] as $link ) {
+				if ( isset( $link['rel'], $link['href'] ) && 'up' === $link['rel'] ) {
+					// Check for capture link.
+					if ( false !== strpos( $link['href'], '/captures/' ) ) {
+						$transaction_id = basename( $link['href'] );
+						break;
+					}
+					// Check for sale link.
+					if ( false !== strpos( $link['href'], '/payments/sale/' ) ) {
+						$transaction_id = basename( $link['href'] );
+						break;
+					}
+				}
+			}
+		}
 
 		if ( empty( $transaction_id ) ) {
+			$this->log_error( 'refund_webhook_no_transaction', 'Could not extract transaction ID from refund webhook', 0 );
 			return;
 		}
 
-		// Find donation by transaction ID.
-		$donations = get_posts(
-			array(
-				'post_type' => 'donation',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_key' => '_transaction_id',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_value' => $transaction_id,
-				'posts_per_page' => 1,
-			)
-		);
+		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
-		if ( ! empty( $donations ) ) {
-			$donation_id = $donations[0]->ID;
+		if ( $donation_id ) {
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'refunded' );
+
+			// Store refund details.
+			$refund_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+			if ( ! empty( $refund_id ) ) {
+				update_post_meta( $donation_id, '_refund_id', $refund_id );
+			}
+
+			// Store refund amount if available.
+			if ( isset( $_resource['amount']['value'] ) ) {
+				update_post_meta( $donation_id, '_refund_amount', sanitize_text_field( $_resource['amount']['value'] ) );
+			}
+
+			update_post_meta( $donation_id, '_refund_raw_data', wp_json_encode( $_resource ) );
+
 			do_action( 'giftflow_paypal_webhook_payment_refunded', $donation_id, $_resource );
 		}
 	}

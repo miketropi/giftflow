@@ -117,9 +117,14 @@ class Donor_Contact_Meta extends Base_Meta_Box {
 				)
 			);
 
-			// Render the field.
+			/**
+			 * Filter the donor contact meta field render output.
+			 *
+			 * @param string         $render The rendered field HTML.
+			 * @param GiftFlow_Field $field_instance The field instance.
+			 */
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $field_instance->render();
+			echo apply_filters( 'giftflow_donor_contact_meta_field_render', $field_instance->render(), $field_instance );
 		}
 	}
 

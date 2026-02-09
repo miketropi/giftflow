@@ -795,145 +795,6 @@ class GiftFlow_Field {
 					<button type="button" class="button giftflow-gallery-remove-all"><?php echo esc_html( $this->gallery_settings['remove_text'] ); ?></button>
 				<?php endif; ?>
 			</div><!-- End gallery controls -->
-			
-			<!-- JavaScript for gallery functionality -->
-			<!-- <script type="text/javascript">
-				jQuery(document).ready(function($) {
-					var galleryFrame;
-					var $gallery = $("#<?php echo esc_js( $gallery_id ); ?>");
-					var $input = $gallery.find("input[type=hidden]");
-					var $preview = $gallery.find(".giftflow-gallery-preview");
-					var $addButton = $gallery.find(".giftflow-gallery-add");
-					var $removeAllButton = $gallery.find(".giftflow-gallery-remove-all");
-					var maxImages = <?php echo intval( $this->gallery_settings['max_images'] ); ?>;
-					
-					// Open media frame
-					$addButton.on("click", function(e) {
-						e.preventDefault();
-						
-						// If the media frame already exists, reopen it
-						if (galleryFrame) {
-							galleryFrame.open();
-							return;
-						}
-						
-						// Create the media frame
-						galleryFrame = wp.media({
-							title: "<?php esc_attr_e( 'Select Images', 'giftflow' ); ?>",
-							button: {
-								text: "<?php esc_attr_e( 'Add to Gallery', 'giftflow' ); ?>"
-							},
-							multiple: true
-						});
-						
-						// When an image is selected in the media frame
-						galleryFrame.on("select", function() {
-							var selection = galleryFrame.state().get("selection");
-							var currentIds = $input.val() ? $input.val().split(",") : [];
-							
-							selection.map(function(attachment) {
-								attachment = attachment.toJSON();
-								
-								// Check if max images limit is reached
-								if (maxImages > 0 && currentIds.length >= maxImages) {
-									return;
-								}
-								
-								// Add image ID to the array if not already present
-								if (currentIds.indexOf(attachment.id.toString()) === -1) {
-									currentIds.push(attachment.id);
-								}
-							});
-							
-							// Update hidden input
-							$input.val(currentIds.join(","));
-							
-							// Update preview
-							updateGalleryPreview();
-						});
-						
-						// Open the media frame
-						galleryFrame.open();
-					});
-					
-					// Remove single image
-					$gallery.on("click", ".giftflow-gallery-remove", function(e) {
-						e.preventDefault();
-						
-						var $image = $(this).parent();
-						var imageId = $image.data("id");
-						var currentIds = $input.val() ? $input.val().split(",") : [];
-						
-						// Remove image ID from array
-						currentIds = currentIds.filter(function(id) {
-							return id != imageId;
-						});
-						
-						// Update hidden input
-						$input.val(currentIds.join(","));
-						
-						// Remove image from preview
-						$image.remove();
-						
-						// Show/hide remove all button
-						if (currentIds.length === 0) {
-							$removeAllButton.hide();
-						}
-					});
-					
-					// Remove all images
-					$removeAllButton.on("click", function(e) {
-						e.preventDefault();
-						
-						// Clear hidden input
-						$input.val("");
-						
-						// Clear preview
-						$preview.empty();
-						
-						// Hide remove all button
-						$(this).hide();
-					});
-					
-					// Update gallery preview
-					function updateGalleryPreview() {
-						var currentIds = $input.val() ? $input.val().split(",") : [];
-						
-						// Clear preview
-						$preview.empty();
-						
-						// Add images to preview
-						if (currentIds.length > 0) {
-							$.ajax({
-								url: ajaxurl,
-								type: "POST",
-								data: {
-									action: "giftflow_get_gallery_images",
-									ids: currentIds,
-									size: "<?php echo esc_js( $this->gallery_settings['image_size'] ); ?>",
-									nonce: "<?php echo esc_js( wp_create_nonce( 'giftflow_gallery_nonce' ) ); ?>"
-								},
-								success: function(response) {
-									if (response.success && response.data) {
-										$.each(response.data, function(id, image) {
-											var $image = $("<div class='giftflow-gallery-image' data-id='" + id + "'>");
-											$image.append("<img src='" + image.url + "' alt='" + image.alt + "' />");
-											$image.append("<span class='giftflow-gallery-remove' title='<?php esc_attr_e( 'Remove Image', 'giftflow' ); ?>'>&times;</span>");
-											$preview.append($image);
-										});
-										
-										// Show remove all button
-										$removeAllButton.show();
-									}
-								}
-							});
-						} else {
-							// Hide remove all button
-							$removeAllButton.hide();
-						}
-					}
-				});
-			</script> -->
 		</div><!-- End gallery field -->
 		<?php
 
@@ -1032,7 +893,22 @@ class GiftFlow_Field {
 		// Generate a unique ID for the repeater.
 		$repeater_id = 'giftflow-repeater-' . $this->id;
 		?>
-		<div class="giftflow-repeater-field" id="<?php echo esc_attr( $repeater_id ); ?>">
+		<div 
+			class="giftflow-repeater-field"
+			id="<?php echo esc_attr( $repeater_id ); ?>"
+			data-id="<?php echo esc_attr( $repeater_id ); ?>"
+			data-row-label="<?php echo esc_attr( $row_label ); ?>"
+			data-max-rows="<?php echo esc_attr( $max_rows ); ?>"
+			data-min-rows="<?php echo esc_attr( $min_rows ); ?>"
+			data-button-text="<?php echo esc_attr( $button_text ); ?>"
+			data-remove-text="<?php echo esc_attr( $remove_text ); ?>">
+			<div class="giftflow-repeater-row-template" style="display: none;">
+				<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $this->get_repeater_row_template( $fields );
+				?>
+			</div>
+
 			<!-- Hidden input to store all values -->
 			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( wp_json_encode( $values ) ); ?>" />
 			
@@ -1065,8 +941,15 @@ class GiftFlow_Field {
 									)
 								);
 
+								/**
+								 * Filter the repeater field output.
+								 *
+								 * @param string         $output The rendered field HTML.
+								 * @param GiftFlow_Field $field  The field instance.
+								 * @param array          $field_args Field arguments array.
+								 */
 								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo $field->render();
+								echo apply_filters( 'giftflow_repeater_field_output', $field->render(), $field, $field_args );
 							endforeach;
 							?>
 						</div>
@@ -1079,87 +962,7 @@ class GiftFlow_Field {
 				<?php echo esc_html( $button_text ); ?>
 			</button>
 			
-			<!-- JavaScript for repeater functionality -->
-			<script type="text/javascript">
-				jQuery(document).ready(function($) {
-					var $repeater = $("#<?php echo esc_js( $repeater_id ); ?>");
-					var $rows = $repeater.find(".giftflow-repeater-rows");
-					var $addButton = $repeater.find(".giftflow-repeater-add-row");
-					var $hiddenInput = $repeater.find("input[type=hidden]");
-					var maxRows = <?php echo intval( $max_rows ); ?>;
-					var rowTemplate = <?php echo wp_json_encode( $this->get_repeater_row_template( $fields ) ); ?>;
-					
-					// Add new row
-					$addButton.on("click", function() {
-						if (maxRows > 0 && $rows.children().length >= maxRows) {
-							return;
-						}
-						
-						var newIndex = $rows.children().length;
-						var newRow = $(rowTemplate.replace(/__INDEX__/g, newIndex));
-						$rows.append(newRow);
-						
-						// Update hidden input
-						updateHiddenInput();
-						
-						// Disable add button if max rows reached
-						if (maxRows > 0 && $rows.children().length >= maxRows) {
-							$addButton.prop("disabled", true);
-						}
-					});
-					
-					// Remove row
-					$repeater.on("click", ".giftflow-repeater-remove-row", function(e) {
-						e.preventDefault();
-						var $row = $(this).closest(".giftflow-repeater-row");
-						$row.remove();
-						
-						// Update row indices
-						$rows.find(".giftflow-repeater-row").each(function(index) {
-							$(this).attr("data-index", index);
-							$(this).find(".giftflow-repeater-row-title").text("<?php echo esc_js( $row_label ); ?> " + (index + 1));
-							$(this).find("input, select, textarea").each(function() {
-								var name = $(this).attr("name");
-								name = name.replace(/\[\d+\]/, "[" + index + "]");
-								$(this).attr("name", name);
-							});
-						});
-						
-						// Update hidden input
-						updateHiddenInput();
-						
-						// Enable add button
-						$addButton.prop("disabled", false);
-					});
-					
-					// Update values when fields change
-					$repeater.on("change", "input, select, textarea", function() {
-						updateHiddenInput();
-					});
-					
-					// Function to update hidden input with all values
-					function updateHiddenInput() {
-						var values = [];
-						$rows.find(".giftflow-repeater-row").each(function() {
-							var rowValues = {};
-							$(this).find("input, select, textarea").each(function() {
-								var name = $(this).attr("name");
-								var matches = name.match(/\[(\d+)\]\[([^\]]+)\]/);
-								if (matches) {
-									var fieldId = matches[2];
-									if ($(this).attr("type") === "checkbox" || $(this).attr("type") === "switch") {
-										rowValues[fieldId] = $(this).is(":checked");
-									} else {
-										rowValues[fieldId] = $(this).val();
-									}
-								}
-							});
-							values.push(rowValues);
-						});
-						$hiddenInput.val(JSON.stringify(values));
-					}
-				});
-			</script>
+			
 		</div>
 		<?php
 
@@ -1179,8 +982,7 @@ class GiftFlow_Field {
 		<div class="giftflow-repeater-row" data-index="__INDEX__">
 			<div class="giftflow-repeater-row-header">
 				<span class="giftflow-repeater-row-title">
-					<?php echo esc_html( $this->repeater_settings['row_label'] ); ?> 
-					<!-- __INDEX_PLUS_1__ -->
+					<?php echo esc_html( $this->repeater_settings['row_label'] ); ?>
 				</span>
 				<button type="button" class="button giftflow-repeater-remove-row"><?php echo esc_html( $this->repeater_settings['remove_text'] ); ?></button>
 			</div>
@@ -1204,8 +1006,15 @@ class GiftFlow_Field {
 						)
 					);
 
+					/**
+					 * Filter the repeater field render output.
+					 *
+					 * @param string         $output The rendered field HTML.
+					 * @param GiftFlow_Field $field  The field instance.
+					 * @param array          $field_args Field arguments array.
+					 */
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $field->render();
+					echo apply_filters( 'giftflow_repeater_row_template', $field->render(), $field, $field_args );
 				endforeach;
 				?>
 			</div>
@@ -1275,8 +1084,15 @@ class GiftFlow_Field {
 								)
 							);
 
+							/**
+							 * Filter the accordion field output.
+							 *
+							 * @param string         $output The rendered field HTML.
+							 * @param GiftFlow_Field $field  The field instance.
+							 * @param array          $field_args Field arguments array.
+							 */
 							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							echo $field->render();
+							echo apply_filters( 'giftflow_accordion_field_output', $field->render(), $field, $field_args );
 						endforeach;
 						?>
 					</div>

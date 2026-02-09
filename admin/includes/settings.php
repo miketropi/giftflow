@@ -297,8 +297,14 @@ function giftflow_initialize_settings() {
 				$field['id'],
 				$field['label'],
 				function () use ( $field_instance ) {
+					/**
+					 * Filter the field render output.
+					 *
+					 * @param string         $render The rendered field HTML.
+					 * @param GiftFlow_Field $field_instance The field instance.
+					 */
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $field_instance->render();
+					echo apply_filters( 'giftflow_settings_field_render', $field_instance->render(), $field_instance );
 				},
 				$section['page'],
 				$section['section']

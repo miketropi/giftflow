@@ -274,24 +274,29 @@ import { AsyncEventHub } from './util/async-event-hub';
 		setInitFields(donationForm) {
 			const self = this;
 			const fields = donationForm.querySelectorAll('input[name]');
+
+			if (!fields || fields.length === 0) {
+				return;
+			}
+
 			fields.forEach((field) => {
 
-				let value = field.value;
+				let value = field?.value ?? '';
 
 				// validate event.target is checkbox field.
 				if (field.type === 'checkbox') {
-					value = field.checked;
+					value = field?.checked ?? false;
 				}
 
 				// validate event.target is radio field.
-				if (field.type === 'radio') {
+				if (field?.type === 'radio') {
 					// get field name.
-					const fieldName = field.name;
+					const fieldName = field?.name ?? '';
 					// const fieldValue = field.value;
-					value = self.form.querySelector(`input[name="${fieldName}"]:checked`).value;
+					value = self.form.querySelector(`input[name="${fieldName}"]:checked`)?.value ?? '';
 				}
 
-				this.fields[field.name] = value;
+				this.fields[field?.name ?? ''] = value;
 			});
 		}
 

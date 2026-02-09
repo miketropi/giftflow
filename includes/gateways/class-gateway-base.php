@@ -149,7 +149,6 @@ abstract class Gateway_Base extends Base {
 		$enabled_field_name    = $this->id . '_enabled';
 		$enabled             = isset( $this->settings[ $enabled_field_name ] ) ? '1' === $this->settings[ $enabled_field_name ] : false;
 		$this->enabled       = $enabled;
-		$this->template_html = $this->template_html();
 	}
 
 	/**
@@ -254,7 +253,8 @@ abstract class Gateway_Base extends Base {
 		// Add inline styles.
 		foreach ( $this->inline_styles as $handle => $inline_style ) {
 			if ( in_array( $inline_style['context'], array( 'frontend', 'both' ), true ) && ! empty( $inline_style['css'] ) ) {
-				wp_add_inline_style( $handle, $inline_style['css'] );
+				$css = wp_strip_all_tags( $inline_style['css'] );
+				wp_add_inline_style( $handle, $css );
 			}
 		}
 
@@ -304,7 +304,8 @@ abstract class Gateway_Base extends Base {
 		// Add inline styles.
 		foreach ( $this->inline_styles as $handle => $inline_style ) {
 			if ( in_array( $inline_style['context'], array( 'admin', 'both' ), true ) && ! empty( $inline_style['css'] ) ) {
-				wp_add_inline_style( $handle, $inline_style['css'] );
+				$css = wp_strip_all_tags( $inline_style['css'] );
+				wp_add_inline_style( $handle, $css );
 			}
 		}
 
