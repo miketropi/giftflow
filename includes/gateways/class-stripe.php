@@ -19,6 +19,7 @@ use Stripe\StripeClient;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Webhook;
 use GiftFlow\Core\Donations;
+use GiftFlow\Core\Logger as Giftflow_Logger;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -734,6 +735,17 @@ class Stripe_Gateway extends Gateway_Base {
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
 
+			Giftflow_Logger::info(
+				'stripe.webhook.payment_intent.succeeded',
+				array(
+					'donation_id'    => $donation_id,
+					'transaction_id' => $transaction_id,
+					'charge_id'     => $charge_id,
+					'gateway'       => 'stripe',
+				),
+				'stripe'
+			);
+
 			do_action( 'giftflow_stripe_webhook_payment_completed', $donation_id, $payment_intent );
 		}
 	}
@@ -752,6 +764,16 @@ class Stripe_Gateway extends Gateway_Base {
 			$error_message = isset( $payment_intent->last_payment_error->message )
 				? $payment_intent->last_payment_error->message
 				: __( 'Payment failed', 'giftflow' );
+
+			Giftflow_Logger::error(
+				'stripe.webhook.payment_intent.failed',
+				array(
+					'donation_id'    => $donation_id,
+					'error_message' => $error_message,
+					'gateway'       => 'stripe',
+				),
+				'stripe'
+			);
 
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
@@ -774,6 +796,15 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
+			Giftflow_Logger::info(
+				'stripe.webhook.payment_intent.canceled',
+				array(
+					'donation_id' => $donation_id,
+					'gateway'     => 'stripe',
+				),
+				'stripe'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'cancelled' );
@@ -794,6 +825,16 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
+			Giftflow_Logger::info(
+				'stripe.webhook.charge.refunded',
+				array(
+					'donation_id' => $donation_id,
+					'charge_id'   => isset( $charge->id ) ? $charge->id : '',
+					'gateway'     => 'stripe',
+				),
+				'stripe'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'refunded' );
@@ -853,19 +894,15 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @param int $donation_id Donation ID.
 	 */
 	private function log_success( $transaction_id, $donation_id ) {
-		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-			return;
-		}
-
-		$log_data = array(
-			'action' => 'stripe_payment_success',
-			'donation_id' => $donation_id,
-			'transaction_id' => $transaction_id,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::info(
+			'stripe.payment.succeeded',
+			array(
+				'donation_id'      => $donation_id,
+				'transaction_id'   => $transaction_id,
+				'gateway'          => 'stripe',
+			),
+			'stripe'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow Stripe Success] ' . wp_json_encode( $log_data ) );
 	}
 
 	/**
@@ -877,17 +914,17 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @param string $code Code of error.
 	 */
 	private function log_error( $type, $message, $donation_id, $code = '' ) {
-		$log_data = array(
-			'action' => 'stripe_payment_error',
-			'type' => $type,
-			'donation_id' => $donation_id,
-			'error_message' => $message,
-			'error_code' => $code,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::error(
+			'stripe.payment.failed',
+			array(
+				'type'          => $type,
+				'donation_id'   => $donation_id,
+				'error_message' => $message,
+				'error_code'    => $code,
+				'gateway'       => 'stripe',
+			),
+			'stripe'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow Stripe Error] ' . wp_json_encode( $log_data ) );
 	}
 }
 

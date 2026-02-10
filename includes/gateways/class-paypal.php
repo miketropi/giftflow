@@ -14,6 +14,7 @@
 namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Donations;
+use GiftFlow\Core\Logger as Giftflow_Logger;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -534,6 +535,15 @@ class PayPal_Gateway extends Gateway_Base {
 
 		try {
 			$order_id = $this->create_paypal_order( $donation_data );
+			Giftflow_Logger::info(
+				'paypal.order.created',
+				array(
+					'order_id' => $order_id,
+					'amount'   => $amount,
+					'gateway'  => 'paypal',
+				),
+				'paypal'
+			);
 			wp_send_json_success(
 				array(
 					'orderID' => $order_id,
@@ -1195,6 +1205,16 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			Giftflow_Logger::info(
+				'paypal.webhook.payment.completed',
+				array(
+					'donation_id'    => $donation_id,
+					'transaction_id' => $transaction_id,
+					'gateway'        => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
@@ -1227,15 +1247,27 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			$error_message = __( 'Payment was denied', 'giftflow' );
+			if ( isset( $_resource['status_details']['reason'] ) ) {
+				$error_message .= ': ' . sanitize_text_field( $_resource['status_details']['reason'] );
+			}
+
+			Giftflow_Logger::error(
+				'paypal.webhook.payment.denied',
+				array(
+					'donation_id'    => $donation_id,
+					'transaction_id' => $transaction_id,
+					'error_message'  => $error_message,
+					'gateway'        => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'failed' );
 
 			// Store error details.
-			$error_message = __( 'Payment was denied', 'giftflow' );
-			if ( isset( $_resource['status_details']['reason'] ) ) {
-				$error_message .= ': ' . sanitize_text_field( $_resource['status_details']['reason'] );
-			}
 			update_post_meta( $donation_id, '_payment_error', $error_message );
 			update_post_meta( $donation_id, '_webhook_denied_data', wp_json_encode( $_resource ) );
 
@@ -1279,6 +1311,16 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			Giftflow_Logger::info(
+				'paypal.webhook.payment.refunded',
+				array(
+					'donation_id' => $donation_id,
+					'refund_id'   => isset( $_resource['id'] ) ? $_resource['id'] : '',
+					'gateway'     => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'refunded' );
@@ -1325,19 +1367,15 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param int    $donation_id Donation ID.
 	 */
 	private function log_success( $transaction_id, $donation_id ) {
-		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-			return;
-		}
-
-		$log_data = array(
-			'action' => 'paypal_payment_success',
-			'donation_id' => $donation_id,
-			'transaction_id' => $transaction_id,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::info(
+			'paypal.payment.succeeded',
+			array(
+				'donation_id'    => $donation_id,
+				'transaction_id' => $transaction_id,
+				'gateway'        => 'paypal',
+			),
+			'paypal'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow PayPal Success] ' . wp_json_encode( $log_data ) );
 	}
 
 	/**
@@ -1349,17 +1387,17 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param string $code Code of error.
 	 */
 	private function log_error( $type, $message, $donation_id, $code = '' ) {
-		$log_data = array(
-			'action' => 'paypal_payment_error',
-			'type' => $type,
-			'donation_id' => $donation_id,
-			'error_message' => $message,
-			'error_code' => $code,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::error(
+			'paypal.payment.failed',
+			array(
+				'type'          => $type,
+				'donation_id'   => $donation_id,
+				'error_message' => $message,
+				'error_code'    => $code,
+				'gateway'       => 'paypal',
+			),
+			'paypal'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow PayPal Error] ' . wp_json_encode( $log_data ) );
 	}
 }
 

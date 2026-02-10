@@ -13,6 +13,7 @@
 namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Donations;
+use GiftFlow\Core\Logger as Giftflow_Logger;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -212,19 +213,15 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 	 * @param string $reference_number Reference number.
 	 */
 	private function log_pending_payment( $donation_id, $reference_number ) {
-		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-			return;
-		}
-
-		$log_data = array(
-			'action'           => 'bank_transfer_pending',
-			'donation_id'      => $donation_id,
-			'reference_number' => $reference_number,
-			'timestamp'        => current_time( 'mysql' ),
+		Giftflow_Logger::info(
+			'direct_bank_transfer.payment.pending',
+			array(
+				'donation_id'      => $donation_id,
+				'reference_number' => $reference_number,
+				'gateway'          => 'direct_bank_transfer',
+			),
+			'direct_bank_transfer'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow Bank Transfer Pending] ' . wp_json_encode( $log_data ) );
 	}
 
 	/**
@@ -235,16 +232,16 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 	 * @param int    $donation_id Donation ID.
 	 */
 	private function log_error( $type, $message, $donation_id ) {
-		$log_data = array(
-			'action'        => 'bank_transfer_error',
-			'type'          => $type,
-			'donation_id'   => $donation_id,
-			'error_message' => $message,
-			'timestamp'     => current_time( 'mysql' ),
+		Giftflow_Logger::error(
+			'direct_bank_transfer.payment.failed',
+			array(
+				'type'          => $type,
+				'donation_id'   => $donation_id,
+				'error_message' => $message,
+				'gateway'       => 'direct_bank_transfer',
+			),
+			'direct_bank_transfer'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow Bank Transfer Error] ' . wp_json_encode( $log_data ) );
 	}
 }
 
