@@ -129,8 +129,8 @@ class Donation_Event_History {
 		$limit      = isset( $args['limit'] ) ? absint( $args['limit'] ) : 0;
 
 		$sql = $wpdb->prepare(
-			'SELECT * FROM %s WHERE donation_id = %d ORDER BY %s %s',
-			$table_name,
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			'SELECT * FROM ' . $table_name . ' WHERE donation_id = %d ORDER BY %s %s',
 			$donation_id,
 			$orderby,
 			$order

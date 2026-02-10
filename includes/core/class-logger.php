@@ -189,8 +189,8 @@ class Logger {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$count = $wpdb->query(
 				$wpdb->prepare(
-					'DELETE FROM %s WHERE level = %s AND created_at < %s',
-					$table_name,
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					'DELETE FROM ' . $table_name . ' WHERE level = %s AND created_at < %s',
 					$level,
 					$cutoff
 				)
