@@ -14,6 +14,7 @@ namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Donations;
 use GiftFlow\Core\Logger as Giftflow_Logger;
+use GiftFlow\Core\Donation_Event_History;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -182,6 +183,16 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 			update_post_meta( $donation_id, '_reference_number', $reference_number );
 
 			// Log the pending payment.
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_pending',
+				'pending',
+				'',
+				array(
+					'reference_number' => $reference_number,
+					'gateway' => 'direct_bank_transfer',
+				)
+			);
 			$this->log_pending_payment( $donation_id, $reference_number );
 
 			// Fire action for pending payment.
@@ -190,6 +201,7 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 			return true;
 
 		} catch ( \Exception $e ) {
+			Donation_Event_History::add( $donation_id, 'payment_failed', 'failed', $e->getMessage(), array( 'gateway' => 'direct_bank_transfer' ) );
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id );
 			return new \WP_Error( 'bank_transfer_error', $e->getMessage() );
 		}

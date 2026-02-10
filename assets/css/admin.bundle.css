@@ -2714,8 +2714,99 @@
 }
 
 /**
- * Campaign Meta Box Styles
+ * Meta Box Styles
  */
+.giftflow-event-history-empty {
+  margin: 0;
+  color: #646970;
+  font-size: 13px;
+}
+
+.giftflow-event-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.giftflow-event-history-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.giftflow-event-history-item:last-child {
+  border-bottom: none;
+}
+
+.giftflow-event-history-item__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-bottom: 4px;
+}
+
+.giftflow-event-label {
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.giftflow-event-status {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: #f0f0f1;
+  color: #50575e;
+}
+.giftflow-event-status--completed {
+  background: #d4edda;
+  color: #155724;
+}
+.giftflow-event-status--pending {
+  background: #fff3cd;
+  color: #856404;
+}
+.giftflow-event-status--processing {
+  background: #cce5ff;
+  color: #004085;
+}
+.giftflow-event-status--failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+.giftflow-event-status--cancelled {
+  background: #e2e3e5;
+  color: #383d41;
+}
+.giftflow-event-status--refunded {
+  background: #e7e7e7;
+  color: #50575e;
+}
+
+.giftflow-event-gateway {
+  font-size: 12px;
+  color: #646970;
+  margin-bottom: 2px;
+}
+
+.giftflow-event-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #50575e;
+  line-height: 1.4;
+}
+
+.giftflow-event-date {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #787c82;
+}
+
 .campaign-advanced-toggle {
   display: flex;
   justify-content: center;
@@ -2729,6 +2820,7 @@
   height: 1px;
   background-color: #ddd;
 }
+
 .giftflow-dashboard-help {
   margin: 20px 0;
 }

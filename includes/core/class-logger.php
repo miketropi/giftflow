@@ -186,12 +186,11 @@ class Logger {
 		foreach ( self::RETENTION_DAYS as $level => $days ) {
 			$cutoff = wp_date( 'Y-m-d H:i:s', $now_ts - ( $days * DAY_IN_SECONDS ) );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$count = $wpdb->query(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$wpdb->prepare(
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					"DELETE FROM {$table_name} WHERE level = %s AND created_at < %s",
+					'DELETE FROM %s WHERE level = %s AND created_at < %s',
+					$table_name,
 					$level,
 					$cutoff
 				)

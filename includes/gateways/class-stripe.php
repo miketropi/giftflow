@@ -20,6 +20,7 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Webhook;
 use GiftFlow\Core\Donations;
 use GiftFlow\Core\Logger as Giftflow_Logger;
+use GiftFlow\Core\Donation_Event_History;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -471,6 +472,17 @@ class Stripe_Gateway extends Gateway_Base {
 		$donations_class = new Donations();
 		$donations_class->update_status( $donation_id, 'completed' );
 
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_succeeded',
+			'completed',
+			'',
+			array(
+				'transaction_id' => $transaction_id,
+				'charge_id' => $charge_id,
+				'gateway' => 'stripe',
+			)
+		);
 		$this->log_success( $transaction_id, $donation_id );
 
 		do_action( 'giftflow_stripe_payment_completed', $donation_id, $transaction_id, $payment_intent->toArray() );
@@ -494,6 +506,16 @@ class Stripe_Gateway extends Gateway_Base {
 	private function handle_action_required_intent( $payment_intent, $donation_id ) {
 		// Store payment intent for later verification.
 		update_post_meta( $donation_id, '_payment_status', 'processing' );
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_requires_action',
+			'processing',
+			__( 'Additional authentication required', 'giftflow' ),
+			array(
+				'payment_intent_id' => $payment_intent->id,
+				'gateway' => 'stripe',
+			)
+		);
 
 		return array(
 			'success' => false,
@@ -514,6 +536,16 @@ class Stripe_Gateway extends Gateway_Base {
 	 */
 	private function handle_processing_intent( $payment_intent, $donation_id ) {
 		update_post_meta( $donation_id, '_payment_status', 'processing' );
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_processing',
+			'processing',
+			'',
+			array(
+				'payment_intent_id' => $payment_intent->id,
+				'gateway' => 'stripe',
+			)
+		);
 
 		return array(
 			'success' => false,
@@ -548,6 +580,16 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		$this->log_error( 'payment_failed', $error_message, $donation_id, $error_code );
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_failed',
+			'failed',
+			$error_message,
+			array(
+				'error_code' => $error_code,
+				'gateway' => 'stripe',
+			)
+		);
 
 		update_post_meta( $donation_id, '_payment_status', 'failed' );
 		update_post_meta( $donation_id, '_payment_error', $error_message );
@@ -735,6 +777,18 @@ class Stripe_Gateway extends Gateway_Base {
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
 
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_succeeded',
+				'completed',
+				__( 'Webhook: payment_intent.succeeded', 'giftflow' ),
+				array(
+					'transaction_id' => $transaction_id,
+					'charge_id' => $charge_id,
+					'gateway' => 'stripe',
+					'source' => 'webhook',
+				)
+			);
 			Giftflow_Logger::info(
 				'stripe.webhook.payment_intent.succeeded',
 				array(
@@ -765,6 +819,16 @@ class Stripe_Gateway extends Gateway_Base {
 				? $payment_intent->last_payment_error->message
 				: __( 'Payment failed', 'giftflow' );
 
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_failed',
+				'failed',
+				$error_message,
+				array(
+					'gateway' => 'stripe',
+					'source' => 'webhook',
+				)
+			);
 			Giftflow_Logger::error(
 				'stripe.webhook.payment_intent.failed',
 				array(
@@ -796,6 +860,16 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_canceled',
+				'cancelled',
+				__( 'Webhook: payment_intent.canceled', 'giftflow' ),
+				array(
+					'gateway' => 'stripe',
+					'source' => 'webhook',
+				)
+			);
 			Giftflow_Logger::info(
 				'stripe.webhook.payment_intent.canceled',
 				array(
@@ -825,11 +899,23 @@ class Stripe_Gateway extends Gateway_Base {
 			: 0;
 
 		if ( $donation_id ) {
+			$charge_id = isset( $charge->id ) ? $charge->id : '';
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_refunded',
+				'refunded',
+				__( 'Webhook: charge.refunded', 'giftflow' ),
+				array(
+					'charge_id' => $charge_id,
+					'gateway' => 'stripe',
+					'source' => 'webhook',
+				)
+			);
 			Giftflow_Logger::info(
 				'stripe.webhook.charge.refunded',
 				array(
 					'donation_id' => $donation_id,
-					'charge_id'   => isset( $charge->id ) ? $charge->id : '',
+					'charge_id'   => $charge_id,
 					'gateway'     => 'stripe',
 				),
 				'stripe'

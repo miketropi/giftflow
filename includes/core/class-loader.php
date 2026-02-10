@@ -130,6 +130,7 @@ class Loader extends Base {
 		new \GiftFlow\Admin\MetaBoxes\Donation_Transaction_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Donor_Contact_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Campaign_Details_Meta();
+		\GiftFlow\Core\Donation_Event_History::register_meta_box();
 
 		// Initialize frontend components.
 		new \GiftFlow\Frontend\Shortcodes();
@@ -144,6 +145,7 @@ class Loader extends Base {
 	public function activate() {
 		$this->create_pages_init();
 		\GiftFlow\Core\Logger::create_table();
+		\GiftFlow\Core\Donation_Event_History::create_table();
 		$this->schedule_logs_cleanup();
 
 		// reset permalinks.
