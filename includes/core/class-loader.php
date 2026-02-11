@@ -103,6 +103,7 @@ class Loader extends Base {
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'enqueue_block_assets', array( $this, 'enqueue_blocks' ) );
 		add_filter( 'block_categories_all', array( $this, 'register_block_category' ) );
+		add_action( 'giftflow_cleanup_logs', array( $this, 'run_logs_cleanup' ) );
 	}
 
 	/**
@@ -129,6 +130,7 @@ class Loader extends Base {
 		new \GiftFlow\Admin\MetaBoxes\Donation_Transaction_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Donor_Contact_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Campaign_Details_Meta();
+		\GiftFlow\Core\Donation_Event_History::register_meta_box();
 
 		// Initialize frontend components.
 		new \GiftFlow\Frontend\Shortcodes();
@@ -142,6 +144,9 @@ class Loader extends Base {
 	 */
 	public function activate() {
 		$this->create_pages_init();
+		\GiftFlow\Core\Logger::create_table();
+		\GiftFlow\Core\Donation_Event_History::create_table();
+		$this->schedule_logs_cleanup();
 
 		// reset permalinks.
 		flush_rewrite_rules();
@@ -195,9 +200,36 @@ class Loader extends Base {
 	 * Deactivate the plugin
 	 */
 	public function deactivate() {
+		$this->unschedule_logs_cleanup();
 		// Clean up roles and capabilities.
 		$role_manager = \GiftFlow\Core\Role::get_instance();
 		$role_manager->remove_roles();
 		$role_manager->remove_capabilities();
+	}
+
+	/**
+	 * Schedule daily logs cleanup cron.
+	 */
+	private function schedule_logs_cleanup() {
+		if ( ! wp_next_scheduled( 'giftflow_cleanup_logs' ) ) {
+			wp_schedule_event( time(), 'daily', 'giftflow_cleanup_logs' );
+		}
+	}
+
+	/**
+	 * Unschedule logs cleanup cron.
+	 */
+	private function unschedule_logs_cleanup() {
+		$timestamp = wp_next_scheduled( 'giftflow_cleanup_logs' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'giftflow_cleanup_logs' );
+		}
+	}
+
+	/**
+	 * Run logs cleanup (called by cron). Deletes old entries by retention rules.
+	 */
+	public function run_logs_cleanup() {
+		\GiftFlow\Core\Logger::cleanup();
 	}
 }

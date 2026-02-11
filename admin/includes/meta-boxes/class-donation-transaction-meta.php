@@ -8,6 +8,8 @@
 
 namespace GiftFlow\Admin\MetaBoxes;
 
+use GiftFlow\Core\Donation_Event_History;
+
 /**
  * Donation Transaction Meta Box Class
  */
@@ -177,7 +179,25 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ $field_id ] ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				update_post_meta( $post_id, '_' . $field_id, sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) ) );
+				$new_value = sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) );
+				if ( 'status' === $field_id ) {
+					$old_status = get_post_meta( $post_id, '_status', true );
+					if ( $old_status !== $new_value ) {
+						update_post_meta( $post_id, '_' . $field_id, $new_value );
+						Donation_Event_History::add(
+							$post_id,
+							'admin_status_updated',
+							$new_value,
+							__( 'Status changed by admin', 'giftflow' ),
+							array(
+								'previous_status' => $old_status,
+								'source'          => 'admin',
+							)
+						);
+						continue;
+					}
+				}
+				update_post_meta( $post_id, '_' . $field_id, $new_value );
 			}
 		}
 	}
