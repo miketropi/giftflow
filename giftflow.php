@@ -28,15 +28,15 @@ define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include Composer autoloader.
-if ( file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
-	require_once GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php';
+if ( file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php' ) ) {
+	require_once GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php';
 } else {
 	add_action(
 		'admin_notices',
 		function () {
 			?>
 		<div class="notice notice-error">
-			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install" in the plugin directory.', 'giftflow' ); ?></p>
+			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install && composer run build" in the plugin directory.', 'giftflow' ); ?></p>
 		</div>
 			<?php
 		}

@@ -13,11 +13,11 @@
 
 namespace GiftFlow\Gateways;
 
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
-use Stripe\StripeClient;
-use Stripe\Exception\ApiErrorException;
-use Stripe\Webhook;
+use GiftFlow\Vendor\Stripe\Stripe;
+use GiftFlow\Vendor\Stripe\PaymentIntent;
+use GiftFlow\Vendor\Stripe\StripeClient;
+use GiftFlow\Vendor\Stripe\Exception\ApiErrorException;
+use GiftFlow\Vendor\Stripe\Webhook;
 use GiftFlow\Core\Donations;
 use GiftFlow\Core\Logger as Giftflow_Logger;
 use GiftFlow\Core\Donation_Event_History;

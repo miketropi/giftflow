@@ -40,6 +40,7 @@
 
   <!-- Exclude vendor dependencies -->
   <exclude-pattern>vendor/*</exclude-pattern>
+  <exclude-pattern>vendor-prefixed/*</exclude-pattern>
 
   <!-- Exclude node modules -->
   <exclude-pattern>node_modules/*</exclude-pattern>

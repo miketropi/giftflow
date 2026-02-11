@@ -21,6 +21,7 @@ const excludeList = [
   ".husky",
   "package-lock.json",
   "phpcs.xml.dist",
+  "vendor",
   // "package.json",
   // "postcss.config.js",
   // "tailwind.config.js",

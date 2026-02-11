@@ -12,10 +12,30 @@
 		"squizlabs/php_codesniffer": "^3.13",
 		"wp-coding-standards/wpcs": "^3.0",
 		"phpcsstandards/phpcsutils": "^1.2",
-		"phpcsstandards/phpcsextra": "^1.5"
+		"phpcsstandards/phpcsextra": "^1.5",
+		"brianhenryie/strauss": "^0.26.5"
 	},
+	"extra": {
+    "strauss": {
+      "namespace_prefix": "GiftFlow\\Vendor\\",
+      "classmap_prefix": "GiftFlow_Vendor_",
+      "targets": [
+        "stripe/stripe-php"
+      ]
+    }
+  },
 	"scripts": {
 		"lint": "phpcs",
-		"lint:fix": "phpcbf"
+		"lint:fix": "phpcbf",
+		"dev": [
+      "@composer install",
+      "vendor/bin/strauss",
+			"find vendor-prefixed -name \".git\" -type d -exec rm -rf {} +"
+    ],
+    "build": [
+      "@composer install --no-dev",
+      "vendor/bin/strauss",
+			"find vendor-prefixed -name \".git\" -type d -exec rm -rf {} +"
+    ]
 	}
 }

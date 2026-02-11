@@ -1,5 +1,0 @@
-shell=bash
-color=always
-
-external-sources=false
-source-path=/tests/EndToEnd
