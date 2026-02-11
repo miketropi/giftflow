@@ -3,7 +3,10 @@
 		"allow-plugins": {
 			"php-http/discovery": true,
 			"dealerdirect/phpcodesniffer-composer-installer": true
-		}
+		},
+		"platform": {
+    	"php": "8.2.0"
+  	}
 	},
 	"require": {
 		"stripe/stripe-php": "^19.3"
