@@ -136,7 +136,7 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 	public function template_html() {
 
 		giftflow_load_template(
-			'payment-gateway/direct-bank-transfer.php',
+			'payment-gateway/direct-bank-transfer-template.php',
 			array(
 				'id' => $this->id,
 				'title' => $this->title,

@@ -293,7 +293,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 				// if value is an array, then we need to save each value as a separate post meta.
 				if ( is_array( $value ) ) {
 					// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
-					$value = serialize( $value );
+					$value = serialize( giftflow_sanitize_array( $value ) );
 				} else {
 					// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					$value = sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) );

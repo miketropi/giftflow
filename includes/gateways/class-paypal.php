@@ -310,7 +310,7 @@ class PayPal_Gateway extends Gateway_Base {
 	public function template_html() {
 
 		giftflow_load_template(
-			'payment-gateway/paypal.php',
+			'payment-gateway/paypal-template.php',
 			array(
 				'id' => $this->id,
 				'title' => $this->title,
@@ -1018,8 +1018,10 @@ class PayPal_Gateway extends Gateway_Base {
 				exit;
 			}
 		} else {
-			// Log warning if webhook ID is not configured.
+			// Log warning & exit if webhook ID is not configured.
 			$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped', 0 );
+			status_header( 400 );
+			exit;
 		}
 
 		try {

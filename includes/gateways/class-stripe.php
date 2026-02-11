@@ -316,7 +316,7 @@ class Stripe_Gateway extends Gateway_Base {
 	public function template_html() {
 
 			giftflow_load_template(
-				'payment-gateway/stripe.php',
+				'payment-gateway/stripe-template.php',
 				array(
 					'id' => $this->id,
 					'title' => $this->title,
@@ -330,10 +330,6 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Additional hooks for Stripe gateway
 	 */
 	protected function init_additional_hooks() {
-			// AJAX handlers.
-			add_action( 'wp_ajax_giftflow_process_stripe_payment', array( $this, 'ajax_process_payment' ) );
-			add_action( 'wp_ajax_nopriv_giftflow_process_stripe_payment', array( $this, 'ajax_process_payment' ) );
-
 			// Webhook handler.
 			add_action( 'wp_ajax_giftflow_stripe_webhook', array( $this, 'handle_webhook' ) );
 			add_action( 'wp_ajax_nopriv_giftflow_stripe_webhook', array( $this, 'handle_webhook' ) );
@@ -602,28 +598,6 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * AJAX handler for processing payments
-	 */
-	public function ajax_process_payment() {
-			check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
-
-			$data = $_POST;
-			$donation_id = intval( $data['donation_id'] );
-
-			$result = $this->process_payment( $data, $donation_id );
-
-		if ( is_wp_error( $result ) ) {
-				wp_send_json_error(
-					array(
-						'message' => $result->get_error_message(),
-					)
-				);
-		} else {
-				wp_send_json_success( $result );
-		}
-	}
-
-	/**
 	 * Handle webhook notifications
 	 */
 	public function handle_webhook() {
@@ -649,13 +623,11 @@ class Stripe_Gateway extends Gateway_Base {
 					$this->webhook_secret
 				);
 			} else {
-				// Fallback: parse without verification (not recommended for production).
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-				$event = json_decode( $payload, false );
-				if ( ! $event || ! isset( $event->type ) ) {
-					status_header( 400 );
-					exit;
-				}
+
+				// If the webhook secret is not configured, we need to log an error and exit.
+				$this->log_error( 'webhook_error', 'Stripe webhook: webhook secret is not configured.', 0 );
+				status_header( 400 );
+				exit;
 			}
 
 			// Handle different event types.

@@ -1100,3 +1100,33 @@ function giftflow_prepare_campaign_status_bar_data( $post_id ) {
 	 */
 	return apply_filters( 'giftflow_campaign_status_bar_data', $template_data, $post_id );
 }
+
+/**
+ * Sanitize array data recursively
+ *
+ * @param array $data Data to sanitize.
+ * @return array Sanitized data.
+ */
+function giftflow_sanitize_array( array $data ) {
+	$sanitized = array();
+
+	foreach ( $data as $key => $value ) {
+		// Sanitize key.
+		$clean_key = sanitize_key( $key );
+
+		if ( is_array( $value ) ) {
+			$sanitized[ $clean_key ] = giftflow_sanitize_array( $value );
+		} elseif ( is_bool( $value ) ) {
+			$sanitized[ $clean_key ] = (bool) $value;
+		} elseif ( is_int( $value ) ) {
+			$sanitized[ $clean_key ] = absint( $value );
+		} elseif ( is_float( $value ) ) {
+			$sanitized[ $clean_key ] = (float) $value;
+		} else {
+			// Default: text field.
+			$sanitized[ $clean_key ] = sanitize_text_field( $value );
+		}
+	}
+
+	return $sanitized;
+}
