@@ -79,6 +79,9 @@ class Forms extends Base {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$fields = json_decode( file_get_contents( 'php://input' ), true );
 
+		// sanitize data if it is an array, else sanitize the data.
+		$fields = is_array( $fields ) ? giftflow_sanitize_array( $fields ) : sanitize_text_field( $fields );
+
 		// convert amout to float.
 		$fields['donation_amount'] = floatval( wp_unslash( $fields['donation_amount'] ) );
 

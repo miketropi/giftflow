@@ -515,6 +515,9 @@ class PayPal_Gateway extends Gateway_Base {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$data = $_POST;
 
+		// sanitize data if it is an array, else sanitize the data.
+		$data = is_array( $data ) ? giftflow_sanitize_array( $data ) : sanitize_text_field( $data );
+
 		/**
 		 * Hooks do_action before process donation.
 		 *
