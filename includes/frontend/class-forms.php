@@ -77,10 +77,28 @@ class Forms extends Base {
 		// This design enables granular, field-specific validation and sanitization at the point where each value is used.
 		// If you have questions about handling unsanitized inputs before later validation/sanitization, or require changes for security compliance, please let us know.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$fields = json_decode( file_get_contents( 'php://input' ), true );
+		$raw_body = file_get_contents( 'php://input' );
+
+		if ( empty( $raw_body ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Invalid donation data', 'giftflow' ),
+				)
+			);
+		}
+
+		$payload = json_decode( $raw_body, true );
+
+		if ( ! is_array( $payload ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Invalid donation data', 'giftflow' ),
+				)
+			);
+		}
 
 		// sanitize data if it is an array, else sanitize the data.
-		$fields = is_array( $fields ) ? giftflow_sanitize_array( $fields ) : sanitize_text_field( $fields );
+		$fields = giftflow_sanitize_array( $payload );
 
 		// convert amout to float.
 		$fields['donation_amount'] = floatval( wp_unslash( $fields['donation_amount'] ) );
