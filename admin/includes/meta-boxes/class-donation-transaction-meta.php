@@ -145,14 +145,8 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 				)
 			);
 
-			/**
-			 * Filter the donation transaction meta field render output.
-			 *
-			 * @param string         $render The rendered field HTML.
-			 * @param GiftFlow_Field $field_instance The field instance.
-			 */
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo apply_filters( 'giftflow_donation_transaction_meta_field_render', $field_instance->render(), $field_instance );
+			// render field.
+			$field_instance->render();
 		}
 	}
 

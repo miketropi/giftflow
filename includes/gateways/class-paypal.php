@@ -590,7 +590,21 @@ class PayPal_Gateway extends Gateway_Base {
 		check_ajax_referer( 'giftflow_paypal_nonce', 'nonce' );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data = $_POST;
+		$raw_post_data = $_POST;
+
+		// sanitize data if it is an array, else sanitize the data.
+		$data = is_array( $raw_post_data ) ? giftflow_sanitize_array( $raw_post_data ) : sanitize_text_field( $raw_post_data );
+
+		// if data not an array, return error.
+		if ( ! is_array( $data ) ) {
+			$this->log_error( 'capture_order_error', 'Invalid data', 0, 'Invalid data' );
+			wp_send_json_error(
+				array(
+					'message' => __( 'Invalid data', 'giftflow' ),
+				)
+			);
+		}
+
 		$order_id = isset( $data['orderID'] ) ? sanitize_text_field( $data['orderID'] ) : '';
 
 		if ( empty( $order_id ) ) {

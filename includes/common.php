@@ -601,6 +601,27 @@ function giftflow_donation_form_error_section_html() {
 }
 
 /**
+ * Render HTML attributes from array.
+ *
+ * @param array $attributes Associative array of attribute => value. Use true for boolean attributes.
+ * @return string HTML attributes string.
+ */
+function giftflow_render_attributes( $attributes ) {
+	$parts = array();
+	foreach ( (array) $attributes as $key => $value ) {
+		if ( false === $value || null === $value || '' === $value ) {
+			continue;
+		}
+		if ( true === $value ) {
+			$parts[] = esc_attr( $key );
+		} else {
+			$parts[] = esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+		}
+	}
+	return implode( ' ', $parts );
+}
+
+/**
  * Load template
  *
  * @param string $template_name Template name.

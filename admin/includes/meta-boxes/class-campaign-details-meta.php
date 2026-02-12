@@ -200,7 +200,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 					);
 
                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $field->render();
+					$field->render();
 				}
 				?>
 			</div>
@@ -231,8 +231,8 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 						)
 					);
 
-                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $field->render();
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					$field->render();
 				}
 				?>
 			</div>
