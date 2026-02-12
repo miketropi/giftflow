@@ -3,7 +3,7 @@
  * Plugin Name: GiftFlow
  * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Beplus
  * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
@@ -22,7 +22,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin constants.
-define( 'GIFTFLOW_VERSION', '1.0.1' );
+define( 'GIFTFLOW_VERSION', '1.0.2' );
 define( 'GIFTFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -36,7 +36,7 @@ if ( file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php' ) ) {
 		function () {
 			?>
 		<div class="notice notice-error">
-			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install && composer run build" in the plugin directory.', 'giftflow' ); ?></p>
+			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer run build" in the plugin directory.', 'giftflow' ); ?></p>
 		</div>
 			<?php
 		}
@@ -142,10 +142,10 @@ function giftflow_activate() {
 	}
 
 	// Check if Composer dependencies are installed.
-	if ( ! file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+	if ( ! file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install" in the plugin directory.', 'giftflow' ),
+			esc_html__( 'GiftFlow requires Composer dependencies to be installed. Please run "composer run build" in the plugin directory.', 'giftflow' ),
 			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);
