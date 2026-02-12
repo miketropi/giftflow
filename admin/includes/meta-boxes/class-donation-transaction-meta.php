@@ -83,23 +83,23 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			'donation_type'        => array(
 				'label'       => __( 'Donation Type', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'one-time'  => __( 'One-Time', 'giftflow' ),
-					'recurring' => __( 'Recurring', 'giftflow' ),
+				'options'     => apply_filters(
+					'giftflow_donation_type_options',
+					array(
+						'one-time'  => __( 'One-Time', 'giftflow' ),
+					)
 				),
 				'description' => __( 'Select the type of donation', 'giftflow' ),
 			),
 			'recurring_interval'   => array(
 				'label'       => __( 'Recurring Interval', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'daily'     => __( 'Daily', 'giftflow' ),
-					'weekly'    => __( 'Weekly', 'giftflow' ),
-					'monthly'   => __( 'Monthly', 'giftflow' ),
-					'quarterly' => __( 'Quarterly', 'giftflow' ),
-					'yearly'    => __( 'Yearly', 'giftflow' ),
+				'options'     => apply_filters(
+					'giftflow_recurring_interval_options',
+					array()
 				),
 				'description' => __( 'Select the recurring interval of the donation', 'giftflow' ),
+				'pro_only'    => true,
 			),
 			'transaction_id'       => array(
 				'label'       => __( 'Transaction ID', 'giftflow' ),
