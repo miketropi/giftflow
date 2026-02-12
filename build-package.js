@@ -37,10 +37,10 @@ const excludeExtensions = [
 ];
 
 const excludeVendorDirs = [
-  "vendor/**/tests",
-  "vendor/**/docs",
-  "vendor/**/examples",
-  "vendor/**/CODEGEN_VERSION"
+  "vendor-prefixed/**/tests",
+  "vendor-prefixed/**/docs",
+  "vendor-prefixed/**/examples",
+  "vendor-prefixed/**/CODEGEN_VERSION"
 ];
 
 // ========================
@@ -95,7 +95,7 @@ function shouldInclude(filePath) {
 
   // Exclude vendor sub folders (tests, docs, examples)
   if (
-    normalizedPath.startsWith("vendor/") &&
+    normalizedPath.startsWith("vendor-prefixed/") &&
     excludeVendorDirs.some(pattern => {
       const base = pattern.replace("**/", "");
       return normalizedPath.includes(base);
