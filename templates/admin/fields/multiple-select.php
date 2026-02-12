@@ -17,7 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <select <?php echo giftflow_render_attributes( $attributes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-	<?php foreach ( $options as $option_value => $option_label ) : ?>
+	<?php
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	foreach ( $options as $option_value => $option_label ) :
+		?>
 		<option value="<?php echo esc_attr( $option_value ); ?>"<?php echo in_array( $option_value, $values, true ) ? ' selected' : ''; ?>><?php echo esc_html( $option_label ); ?></option>
 	<?php endforeach; ?>
 </select>

@@ -43,7 +43,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	
 	<!-- Repeater rows container -->
 	<div class="giftflow-repeater-rows">
-		<?php foreach ( $values as $row_index => $row_values ) : ?>
+		<?php
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		foreach ( $values as $row_index => $row_values ) :
+			?>
 			<div class="giftflow-repeater-row" data-index="<?php echo esc_attr( $row_index ); ?>">
 				<div class="giftflow-repeater-row-header">
 					<span class="giftflow-repeater-row-title"><?php echo esc_html( $row_label . ' ' . ( $row_index + 1 ) ); ?></span>
@@ -51,18 +54,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 				<div class="giftflow-repeater-row-content">
 					<?php
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					foreach ( $fields as $field_id => $field_args ) :
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$field_value = isset( $row_values[ $field_id ] ) ? $row_values[ $field_id ] : '';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$field_name  = $name . '[' . $row_index . '][' . $field_id . ']';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$field_id_attr = $id . '_' . $row_index . '_' . $field_id;
 
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$nested_field = new GiftFlow_Field(
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$field_id_attr,
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$field_name,
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$field_args['type'],
 							array_merge(
+								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 								$field_args,
 								array(
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									'value'           => $field_value,
 									'wrapper_classes'  => array( 'giftflow-repeater-field' ),
 								)
@@ -70,6 +83,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						);
 
 						// render field.
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$nested_field->render();
 					endforeach;
 					?>

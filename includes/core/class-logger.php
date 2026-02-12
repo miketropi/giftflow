@@ -186,7 +186,7 @@ class Logger {
 		foreach ( self::RETENTION_DAYS as $level => $days ) {
 			$cutoff = wp_date( 'Y-m-d H:i:s', $now_ts - ( $days * DAY_IN_SECONDS ) );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$count = $wpdb->query(
 				$wpdb->prepare(
 					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared

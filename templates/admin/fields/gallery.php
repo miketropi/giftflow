@@ -31,7 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="giftflow-gallery-preview">
 		<?php
 		if ( ! empty( $image_ids ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			foreach ( $image_ids as $image_id ) {
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 				$image_url = wp_get_attachment_image_url( $image_id, $gallery_settings['image_size'] );
 				if ( $image_url ) {
 					?>

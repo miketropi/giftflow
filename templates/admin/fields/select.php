@@ -21,7 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<option value=""><?php esc_html_e( 'Select an option', 'giftflow' ); ?></option>
 	<?php endif; ?>
 
-	<?php foreach ( $options as $option_value => $option_label ) : ?>
+	<?php
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	foreach ( $options as $option_value => $option_label ) :
+		?>
 		<option value="<?php echo esc_attr( $option_value ); ?>" <?php selected( $value, $option_value ); ?>><?php echo esc_html( $option_label ); ?></option>
 	<?php endforeach; ?>
 </select>
