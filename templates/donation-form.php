@@ -91,7 +91,7 @@ $no_payment_methods = count( $gateways ) === 0;
 					);
 					?>
 						">
-						<legend class="donation-form__legend"><?php esc_html_e( 'Select donation type, one-time or monthly', 'giftflow' ); ?></legend>
+						<legend class="donation-form__legend"><?php esc_html_e( 'Donation One-time or Monthly', 'giftflow' ); ?></legend>
 						<div class="donation-form__radio-group donation-form__radio-group--donation-type">
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
@@ -103,7 +103,7 @@ $no_payment_methods = count( $gateways ) === 0;
 									<input 
 										type="radio" 
 										name="donation_type" 
-										value="<?php echo esc_attr( $donation_type['name'] ); ?>"   
+										value="<?php echo esc_attr( $donation_type['name'] ); ?>"
 										id="donation_type_<?php echo esc_attr( $donation_type['name'] ); ?>" 
 										<?php echo esc_attr( $is_checked ); ?>>
 									<div class="donation-form__radio-label" for="donation_type_<?php echo esc_attr( $donation_type['name'] ); ?>">

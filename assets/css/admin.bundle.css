@@ -2923,6 +2923,40 @@
   color: #666;
 }
 
+.donation-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  line-height: 1.4;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.donation-status.status-completed {
+  background: #e6f9ed;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.donation-status.status-refunded {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.donation-status.status-pending {
+  background: #f3f4f6;
+  color: #6366f1;
+  border-color: #c7d2fe;
+}
+
+.donation-status.status-failed {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
 .giftflow_page_giftflow-settings .wrap {
   margin: 20px 0;
 }

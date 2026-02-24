@@ -268,6 +268,10 @@ class Forms extends Base {
 			$donation_data['recurring_interval'] = sanitize_text_field( $data['recurring_interval'] );
 		}
 
+		if ( isset( $data['recurring_number_of_times'] ) ) {
+			$donation_data['recurring_number_of_times'] = absint( $data['recurring_number_of_times'] );
+		}
+
 		if ( ! empty( $data['donor_message'] ) ) {
 			$donation_data['donor_message'] = sanitize_textarea_field( $data['donor_message'] );
 		}

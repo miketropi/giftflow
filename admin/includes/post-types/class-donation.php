@@ -115,7 +115,16 @@ class Donation extends Base_Post_Type {
 			case 'payment_method':
 				$payment_methods_options = giftflow_get_payment_methods_options();
 				$payment_method = get_post_meta( $post_id, '_payment_method', true );
-				echo esc_html( $payment_methods_options[ $payment_method ] ?? $payment_method );
+				echo '<div 
+					class="payment-method payment-method-' . esc_attr( $payment_method ) . '"
+					title="' . esc_attr__( 'Payment Method', 'giftflow' ) . '">' . esc_html( $payment_methods_options[ $payment_method ] ?? $payment_method ) . '</div>';
+
+				// echo type.
+				$type = get_post_meta( $post_id, '_donation_type', true );
+				echo '<div 
+					class="donation-type donation-type-' . esc_attr( $type ) . '"
+					style="display:inline-block;padding:2px 8px;background:#f3f4f6;border-radius:12px;font-size:11px;line-height:1.4;border:1px solid #d1d5db;color:#374151;margin-top:4px;margin-bottom:0;"
+					title="' . esc_attr__( 'Donation Type', 'giftflow' ) . '">' . esc_html( ucfirst( $type ) ) . '</div>';
 				break;
 
 			case 'status':

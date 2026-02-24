@@ -110,6 +110,16 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 					'default'     => 'monthly',
 					'pro_only'    => true,
 				),
+				// number of times (e.g. 12 = monthly for 12 months). 0 = ongoing.
+				'recurring_number_of_times' => array(
+					'label'       => esc_html__( 'Recurring Number of Payments', 'giftflow' ),
+					'type'        => 'number',
+					'min'         => 0,
+					'step'        => 1,
+					'description' => esc_html__( 'How many times to charge (e.g. 12 for monthly donations over 12 months). Leave 0 for ongoing until cancelled.', 'giftflow' ),
+					'default'     => 0,
+					'pro_only'    => true,
+				),
 
 			),
 			'advanced' => array(
@@ -266,8 +276,13 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 		foreach ( $fields['regular'] as $field_id => $field ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ $field_id ] ) ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				$value = sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) );
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$raw = wp_unslash( $_POST[ $field_id ] ?? '' );
+				if ( 'recurring_number_of_times' === $field_id ) {
+					$value = absint( $raw );
+				} else {
+					$value = sanitize_text_field( $raw );
+				}
 
 				update_post_meta(
 					$post_id,
@@ -278,7 +293,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 				update_post_meta(
 					$post_id,
 					'_' . $field_id,
-					''
+					'recurring_number_of_times' === $field_id ? 0 : ''
 				);
 			}
 		}
