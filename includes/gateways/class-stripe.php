@@ -67,6 +67,7 @@ class Stripe_Gateway extends Gateway_Base {
 			'webhooks',
 			'3d_secure',
 			'payment_intents',
+			'recurring',
 		);
 	}
 
@@ -187,6 +188,7 @@ class Stripe_Gateway extends Gateway_Base {
 				'country' => $this->get_country_code(),
 				'site_name' => get_bloginfo( 'name' ),
 				'apple_pay_google_pay_enabled' => $this->get_setting( 'stripe_apple_pay_google_pay_enabled', false ),
+				'recurring_enabled' => (bool) $this->get_setting( 'stripe_recurring_enabled', false ),
 				'messages' => array(
 					'processing' => __( 'Processing payment...', 'giftflow' ),
 					'error' => __( 'Payment failed. Please try again.', 'giftflow' ),
@@ -271,7 +273,7 @@ class Stripe_Gateway extends Gateway_Base {
 						'description' => sprintf(
 							// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
 							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events to send: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>.', 'giftflow' )
+							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>, <strong>payment_intent.canceled</strong>; for recurring: <strong>invoice.paid</strong> or <strong>invoice_payment.paid</strong> (new API), <strong>invoice.payment_failed</strong>, <strong>customer.subscription.deleted</strong>, <strong>customer.subscription.updated</strong>.', 'giftflow' )
 						),
 					),
 					// stripe_sandbox_webhook_secret.
@@ -299,6 +301,14 @@ class Stripe_Gateway extends Gateway_Base {
 						'label' => __( 'Enable Apple Pay + Google Pay', 'giftflow' ),
 						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
 						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . ' <a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
+						'pro_only'    => true,
+					),
+					'stripe_recurring_enabled' => array(
+						'id' => 'giftflow_stripe_recurring_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Recurring Donations', 'giftflow' ),
+						'value' => isset( $payment_options['stripe']['stripe_recurring_enabled'] ) ? $payment_options['stripe']['stripe_recurring_enabled'] : false,
+						'description' => __( 'Allow donors to set up recurring donations via Stripe Subscriptions. Per-campaign recurring options are in Campaign Details.', 'giftflow' ),
 						'pro_only'    => true,
 					),
 				),
@@ -336,6 +346,9 @@ class Stripe_Gateway extends Gateway_Base {
 
 			// Return URL handler.
 			add_action( 'init', array( $this, 'handle_return_url' ) );
+
+			// Admin: cancel subscription.
+			add_action( 'wp_ajax_giftflow_stripe_cancel_subscription', array( $this, 'ajax_cancel_subscription' ) );
 	}
 
 	/**
@@ -354,16 +367,17 @@ class Stripe_Gateway extends Gateway_Base {
 			return new \WP_Error( 'stripe_error', __( 'Donation ID is required', 'giftflow' ) );
 		}
 
+		$is_recurring = $this->is_recurring_donation( $data );
+
 		try {
-			// Prepare payment intent data.
+			if ( $is_recurring ) {
+				return $this->process_recurring_payment( $data, $donation_id );
+			}
+
+			// One-time flow.
 			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id );
-
-			// Create Payment Intent.
-			$payment_intent = $this->stripe->paymentIntents->create( $payment_intent_data );
-
-			// Store payment intent ID.
+			$payment_intent      = $this->stripe->paymentIntents->create( $payment_intent_data );
 			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
-
 			return $this->handle_payment_intent_response( $payment_intent, $donation_id );
 		} catch ( ApiErrorException $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id, $e->getStripeCode() );
@@ -412,6 +426,217 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		return apply_filters( 'giftflow_stripe_prepare_payment_intent_data', $payment_intent_data, $data, $donation_id );
+	}
+
+	/**
+	 * Determine if the current donation should be processed as recurring.
+	 *
+	 * @param array $data Donation form data.
+	 * @return bool
+	 */
+	private function is_recurring_donation( $data ) {
+		if ( ! $this->get_setting( 'stripe_recurring_enabled', false ) ) {
+			return false;
+		}
+		$donation_type = isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : 'once';
+		$interval      = isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : '';
+		return ( 'recurring' === $donation_type && ! empty( $interval ) );
+	}
+
+	/**
+	 * Map campaign recurring interval to Stripe Price recurring format.
+	 *
+	 * @param string $interval Campaign interval: daily, weekly, monthly, quarterly, yearly.
+	 * @return array Stripe recurring array (interval, optional interval_count).
+	 */
+	private function map_recurring_interval_to_stripe( $interval ) {
+		$map = array(
+			'daily'     => array( 'interval' => 'day' ),
+			'weekly'    => array( 'interval' => 'week' ),
+			'monthly'   => array( 'interval' => 'month' ),
+			'yearly'    => array( 'interval' => 'year' ),
+			'quarterly' => array(
+				'interval' => 'month',
+				'interval_count' => 3,
+			),
+		);
+		return isset( $map[ $interval ] ) ? $map[ $interval ] : array( 'interval' => 'month' );
+	}
+
+	/**
+	 * Process recurring (subscription) payment via Stripe.
+	 *
+	 * @param array $data        Donation form data.
+	 * @param int   $donation_id Donation post ID.
+	 * @return array|\WP_Error
+	 */
+	private function process_recurring_payment( $data, $donation_id ) {
+		$customer_id = $this->get_or_create_stripe_customer( $data, $donation_id );
+		if ( is_wp_error( $customer_id ) ) {
+			return $customer_id;
+		}
+
+		$pm_id = isset( $data['payment_method_id'] ) ? sanitize_text_field( $data['payment_method_id'] ) : '';
+		if ( empty( $pm_id ) ) {
+			return new \WP_Error( 'stripe_error', __( 'Payment method is required', 'giftflow' ) );
+		}
+
+		try {
+			$this->stripe->paymentMethods->attach( $pm_id, array( 'customer' => $customer_id ) );
+		} catch ( ApiErrorException $e ) {
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+
+		$this->stripe->customers->update(
+			$customer_id,
+			array(
+				'invoice_settings' => array(
+					'default_payment_method' => $pm_id,
+				),
+			)
+		);
+
+		$interval_raw = isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : 'monthly';
+		$stripe_recurring = $this->map_recurring_interval_to_stripe( $interval_raw );
+		$amount_cents = (int) ( (float) $data['donation_amount'] * 100 );
+
+		$price_params = array(
+			'unit_amount'   => $amount_cents,
+			'currency'      => strtolower( $this->get_currency() ),
+			'recurring'     => $stripe_recurring,
+			'product_data'  => array(
+				'name' => sprintf(
+					/* translators: 1: site name, 2: interval */
+					__( '%1$s Recurring Donation (%2$s)', 'giftflow' ),
+					get_bloginfo( 'name' ),
+					$interval_raw
+				),
+			),
+		);
+
+		try {
+			$price = $this->stripe->prices->create( $price_params );
+		} catch ( ApiErrorException $e ) {
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+
+		$subscription_params = array(
+			'customer'             => $customer_id,
+			'items'                => array( array( 'price' => $price->id ) ),
+			'expand'               => array( 'latest_invoice.payment_intent' ),
+			'metadata'             => array(
+				'donation_id' => (string) $donation_id,
+				'campaign_id' => (string) ( isset( $data['campaign_id'] ) ? $data['campaign_id'] : '' ),
+				'donor_email' => sanitize_email( $data['donor_email'] ),
+				'donor_name' => sanitize_text_field( $data['donor_name'] ),
+				'site_url'   => home_url(),
+			),
+		);
+
+		try {
+			$subscription = $this->stripe->subscriptions->create( $subscription_params );
+		} catch ( ApiErrorException $e ) {
+			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+
+		$recurring_number_of_times = isset( $data['recurring_number_of_times'] ) ? absint( $data['recurring_number_of_times'] ) : 0;
+
+		update_post_meta( $donation_id, '_stripe_customer_id', $customer_id );
+		update_post_meta( $donation_id, '_stripe_subscription_id', $subscription->id );
+		update_post_meta( $donation_id, '_stripe_price_id', $price->id );
+		update_post_meta( $donation_id, '_donation_type', 'recurring' );
+		update_post_meta( $donation_id, '_recurring_interval', $interval_raw );
+		update_post_meta( $donation_id, '_recurring_status', 'active' );
+		update_post_meta( $donation_id, '_recurring_number_of_times', $recurring_number_of_times );
+		update_post_meta( $donation_id, '_is_subscription_parent', '1' );
+
+		if ( isset( $subscription->current_period_end ) ) {
+			update_post_meta( $donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $subscription->current_period_end ) );
+		}
+
+		$latest_invoice = $subscription->latest_invoice;
+		$invoice_paid   = is_object( $latest_invoice ) && isset( $latest_invoice->status ) && 'paid' === $latest_invoice->status;
+
+		if ( ! $invoice_paid ) {
+			return new \WP_Error(
+				'stripe_error',
+				__( 'The payment for your donation was not completed. Please try again, and if the issue persists, don\'t hesitate to contact us for assistance. Thank you for your support!', 'giftflow' )
+			);
+		}
+
+		// Fire action to notify other plugins that the subscription was created.
+		do_action( 'giftflow_stripe_subscription_created', $donation_id, $subscription->id, $subscription->toArray() );
+
+		return true;
+	}
+
+	/**
+	 * Get existing Stripe Customer for this donor or create a new one.
+	 *
+	 * @param array $data        Donation form data.
+	 * @param int   $donation_id Donation post ID.
+	 * @return string|\WP_Error Stripe Customer ID or WP_Error.
+	 */
+	private function get_or_create_stripe_customer( $data, $donation_id ) {
+		$email = sanitize_email( $data['donor_email'] );
+
+		$existing = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+			'key' => '_stripe_customer_id',
+			'compare' => 'EXISTS',
+				),
+					array(
+				'key' => '_payment_method',
+				'value' => 'stripe',
+				),
+				),
+			)
+		);
+
+		foreach ( $existing as $post ) {
+			$donor_id = get_post_meta( $post->ID, '_donor_id', true );
+			if ( $donor_id ) {
+				$donor_email = get_post_meta( $donor_id, '_email', true );
+				if ( $donor_email === $email ) {
+					$cid = get_post_meta( $post->ID, '_stripe_customer_id', true );
+					if ( ! empty( $cid ) ) {
+						return $cid;
+					}
+				}
+			}
+		}
+
+		try {
+
+			$customer_data = array(
+				'email'    => $email,
+				'name'     => sanitize_text_field( $data['donor_name'] ),
+				'metadata' => array(
+					'site_url'    => home_url(),
+					'donation_id' => (string) $donation_id,
+				),
+			);
+
+			/**
+			 * Filter the Stripe Customer data before creating a customer.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param array $customer_data     Data to be sent to Stripe when creating the customer.
+			 * @param array $data             Original donation form data.
+			 * @param int   $donation_id      Donation post ID.
+			 */
+			$customer_data = apply_filters( 'giftflow_stripe_customer_data', $customer_data, $data, $donation_id );
+
+			$customer = $this->stripe->customers->create( $customer_data );
+			return $customer->id;
+		} catch ( ApiErrorException $e ) {
+			return new \WP_Error( 'stripe_customer_error', $e->getMessage() );
+		}
 	}
 
 	/**
@@ -646,6 +871,25 @@ class Stripe_Gateway extends Gateway_Base {
 
 				case 'payment_intent.canceled':
 					$this->handle_payment_intent_canceled( $event->data->object );
+					break;
+
+				case 'invoice.paid':
+					$this->handle_invoice_paid( $event->data->object );
+					break;
+
+				case 'invoice_payment.paid':
+					break;
+
+				case 'invoice.payment_failed':
+					$this->handle_invoice_payment_failed( $event->data->object );
+					break;
+
+				case 'customer.subscription.deleted':
+					$this->handle_subscription_deleted( $event->data->object );
+					break;
+
+				case 'customer.subscription.updated':
+					$this->handle_subscription_updated( $event->data->object );
 					break;
 			}
 
@@ -899,6 +1143,415 @@ class Stripe_Gateway extends Gateway_Base {
 			update_post_meta( $donation_id, '_payment_status', 'refunded' );
 
 			do_action( 'giftflow_stripe_webhook_charge_refunded', $donation_id, $charge );
+		}
+	}
+
+	/**
+	 * Handle Stripe invoice_payment.paid webhook event (new API: 2025+).
+	 *
+	 * Event sends an invoice_payment object with invoice id and payment.payment_intent.
+	 * Fetch the full Invoice and reuse handle_invoice_paid().
+	 *
+	 * @param object $invoice_payment Stripe invoice_payment object from webhook (object.invoice, object.payment.payment_intent).
+	 */
+	private function handle_invoice_payment_paid( $invoice_payment ) {
+		$invoice_id = isset( $invoice_payment->invoice ) ? $invoice_payment->invoice : '';
+		if ( empty( $invoice_id ) || ! $this->stripe ) {
+			return;
+		}
+		try {
+			$invoice = $this->stripe->invoices->retrieve(
+				$invoice_id,
+				array( 'expand' => array( 'subscription', 'lines.data' ) )
+			);
+		} catch ( ApiErrorException $e ) {
+			$this->log_error( 'webhook_error', 'invoice_payment.paid: failed to retrieve invoice ' . $invoice_id . ' - ' . $e->getMessage(), 0 );
+			return;
+		}
+		// Ensure payment_intent is set (invoice_payment has it; Invoice may have it or we can set from event).
+		$pi_id = isset( $invoice_payment->payment->payment_intent ) ? $invoice_payment->payment->payment_intent : null;
+		if ( $pi_id && ( ! isset( $invoice->payment_intent ) || empty( $invoice->payment_intent ) ) ) {
+			$invoice->payment_intent = $pi_id;
+		}
+		// Normalize subscription to id string when expanded as object.
+		if ( is_object( $invoice->subscription ) && isset( $invoice->subscription->id ) ) {
+			$invoice->subscription = $invoice->subscription->id;
+		}
+		$this->handle_invoice_paid( $invoice );
+	}
+
+	/**
+	 * Handle Stripe invoice.paid webhook event.
+	 *
+	 * @param object $invoice Stripe Invoice object from webhook.
+	 */
+	private function handle_invoice_paid( $invoice ) {
+		// Subscription ID: top-level (old API) or parent.subscription_details.subscription (2025+ API).
+		$subscription_id = isset( $invoice->subscription ) ? $invoice->subscription : '';
+		if ( empty( $subscription_id ) && isset( $invoice->parent->subscription_details->subscription ) ) {
+			$subscription_id = $invoice->parent->subscription_details->subscription;
+		}
+		if ( empty( $subscription_id ) ) {
+			return;
+		}
+
+		$parent_donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+			'key' => '_is_subscription_parent',
+			'value' => '1',
+				),
+				),
+			)
+		);
+
+		if ( empty( $parent_donations ) ) {
+			$this->log_error( 'webhook_error', 'invoice.paid: parent donation not found for subscription ' . $subscription_id, 0 );
+			return;
+		}
+
+		$parent_donation_id = $parent_donations[0]->ID;
+		$invoice_id         = isset( $invoice->id ) ? $invoice->id : '';
+		$payment_intent_id  = isset( $invoice->payment_intent ) ? $invoice->payment_intent : '';
+		if ( is_object( $payment_intent_id ) && isset( $payment_intent_id->id ) ) {
+			$payment_intent_id = $payment_intent_id->id;
+		}
+		// 2025+ API: invoice webhook payload may omit payment_intent. Try retrieve with expand, then fall back to charge.
+		if ( empty( $payment_intent_id ) && ! empty( $invoice_id ) && $this->stripe ) {
+			try {
+				$invoice_full = $this->stripe->invoices->retrieve( $invoice_id, array( 'expand' => array( 'payment_intent' ) ) );
+				if ( isset( $invoice_full->payment_intent ) ) {
+					$payment_intent_id = is_object( $invoice_full->payment_intent ) ? $invoice_full->payment_intent->id : $invoice_full->payment_intent;
+				}
+			// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			} catch ( ApiErrorException $e ) {
+				// Continue to charge fallback.
+			}
+			// Fallback: charge.succeeded has payment_intent; list charges for this invoice to get it.
+			if ( empty( $payment_intent_id ) ) {
+				$charges = $this->stripe->charges->all(
+					array(
+						'invoice' => $invoice_id,
+						'limit' => 1,
+					)
+				);
+				if ( ! empty( $charges->data[0]->payment_intent ) ) {
+					$payment_intent_id = is_object( $charges->data[0]->payment_intent ) ? $charges->data[0]->payment_intent->id : $charges->data[0]->payment_intent;
+				}
+			}
+		}
+
+		$existing = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_key'       => '_stripe_invoice_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $invoice_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+
+		if ( ! empty( $existing ) ) {
+			$this->update_parent_after_renewal( $parent_donation_id, $invoice );
+			return;
+		}
+
+		$is_first_invoice = ( isset( $invoice->billing_reason ) && 'subscription_create' === $invoice->billing_reason );
+
+		if ( $is_first_invoice ) {
+			update_post_meta( $parent_donation_id, '_transaction_id', $payment_intent_id );
+			update_post_meta( $parent_donation_id, '_stripe_payment_intent_id', $payment_intent_id );
+			update_post_meta( $parent_donation_id, '_stripe_invoice_id', $invoice_id );
+			update_post_meta( $parent_donation_id, '_transaction_raw_data', wp_json_encode( (array) $invoice ) );
+
+			$donations_class = new Donations();
+			$donations_class->update_status( $parent_donation_id, 'completed' );
+
+			Donation_Event_History::add(
+				$parent_donation_id,
+				'recurring_payment_first',
+				'completed',
+				__( 'Webhook: invoice.paid (first charge)', 'giftflow' ),
+				array(
+					'invoice_id'      => $invoice_id,
+					'subscription_id' => $subscription_id,
+					'gateway'         => 'stripe',
+					'source'          => 'webhook',
+				)
+			);
+		} else {
+			$meta = get_post_meta( $parent_donation_id );
+
+			$renewal_id = wp_insert_post(
+				array(
+					'post_title'  => sprintf(
+						/* translators: %s: parent donation ID */
+						__( 'Recurring Donation (renewal of #%s)', 'giftflow' ),
+						$parent_donation_id
+					),
+					'post_type'   => 'donation',
+					'post_status' => 'publish',
+				)
+			);
+
+			if ( is_wp_error( $renewal_id ) ) {
+				$this->log_error( 'webhook_error', 'invoice.paid: failed to create renewal donation for ' . $subscription_id, $parent_donation_id );
+				return;
+			}
+
+			$copy_keys = array( '_amount', '_campaign_id', '_donor_id', '_payment_method', '_donation_type', '_recurring_interval' );
+			foreach ( $copy_keys as $key ) {
+				if ( isset( $meta[ $key ][0] ) ) {
+					update_post_meta( $renewal_id, $key, $meta[ $key ][0] );
+				}
+			}
+
+			update_post_meta( $renewal_id, '_status', 'completed' );
+			update_post_meta( $renewal_id, '_parent_donation_id', $parent_donation_id );
+			update_post_meta( $renewal_id, '_stripe_invoice_id', $invoice_id );
+			update_post_meta( $renewal_id, '_stripe_subscription_id', $subscription_id );
+			update_post_meta( $renewal_id, '_stripe_customer_id', isset( $meta['_stripe_customer_id'][0] ) ? $meta['_stripe_customer_id'][0] : '' );
+			update_post_meta( $renewal_id, '_transaction_id', $payment_intent_id );
+			update_post_meta( $renewal_id, '_stripe_payment_intent_id', $payment_intent_id );
+			update_post_meta( $renewal_id, '_transaction_raw_data', wp_json_encode( (array) $invoice ) );
+			update_post_meta( $renewal_id, '_is_subscription_renewal', '1' );
+			update_post_meta( $renewal_id, '_payment_status', 'completed' );
+
+			Donation_Event_History::add(
+				$renewal_id,
+				'recurring_payment_renewal',
+				'completed',
+				__( 'Webhook: invoice.paid (renewal)', 'giftflow' ),
+				array(
+					'invoice_id'         => $invoice_id,
+					'subscription_id'    => $subscription_id,
+					'parent_donation_id' => $parent_donation_id,
+					'gateway'            => 'stripe',
+					'source'             => 'webhook',
+				)
+			);
+
+			do_action( 'giftflow_stripe_recurring_renewal_created', $renewal_id, $parent_donation_id, $subscription_id, (array) $invoice );
+
+			// Cancel subscription after N payments if set on parent.
+			$number_of_times = (int) get_post_meta( $parent_donation_id, '_recurring_number_of_times', true );
+			if ( $number_of_times > 0 ) {
+				$renewals = get_posts(
+					array(
+						'post_type'      => 'donation',
+						'posts_per_page' => -1,
+						'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+						'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+							array(
+					'key' => '_is_subscription_renewal',
+					'value' => '1',
+						),
+						),
+					)
+				);
+				if ( count( $renewals ) >= $number_of_times && $this->stripe ) {
+					try {
+						$this->stripe->subscriptions->cancel( $subscription_id );
+					} catch ( ApiErrorException $e ) {
+						$this->log_error( 'webhook_error', 'Failed to cancel subscription after N payments: ' . $e->getMessage(), $parent_donation_id );
+					}
+				}
+			}
+		}
+
+		$this->update_parent_after_renewal( $parent_donation_id, $invoice );
+
+		Giftflow_Logger::info(
+			'stripe.webhook.invoice.paid',
+			array(
+				'parent_donation_id' => $parent_donation_id,
+				'invoice_id'         => $invoice_id,
+				'subscription_id'    => $subscription_id,
+				'is_first'           => $is_first_invoice,
+				'gateway'            => 'stripe',
+			),
+			'stripe'
+		);
+	}
+
+	/**
+	 * Update parent donation recurring status and next payment date after a renewal.
+	 *
+	 * @param int    $parent_donation_id Parent donation post ID.
+	 * @param object $invoice            Stripe Invoice object.
+	 */
+	private function update_parent_after_renewal( $parent_donation_id, $invoice ) {
+		update_post_meta( $parent_donation_id, '_recurring_status', 'active' );
+		if ( ! empty( $invoice->lines->data ) ) {
+			foreach ( $invoice->lines->data as $line ) {
+				if ( isset( $line->period->end ) ) {
+					update_post_meta( $parent_donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $line->period->end ) );
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Handle Stripe invoice.payment_failed webhook.
+	 *
+	 * @param object $invoice Stripe Invoice object.
+	 */
+	private function handle_invoice_payment_failed( $invoice ) {
+		$subscription_id = isset( $invoice->subscription ) ? $invoice->subscription : '';
+		$parent_donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+		if ( empty( $parent_donations ) ) {
+			return;
+		}
+		$parent_donation_id = $parent_donations[0]->ID;
+		update_post_meta( $parent_donation_id, '_recurring_status', 'past_due' );
+		Donation_Event_History::add(
+			$parent_donation_id,
+			'recurring_payment_failed',
+			'failed',
+			__( 'Webhook: invoice.payment_failed', 'giftflow' ),
+			array(
+				'invoice_id'      => isset( $invoice->id ) ? $invoice->id : '',
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'stripe',
+				'source'          => 'webhook',
+			)
+		);
+		Giftflow_Logger::error(
+			'stripe.webhook.invoice.payment_failed',
+			array(
+				'parent_donation_id' => $parent_donation_id,
+				'subscription_id' => $subscription_id,
+				'gateway' => 'stripe',
+			),
+			'stripe'
+		);
+		do_action( 'giftflow_stripe_recurring_payment_failed', $parent_donation_id, $subscription_id, (array) $invoice );
+	}
+
+	/**
+	 * Handle Stripe customer.subscription.deleted webhook.
+	 *
+	 * @param object $subscription Stripe Subscription object.
+	 */
+	private function handle_subscription_deleted( $subscription ) {
+		$subscription_id = isset( $subscription->id ) ? $subscription->id : '';
+		$parent_donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+		if ( empty( $parent_donations ) ) {
+			return;
+		}
+		$parent_donation_id = $parent_donations[0]->ID;
+		update_post_meta( $parent_donation_id, '_recurring_status', 'cancelled' );
+		Donation_Event_History::add(
+			$parent_donation_id,
+			'recurring_subscription_cancelled',
+			'cancelled',
+			__( 'Webhook: customer.subscription.deleted', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway' => 'stripe',
+				'source' => 'webhook',
+			)
+		);
+		do_action( 'giftflow_stripe_subscription_cancelled', $parent_donation_id, $subscription_id, (array) $subscription );
+	}
+
+	/**
+	 * Handle Stripe customer.subscription.updated webhook.
+	 *
+	 * @param object $subscription Stripe Subscription object.
+	 */
+	private function handle_subscription_updated( $subscription ) {
+		$subscription_id = isset( $subscription->id ) ? $subscription->id : '';
+		$parent_donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+		if ( empty( $parent_donations ) ) {
+			return;
+		}
+		$parent_donation_id = $parent_donations[0]->ID;
+		$new_status         = isset( $subscription->status ) ? $subscription->status : '';
+		$status_map         = array(
+			'active' => 'active',
+			'past_due' => 'past_due',
+			'unpaid' => 'unpaid',
+			'canceled' => 'cancelled',
+			'trialing' => 'active',
+		);
+		if ( isset( $status_map[ $new_status ] ) ) {
+			update_post_meta( $parent_donation_id, '_recurring_status', $status_map[ $new_status ] );
+		}
+		if ( isset( $subscription->current_period_end ) ) {
+			update_post_meta( $parent_donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $subscription->current_period_end ) );
+		}
+		do_action( 'giftflow_stripe_subscription_updated', $parent_donation_id, $subscription_id, (array) $subscription );
+	}
+
+	/**
+	 * AJAX handler: cancel a Stripe subscription from the admin.
+	 *
+	 * @throws \Exception If there is an error canceling the subscription.
+	 */
+	public function ajax_cancel_subscription() {
+		check_ajax_referer( 'giftflow_stripe_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'giftflow' ) ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$donation_id     = isset( $_POST['donation_id'] ) ? absint( $_POST['donation_id'] ) : 0;
+		$subscription_id = $donation_id ? get_post_meta( $donation_id, '_stripe_subscription_id', true ) : '';
+
+		if ( empty( $subscription_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'No subscription found for this donation.', 'giftflow' ) ) );
+		}
+
+		try {
+			if ( ! $this->stripe ) {
+				throw new \Exception( __( 'Stripe is not configured', 'giftflow' ) );
+			}
+			$this->stripe->subscriptions->cancel( $subscription_id );
+			update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+			Donation_Event_History::add(
+				$donation_id,
+				'recurring_subscription_cancelled',
+				'cancelled',
+				__( 'Subscription cancelled by admin.', 'giftflow' ),
+				array(
+					'subscription_id' => $subscription_id,
+					'gateway' => 'stripe',
+				)
+			);
+			wp_send_json_success( array( 'message' => __( 'Subscription cancelled successfully.', 'giftflow' ) ) );
+		} catch ( ApiErrorException $e ) {
+			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+		} catch ( \Exception $e ) {
+			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
 	}
 

@@ -360,6 +360,13 @@ function giftflow_render_currency_formatted_amount( $amount, $decimals = 2, $cur
 		$currency = giftflow_get_current_currency();
 	}
 	$currency_symbol = giftflow_get_currency_symbol( $currency );
+
+	// validate & convert amount to float.
+	$amount = floatval( $amount );
+	if ( is_nan( $amount ) ) {
+		return '';
+	}
+
 	$amount = number_format( $amount, $decimals );
 
 	// replace array map with currency symbol and amount.
@@ -666,6 +673,10 @@ function giftflow_get_donation_data_by_id( $donation_id ) {
 
 	$donation_data->status = get_post_meta( $donation_id, '_status', true );
 	$donation_data->payment_method = get_post_meta( $donation_id, '_payment_method', true );
+
+	// donation type.
+	$donation_data->donation_type = get_post_meta( $donation_id, '_donation_type', true );
+
 	$donation_data->__date = get_the_date( '', $donation_id );
 	$donation_data->__date_gmt = get_gmt_from_date( get_the_date( 'Y-m-d H:i:s', $donation_id ) );
 

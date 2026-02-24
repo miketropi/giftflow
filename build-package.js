@@ -2,12 +2,16 @@ const fs = require("fs");
 const path = require("path");
 const archiver = require("archiver");
 
-// ====== CONFIG =========
-const pluginFile = "giftflow.php"; // name of main plugin file
-const pluginSlug = "giftflow";     // slug of zip file
-const excludeList = [
+// ================= CONFIG =================
+const pluginSlug = "giftflow";
+const zipFileName = `${pluginSlug}.zip`;
+
+/**
+ * Blacklist root files / folders
+ * (so khớp theo prefix path)
+ */
+const blacklistRoots = [
   "node_modules",
-  // "src",
   ".git",
   ".github",
   ".gitignore",
@@ -21,108 +25,89 @@ const excludeList = [
   ".husky",
   "package-lock.json",
   "phpcs.xml.dist",
-  // "vendor",
-  // "package.json",
-  // "postcss.config.js",
-  // "tailwind.config.js",
-  // "webpack.mix.js",
-  // "build-package.js",
-  // "composer.json",
-  // "composer.lock",
-  "giftflow.zip"
+  "vendor",          // ❗ KHÔNG bundle vendor gốc
+  "giftflow.zip",
 ];
 
-const excludeExtensions = [
-  ".sh"
+/**
+ * Blacklist extensions
+ */
+const blacklistExtensions = [
+  ".sh",
 ];
 
-const excludeVendorDirs = [
-  "vendor-prefixed/**/tests",
-  "vendor-prefixed/**/docs",
-  "vendor-prefixed/**/examples",
-  "vendor-prefixed/**/CODEGEN_VERSION"
+/**
+ * Blacklist bên trong vendor-prefixed
+ * (runtime-safe, chỉ loại file dev)
+ */
+const vendorPrefixedBlacklist = [
+  /\/tests?\//i,
+  /\/docs?\//i,
+  /\/examples?\//i,
+  /CODEGEN_VERSION/i,
 ];
 
-// ========================
+// =========================================
 
-// 1. Read version from plugin header
-function getPluginVersion(filePath) {
-  const content = fs.readFileSync(filePath, "utf-8");
-  const match = content.match(/^\s*\*\s*Version:\s*(.+)$/m);
-  return match ? match[1].trim() : "0.0.0";
-}
-
-const version = getPluginVersion(pluginFile);
-const zipFileName = `${pluginSlug}.zip`;
-
-// 2. Setup zip
+// Setup zip
 const output = fs.createWriteStream(zipFileName);
 const archive = archiver("zip", { zlib: { level: 9 } });
 
-output.on("close", () => {
-  console.log(`✅ ${zipFileName} created: ${archive.pointer()} total bytes`);
-});
+archive.pipe(output);
 
-archive.on("warning", (err) => {
-  if (err.code === "ENOENT") {
-    console.warn(err);
-  } else {
-    throw err;
-  }
-});
-
-archive.on("error", (err) => {
+archive.on("error", err => {
   throw err;
 });
 
-archive.pipe(output);
+output.on("close", () => {
+  console.log(`✅ ${zipFileName} created (${archive.pointer()} bytes)`);
+});
 
-// 3. Build list file to include
-function shouldInclude(filePath) {
-  // Normalize path (Windows safe)
-  const normalizedPath = filePath.replace(/\\/g, "/");
-
-  // Exclude by exact path prefix
-  if (excludeList.some(exclude => normalizedPath.startsWith(exclude))) {
-    return false;
-  }
-
-  // Exclude by extension (e.g. .sh)
-  const ext = path.extname(normalizedPath);
-  if (excludeExtensions.includes(ext)) {
-    return false;
-  }
-
-  // Exclude vendor sub folders (tests, docs, examples)
-  if (
-    normalizedPath.startsWith("vendor-prefixed/") &&
-    excludeVendorDirs.some(pattern => {
-      const base = pattern.replace("**/", "");
-      return normalizedPath.includes(base);
-    })
-  ) {
-    return false;
-  }
-
-  return true;
+// Helpers
+function normalize(p) {
+  return p.replace(/\\/g, "/");
 }
 
+function isBlacklisted(relativePath) {
+  const p = normalize(relativePath);
 
-function addFilesFromDir(dirPath) {
-  fs.readdirSync(dirPath).forEach(file => {
-    const fullPath = path.join(dirPath, file);
-    const relativePath = path.relative(".", fullPath);
+  // Root blacklist
+  if (blacklistRoots.some(root => p === root || p.startsWith(root + "/"))) {
+    return true;
+  }
 
-    if (!shouldInclude(relativePath)) return;
+  // Extension blacklist
+  if (blacklistExtensions.includes(path.extname(p))) {
+    return true;
+  }
 
-    const stats = fs.statSync(fullPath);
-    if (stats.isDirectory()) {
-      addFilesFromDir(fullPath);
+  // vendor-prefixed internal blacklist
+  if (
+    p.startsWith("vendor-prefixed/") &&
+    vendorPrefixedBlacklist.some(rx => rx.test(p))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function walk(dir) {
+  fs.readdirSync(dir).forEach(entry => {
+    const fullPath = path.join(dir, entry);
+    const relPath = normalize(path.relative(".", fullPath));
+
+    if (isBlacklisted(relPath)) return;
+
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      walk(fullPath);
     } else {
-      archive.file(fullPath, { name: relativePath });
+      archive.file(fullPath, { name: relPath });
     }
   });
 }
 
-addFilesFromDir(".");
+// Build
+walk(".");
 archive.finalize();

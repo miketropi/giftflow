@@ -38,6 +38,9 @@ $message = $donation->message ?? '';
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $anonymous = ucfirst( $donation->anonymous ?? '' );
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+$donation_type = $donation->donation_type ?? '';
+
 // Status styling.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $status_class = 'gfw-status-' . strtolower( $status );
@@ -108,7 +111,7 @@ $payment_method_label = ucfirst( str_replace( '_', ' ', $payment_method ) );
 		</tr>
 		<tr>
 			<td class="gfw-detail-label">Payment Method</td>
-			<td class="gfw-detail-value"><?php echo esc_html( $payment_method_label ); ?></td>
+			<td class="gfw-detail-value"><?php echo esc_html( $payment_method_label ); ?> (<?php echo esc_html( $donation_type ?? '__unknown__' ); ?>)</td>
 		</tr>
 		<tr>
 			<td class="gfw-detail-label">Date</td>
