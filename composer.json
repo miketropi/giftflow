@@ -30,13 +30,8 @@
 	"scripts": {
 		"lint": "phpcs",
 		"lint:fix": "phpcbf",
-		"dev": [
+		"build": [
       "@composer install",
-      "vendor/bin/strauss",
-			"find vendor-prefixed -name \".git\" -type d -exec rm -rf {} +"
-    ],
-    "build": [
-      "@composer install --no-dev",
       "vendor/bin/strauss",
 			"find vendor-prefixed -name \".git\" -type d -exec rm -rf {} +"
     ]
