@@ -1458,6 +1458,7 @@ function _donationButton_Handle() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySlideEffect: () => (/* binding */ applySlideEffect),
+/* harmony export */   createElementFromTemplate: () => (/* binding */ createElementFromTemplate),
 /* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector),
 /* harmony export */   validateValue: () => (/* binding */ validateValue)
 /* harmony export */ });
@@ -1654,6 +1655,11 @@ function validateValue(type, value) {
     _iterator.f();
   }
   return overallValid;
+}
+function createElementFromTemplate(template) {
+  var div = document.createElement('div');
+  div.innerHTML = template;
+  return div.children[0] || null;
 }
 
 /***/ }),

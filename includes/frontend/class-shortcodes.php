@@ -96,17 +96,6 @@ class Shortcodes extends Base {
 			);
 		}
 
-		// Recurring: add when campaign has recurring enabled.
-		$recurring_enabled = get_post_meta( $campaign_id, '_recurring', true );
-		if ( $recurring_enabled ) {
-			$donation_types[] = array(
-				'name'        => 'recurring',
-				'icon'        => '',
-				'label'       => __( 'Recurring Donation', 'giftflow' ),
-				'description' => __( 'Set up an automatic repeating donation. You can change or cancel your recurring donation whenever you need.', 'giftflow' ),
-			);
-		}
-
 		// Recurring options from campaign (for form display and submission).
 		$recurring_interval       = get_post_meta( $campaign_id, '_recurring_interval', true );
 		$recurring_number_of_times = absint( get_post_meta( $campaign_id, '_recurring_number_of_times', true ) );

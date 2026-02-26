@@ -23,6 +23,7 @@ if ( count( $donation_types ) === 0 ) {
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $no_payment_methods = count( $gateways ) === 0;
 
+// is user logged in.
 ?>
 
 <form class="donation-form" id="donation-form-<?php echo esc_attr( $campaign_id ); ?>">
@@ -91,7 +92,7 @@ $no_payment_methods = count( $gateways ) === 0;
 					);
 					?>
 						">
-						<legend class="donation-form__legend"><?php esc_html_e( 'Donation One-time or Monthly', 'giftflow' ); ?></legend>
+						<legend class="donation-form__legend"><?php esc_html_e( 'Donation One-time or Recurring', 'giftflow' ); ?></legend>
 						<div class="donation-form__radio-group donation-form__radio-group--donation-type" role="radiogroup" aria-label="<?php esc_attr_e( 'Donation type', 'giftflow' ); ?>">
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
@@ -211,7 +212,7 @@ $no_payment_methods = count( $gateways ) === 0;
 
 							<?php do_action( 'giftflow_donation_form_before_donor_information' ); ?>
 
-							<div class="donation-form__field">
+							<div class="donation-form__field <?php echo is_user_logged_in() ? '__hidden-fieldset' : ''; ?>">
 								<label for="donor_name"><?php esc_html_e( 'Full Name', 'giftflow' ); ?></label>
 								<input type="text" id="donor_name" name="donor_name" value="<?php echo esc_attr( $user_fullname ); ?>" required data-validate="required" <?php echo $user_info_readonly ? 'readonly' : ''; ?>>
 
@@ -221,7 +222,8 @@ $no_payment_methods = count( $gateways ) === 0;
 									<?php esc_html_e( 'This field is required, please enter your name', 'giftflow' ); ?>
 								</div> 
 							</div>
-							<div class="donation-form__field">
+
+							<div class="donation-form__field <?php echo is_user_logged_in() ? '__hidden-fieldset' : ''; ?>">
 								<label for="donor_email"><?php esc_html_e( 'Email Address', 'giftflow' ); ?></label>
 								<input type="email" id="donor_email" name="donor_email" value="<?php echo esc_attr( $user_email ); ?>" required data-validate="email" <?php echo $user_info_readonly ? 'readonly' : ''; ?>>
 
@@ -231,6 +233,11 @@ $no_payment_methods = count( $gateways ) === 0;
 									<?php esc_html_e( 'This field is required, please enter your email', 'giftflow' ); ?>
 								</div> 
 							</div>
+
+							<?php
+							giftflow_render_current_user_info();
+							?>
+
 							<div class="donation-form__field">
 								<label for="donor_message"><?php esc_html_e( 'Message (Optional)', 'giftflow' ); ?></label>
 								<textarea id="donor_message" name="donor_message"></textarea>
@@ -261,13 +268,23 @@ $no_payment_methods = count( $gateways ) === 0;
 					<!-- Payment Methods -->
 					<fieldset class="donation-form__fieldset">
 						<legend class="donation-form__legend"><?php esc_html_e( 'Select Payment Method', 'giftflow' ); ?></legend>
+
 						<div class="donation-form__payment-methods">
 							<?php
 							if ( ! empty( $gateways ) ) {
 								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 								foreach ( $gateways as $method ) {
 									if ( $method->is_enabled() ) {
-										echo '<div class="donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . '">';
+										// get supports.
+										$supports = $method->get_supports();
+
+										// recurring.
+										$recurring_class = in_array( 'recurring', $supports, true ) ? 'recurring-support' : '';
+
+										// class.
+										$classes = 'donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . ' ' . esc_attr( $recurring_class );
+
+										echo '<div class="' . esc_attr( $classes ) . '" data-gateway="' . esc_attr( $method->get_id() ) . '">';
 										$method->template_html();
 										echo '</div>';
 									}
@@ -292,6 +309,12 @@ $no_payment_methods = count( $gateways ) === 0;
 					<div class="donation-form__summary">
 						<h3 class="donation-form__summary-title"><?php esc_html_e( 'Donation Summary', 'giftflow' ); ?></h3>
 						<dl class="donation-form__summary-list">
+							
+							<div class="donation-form__summary-item">
+								<dt><?php esc_html_e( 'Campaign', 'giftflow' ); ?></dt>
+								<dd><?php echo esc_html( $campaign_title ); ?></dd>
+							</div>
+
 							<div class="donation-form__summary-item">
 								<dt><?php esc_html_e( 'Amount', 'giftflow' ); ?></dt>
 								<dd class="donation-form__summary-amount gfw-monofont" data-output="donation_amount" data-format-template="<?php echo esc_attr( $currency_format_template ); ?>"></dd>
@@ -302,9 +325,11 @@ $no_payment_methods = count( $gateways ) === 0;
 									<?php echo esc_html( $user_email ); ?>
 								</dd>
 							</div>
+
+							<!-- Donation type -->
 							<div class="donation-form__summary-item">
-								<dt><?php esc_html_e( 'Campaign', 'giftflow' ); ?></dt>
-								<dd><?php echo esc_html( $campaign_title ); ?></dd>
+								<dt><?php esc_html_e( 'Donation Type', 'giftflow' ); ?></dt>
+								<dd class="donation-form__summary-donation-type" data-output="donation_type" data-format-template="<span class='gfw-tag-status status-completed'>{{value}}</span>"></dd>
 							</div>
 						</dl>
 					</div>

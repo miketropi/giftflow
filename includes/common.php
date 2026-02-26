@@ -1387,3 +1387,51 @@ function giftflow_render_time_ago( $datetime ) {
 
 	return __( 'just now', 'giftflow' );
 }
+
+/**
+ * Render current user info as a template tag (avatar, name, email).
+ *
+ * @return string HTML markup with avatar, name, and email of the current user, or empty string if not logged in.
+ */
+function giftflow_render_current_user_info() {
+	if ( ! is_user_logged_in() ) {
+		return '';
+	}
+
+	$current_user = wp_get_current_user();
+	$avatar       = get_avatar( $current_user->ID, 48 );
+	$name         = trim( $current_user->first_name . ' ' . $current_user->last_name );
+	if ( empty( $name ) || ' ' === $name ) {
+		$name = $current_user->display_name;
+	}
+	$email = $current_user->user_email;
+
+	// Attempt to get donor my account url.
+	$my_account_url = giftflow_donor_account_page_url( 'my-account' );
+	?>
+	<div class="giftflow-user-info">
+		<span class="giftflow-user-avatar"><?php echo wp_kses_post( $avatar ); ?></span>
+		<div>
+			<span class="giftflow-user-name"><?php echo esc_html( $name ); ?></span>
+			<span class="giftflow-user-email">&lt;<?php echo esc_html( $email ); ?>&gt;</span>
+		</div>
+		<?php if ( $my_account_url ) : ?>
+			<a href="<?php echo esc_url( $my_account_url ); ?>" class="giftflow-my-donor-profile-link">
+				<?php echo wp_kses( giftflow_svg_icon( 'user' ), giftflow_allowed_svg_tags() ); ?>
+				<?php esc_html_e( 'My Donor Profile', 'giftflow' ); ?>
+			</a>
+		<?php endif; ?>
+		</div>
+	<?php
+}
+
+
+
+
+
+
+
+
+
+
+

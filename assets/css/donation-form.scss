@@ -355,6 +355,24 @@ $mobile: 480px;
     .donation-form__radio-option input[type="radio"]:checked + & {
       background-color: rgba(0, 0, 0, 0.04);
       border-left-color: $primary-color;
+
+      .donation-form__radio-option-title {
+        
+        &:after {
+          content: "Selected";
+          display: inline-block;
+          padding: .2em 0.65em;
+          margin-left: 0.25em;
+          font-size: 0.75em;
+          border-radius: 1em;
+          background-color: var(--giftflow-primary-color);
+          color: #fff;
+          font-weight: 600;
+          height: auto;
+          line-height: 1.5;
+          vertical-align: middle;
+        }
+      }
     }
   }
 
@@ -601,8 +619,8 @@ $mobile: 480px;
   }
 
   &__checkbox-label {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     gap: 0.5rem;
     cursor: pointer;
 
@@ -624,6 +642,22 @@ $mobile: 480px;
     background-color: #f9f9f9;
     border-radius: $border-radius;
     border: 1px solid $border-color;
+
+    &.gfw-disabled-payment-gateway {
+      opacity: 0.3;
+      pointer-events: none;
+      cursor: not-allowed;
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+    }
 
     &:not(.is-active) {
       
@@ -788,6 +822,7 @@ $mobile: 480px;
         background: #f0f0f0;
         color: #b0b0b0;
         cursor: not-allowed;
+        pointer-events: none;
       }
 
       &:hover {

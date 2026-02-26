@@ -129,3 +129,9 @@ export function validateValue(type, value, extraData = null) {
 
   return overallValid;
 }
+
+export function createElementFromTemplate(template) {
+  const div = document.createElement('div');
+  div.innerHTML = template;
+  return div.children[0] || null;
+}
