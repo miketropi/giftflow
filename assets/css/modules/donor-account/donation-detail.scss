@@ -1,216 +1,362 @@
-.gfw-donation-detail-actions {
-  margin-bottom: 2rem;
-  font-size: .9rem;
+// Donation detail page (single donation view in donor account)
+// Scoped under .gfw-donation-detail-page
+
+// -----------------------------------------------------------------------------
+// Variables
+// -----------------------------------------------------------------------------
+$gfw-detail-border: 1px solid #e5e7eb;
+$gfw-detail-border-light: 1px solid #f1f5f9;
+$gfw-detail-radius: 8px;
+$gfw-detail-radius-sm: 6px;
+$gfw-detail-bg: #f8fafc;
+$gfw-detail-bg-card: #ffffff;
+$gfw-detail-text: #1e293b;
+$gfw-detail-text-muted: #64748b;
+$gfw-detail-link: #0f172a;
+$gfw-detail-primary: #0f172a;
+$gfw-detail-primary-hover: #334155;
+$gfw-detail-success: #15803d;
+$gfw-detail-success-bg: #dcfce7;
+$gfw-detail-warning: #b45309;
+$gfw-detail-warning-bg: #fef3c7;
+$gfw-detail-pending: #6366f1;
+$gfw-detail-pending-bg: #e0e7ff;
+$gfw-detail-failed: #b91c1c;
+$gfw-detail-failed-bg: #fee2e2;
+$gfw-detail-refunded: #b45309;
+$gfw-detail-refunded-bg: #fef3c7;
+$gfw-detail-cancelled: #64748b;
+$gfw-detail-cancelled-bg: #f1f5f9;
+
+// -----------------------------------------------------------------------------
+// Layout
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-page {
+  // max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  color: $gfw-detail-text;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-// Donation Detail View Styles - Clean & Simple
-.gfw-my-donations-detail {
-  // max-width: 700px;
-  margin: 0 auto;
+// -----------------------------------------------------------------------------
+// Nav / Back link
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-nav {
+  margin-bottom: 1.5rem;
+}
 
-  // Header Section
-  .gfw-donation-detail-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+.gfw-donation-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: $gfw-detail-text-muted;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
 
-    .gfw-donation-detail-title {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #1a1a1a;
-    }
-
-    .gfw-donation-detail-meta {
-      display: flex;
-      gap: 1rem;
-      opacity: 0.6;
-
-      .gfw-donation-id {
-        font-family: monospace;
-        font-size: 0.9rem;
-      }
-
-      .gfw-donation-date {
-        font-family: monospace;
-        font-size: 0.9rem;
-      }
-    }
+  &:hover {
+    color: $gfw-detail-text;
   }
 
-  // Content Section
-  .gfw-donation-detail-content {
-    margin-bottom: 2rem;
+  svg {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+  }
+}
 
-    // Amount & Status Section
-    .gfw-donation-detail-amount-section {
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 1px;
+// -----------------------------------------------------------------------------
+// Header (title, campaign, date)
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: $gfw-detail-border;
+}
 
-      .gfw-amount-display {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
+.gfw-donation-detail-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: $gfw-detail-text;
+  line-height: 1.3;
+}
 
-        .gfw-amount {
-          // font-size: 1.8rem;
-          font-weight: bold;
-          font-family: monospace;
-          // color: #1a1a1a;
-        }
+.gfw-donation-detail-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: $gfw-detail-text-muted;
+}
 
-        .donation-status {
-          display: inline-block;
-          padding: 0.25em 0.75em;
-          font-size: 0.8em;
-          border-radius: 16px;
-          // font-weight: 500;
-          background: #f3f4f6;
-          // color: #444;
-          border: 1px solid #e5e7eb;
-          vertical-align: middle;
-          text-transform: capitalize;
-          transition: background 0.15s, color 0.15s, border 0.15s;
-          font-family: monospace;
+.gfw-donation-detail-campaign {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9375rem;
+  color: $gfw-detail-text-muted;
 
-          &.status-completed {
-            background: #e6f9ed;
-            color: #15803d;
-            border-color: #bbf7d0;
-          }
+  .gfw-donation-detail-campaign-link {
+    color: $gfw-detail-link;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease;
 
-          &.status-refunded {
-            background: #fef3c7;
-            color: #b45309;
-            border-color: #fde68a;
-          }
-
-          &.status-pending {
-            background: #f3f4f6;
-            color: #6366f1;
-            border-color: #c7d2fe;
-          }
-
-          &.status-failed {
-            background: #fee2e2;
-            color: #b91c1c;
-            border-color: #fecaca;
-          }
-        }
-      }
-    }
-
-    // Details Grid
-    .gfw-donation-detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-
-      @media (max-width: 600px) {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
+    &:hover {
+      color: $gfw-detail-primary-hover;
     }
   }
+}
 
-  // Actions Section
-  .gfw-donation-detail-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
+.gfw-donation-detail-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $gfw-detail-text-muted;
+}
 
-    .gfw-view-detail-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.2em;
-      text-decoration: none;
-      border-bottom: 2px solid;
-      color: #1a1a1a;
-      font-weight: 500;
-      transition: opacity 0.2s ease;
+.gfw-donation-detail-date {
+  font-family: ui-monospace, monospace;
+}
 
-      &:hover {
-        opacity: 0.5;
-      }
-    }
+// -----------------------------------------------------------------------------
+// Summary card (amount + status)
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-summary {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: $gfw-detail-bg;
+  border: $gfw-detail-border-light;
+  border-radius: $gfw-detail-radius;
+}
+
+.gfw-donation-detail-amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.gfw-donation-detail-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: $gfw-detail-text;
+  letter-spacing: -0.02em;
+}
+
+.gfw-donation-detail-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.75em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+
+  &.status-completed {
+    background: $gfw-detail-success-bg;
+    color: $gfw-detail-success;
   }
+
+  &.status-pending {
+    background: $gfw-detail-pending-bg;
+    color: $gfw-detail-pending;
+  }
+
+  &.status-failed {
+    background: $gfw-detail-failed-bg;
+    color: $gfw-detail-failed;
+  }
+
+  &.status-refunded {
+    background: $gfw-detail-refunded-bg;
+    color: $gfw-detail-refunded;
+  }
+
+  &.status-cancelled {
+    background: $gfw-detail-cancelled-bg;
+    color: $gfw-detail-cancelled;
+  }
+}
+
+.gfw-donation-detail-summary-meta {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: $gfw-detail-border-light;
+  font-size: 0.875rem;
+  color: $gfw-detail-text-muted;
+
+  span + span::before {
+    content: " · ";
+    margin: 0 0.25rem;
+  }
+}
+
+.gfw-donation-detail-type {
+  text-transform: capitalize;
+}
+
+// -----------------------------------------------------------------------------
+// Details section + table
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.gfw-donation-detail-section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $gfw-detail-text;
 }
 
 .gfw-donation-detail-table {
   width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  font-size: .9rem;
-  margin: 0 0 2rem 0;
+  // border-collapse: collapse;
+  font-size: 0.9375rem;
+  background: $gfw-detail-bg-card;
+  border: $gfw-detail-border-light;
+  border-radius: $gfw-detail-radius;
   overflow: hidden;
-  border: 1px solid #f0f0f0;
 
-  th, td {
-    padding: 1em;
+  th,
+  td {
+    padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
-    background: none;
-    font-weight: normal;
+    border-bottom: $gfw-detail-border-light;
     vertical-align: top;
   }
 
-  th {
-    background: #f8fafc;
-    font-weight: 600;
-    font-size: 1;
-    color: #1a1a1a;
-    border-bottom: 2px solid #e5e7eb;
-    letter-spacing: 0;
-    text-align: left;
-  }
-
-  tr:first-child th {
-    
-    border-bottom: 1px solid #e5e7eb;
-    font-size: 1.1em;
-    text-align: left;
-    padding-top: 1em;
-    padding-bottom: 1em;
-  }
-
+  tr:last-child th,
   tr:last-child td {
     border-bottom: none;
   }
 
-  .gfw-detail-label {
+  .gfw-donation-detail-label {
+    width: 40%;
+    max-width: 160px;
     font-weight: 500;
-    width: 160px;
+    color: $gfw-detail-text-muted;
+    // background: $gfw-detail-bg;
   }
 
-  .gfw-detail-value {
+  .gfw-donation-detail-value {
     font-weight: 400;
-    font-size: 1em;
+    color: $gfw-detail-text;
     word-break: break-word;
   }
 
-  .gfw-donation-date {
-    font-family: monospace;
+  .gfw-donation-detail-email {
+    font-family: ui-monospace, monospace;
     font-size: 0.9em;
   }
 
-  @media (max-width: 600px) {
-    font-size: 0.9em;
+  .gfw-donation-detail-message {
+    white-space: pre-wrap;
+    max-width: 100%;
+  }
 
-    th, td {
-      padding: 0.7em 0.7em;
+  .gfw-donation-detail-date {
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Actions (footer)
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: $gfw-detail-border;
+}
+
+.gfw-donation-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: $gfw-detail-radius-sm;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  svg {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+  }
+}
+
+.gfw-donation-detail-btn-back {
+  color: $gfw-detail-text-muted;
+  background: transparent;
+
+  &:hover {
+    color: $gfw-detail-text;
+    background: $gfw-detail-bg;
+  }
+}
+
+.gfw-donation-detail-btn-primary {
+  color: #fff;
+  background: $gfw-detail-primary;
+
+  &:hover {
+    background: $gfw-detail-primary-hover;
+    color: #fff;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Responsive
+// -----------------------------------------------------------------------------
+@media (max-width: 600px) {
+  .gfw-donation-detail-page {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .gfw-donation-detail-title {
+    font-size: 1.25rem;
+  }
+
+  .gfw-donation-detail-summary {
+    padding: 1rem 1.25rem;
+  }
+
+  .gfw-donation-detail-amount {
+    font-size: 1.25rem;
+  }
+
+  .gfw-donation-detail-table {
+    font-size: 0.875rem;
+
+    th,
+    td {
+      padding: 0.6rem 0.75rem;
     }
-    .gfw-detail-label {
-      width: 110px;
-      font-size: 0.9em;
+
+    .gfw-donation-detail-label {
+      max-width: 120px;
+    }
+  }
+
+  .gfw-donation-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .gfw-donation-detail-btn {
+      justify-content: center;
     }
   }
 }

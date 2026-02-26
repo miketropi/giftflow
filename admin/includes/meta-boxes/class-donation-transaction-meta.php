@@ -45,13 +45,7 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			'status'               => array(
 				'label'       => __( 'Status', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'pending'   => __( 'Pending', 'giftflow' ),
-					'completed' => __( 'Completed', 'giftflow' ),
-					'failed'    => __( 'Failed', 'giftflow' ),
-					'refunded'  => __( 'Refunded', 'giftflow' ),
-					'cancelled' => __( 'Cancelled', 'giftflow' ),
-				),
+				'options'     => giftflow_get_donation_status_options(),
 				'description' => __( 'Select the status of the donation', 'giftflow' ),
 			),
 

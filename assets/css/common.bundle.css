@@ -1732,250 +1732,499 @@
   }
 }
 
+.gfw-my-donations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.gfw-my-donations-table thead {
+  background: #f8fafc;
+}
+.gfw-my-donations-table thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1e293b;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.8125rem;
+  text-transform: none;
+}
+.gfw-my-donations-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+.gfw-my-donations-table tbody tr:last-child td {
+  border-bottom: none;
+}
 .gfw-my-donations-table .giftflow-currency-formatted-amount {
-  font-weight: bold;
-  font-family: monospace;
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  color: #1e293b;
 }
 .gfw-my-donations-table .gfw-campaign-title-link {
   font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+}
+.gfw-my-donations-table .gfw-campaign-title-link svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  margin-left: 0.2em;
+  color: #64748b;
+}
+.gfw-my-donations-table .gfw-campaign-title-link:hover svg {
+  color: #1e293b;
 }
 .gfw-my-donations-table .gfw-donation-date {
-  font-family: monospace;
-  opacity: 0.8;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  color: #64748b;
 }
 
 .gfw-my-donations-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+.gfw-my-donations-header .gfw-donor-account__title {
+  margin: 0 0 0.35rem 0;
+}
+.gfw-my-donations-header .gfw-my-donations-desc {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.5;
 }
 
 .gfw-view-detail-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.2em;
+  font-size: 0.875rem;
+  font-weight: 500;
   text-decoration: none;
-  border-bottom: 2px solid;
+  color: #1e293b;
+  border-bottom: 1px solid currentColor;
+  transition: opacity 0.15s ease;
 }
 .gfw-view-detail-link:hover {
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .donation-status {
   display: inline-block;
-  padding: 0.25em 0.75em;
-  font-size: 0.8em;
-  border-radius: 16px;
+  padding: 0.2em 0.6em;
+  font-size: 0.75rem;
   font-weight: 500;
-  background: #f3f4f6;
-  color: #444;
-  border: 1px solid #e5e7eb;
-  vertical-align: middle;
+  border-radius: 9999px;
   text-transform: capitalize;
-  transition: background 0.15s, color 0.15s, border 0.15s;
-  font-family: monospace;
+  white-space: nowrap;
 }
 .donation-status.status-completed {
-  background: #e6f9ed;
+  background: #dcfce7;
   color: #15803d;
-  border-color: #bbf7d0;
 }
 .donation-status.status-refunded {
   background: #fef3c7;
   color: #b45309;
-  border-color: #fde68a;
 }
 .donation-status.status-pending {
-  background: #f3f4f6;
-  color: #6366f1;
-  border-color: #c7d2fe;
+  background: #e0e7ff;
+  color: #4f46e5;
 }
 .donation-status.status-failed {
   background: #fee2e2;
   color: #b91c1c;
-  border-color: #fecaca;
+}
+.donation-status.status-cancelled {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
-.gfw-donation-detail-actions {
-  margin-bottom: 2rem;
-  font-size: 0.9rem;
+.gfw-my-donations-sub-row {
+  background: #f1f5f9;
+}
+.gfw-my-donations-sub-row .gfw-my-donations-sub-cell {
+  padding: 0.5rem 1rem 0.75rem 1.5rem;
+  border-top: none;
+  vertical-align: top;
 }
 
-.gfw-my-donations-detail {
-  margin: 0 auto;
+.gfw-my-donations-sub-details {
+  font-size: 0.875rem;
 }
-.gfw-my-donations-detail .gfw-donation-detail-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+.gfw-my-donations-sub-details[open] .gfw-my-donations-sub-summary::before {
+  transform: rotate(90deg);
 }
-.gfw-my-donations-detail .gfw-donation-detail-header .gfw-donation-detail-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-.gfw-my-donations-detail .gfw-donation-detail-header .gfw-donation-detail-meta {
-  display: flex;
-  gap: 1rem;
-  opacity: 0.6;
-}
-.gfw-my-donations-detail .gfw-donation-detail-header .gfw-donation-detail-meta .gfw-donation-id {
-  font-family: monospace;
-  font-size: 0.9rem;
-}
-.gfw-my-donations-detail .gfw-donation-detail-header .gfw-donation-detail-meta .gfw-donation-date {
-  font-family: monospace;
-  font-size: 0.9rem;
-}
-.gfw-my-donations-detail .gfw-donation-detail-content {
-  margin-bottom: 2rem;
-}
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 1px;
-}
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display {
+
+.gfw-my-donations-sub-summary {
+  cursor: pointer;
+  list-style: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.35rem;
+  padding: 0.25rem 0;
+  color: #64748b;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .gfw-amount {
-  font-weight: bold;
-  font-family: monospace;
+.gfw-my-donations-sub-summary::-webkit-details-marker, .gfw-my-donations-sub-summary::marker {
+  display: none;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .donation-status {
+.gfw-my-donations-sub-summary::before {
+  content: "";
   display: inline-block;
-  padding: 0.25em 0.75em;
-  font-size: 0.8em;
-  border-radius: 16px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  vertical-align: middle;
-  text-transform: capitalize;
-  transition: background 0.15s, color 0.15s, border 0.15s;
-  font-family: monospace;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid currentColor;
+  transition: transform 0.15s ease;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .donation-status.status-completed {
-  background: #e6f9ed;
-  color: #15803d;
-  border-color: #bbf7d0;
+.gfw-my-donations-sub-summary:hover {
+  color: #1e293b;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .donation-status.status-refunded {
-  background: #fef3c7;
-  color: #b45309;
-  border-color: #fde68a;
+
+.gfw-my-donations-sub-summary-text {
+  font-weight: 500;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .donation-status.status-pending {
-  background: #f3f4f6;
-  color: #6366f1;
-  border-color: #c7d2fe;
+
+.gfw-my-donations-sub-list {
+  margin: 0.5rem 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 0.75rem;
 }
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-amount-section .gfw-amount-display .donation-status.status-failed {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fecaca;
-}
-.gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-@media (max-width: 600px) {
-  .gfw-my-donations-detail .gfw-donation-detail-content .gfw-donation-detail-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-.gfw-my-donations-detail .gfw-donation-detail-actions {
+
+.gfw-my-donations-sub-item {
   display: flex;
-  gap: 1rem;
-  justify-content: space-between;
   flex-wrap: wrap;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.35rem 0;
+  font-size: 0.8125rem;
 }
-.gfw-my-donations-detail .gfw-donation-detail-actions .gfw-view-detail-link {
+.gfw-my-donations-sub-item:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+.gfw-my-donations-sub-item .gfw-my-donations-sub-id {
+  font-family: ui-monospace, monospace;
+  color: #64748b;
+}
+.gfw-my-donations-sub-item .gfw-my-donations-sub-amount {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+.gfw-my-donations-sub-item .gfw-my-donations-sub-date {
+  font-family: ui-monospace, monospace;
+  color: #64748b;
+}
+
+.gfw-pagination {
+  margin-top: 1.5rem;
+}
+
+.gfw-no-donations {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.gfw-my-donations-table-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gfw-donation-detail-page {
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  color: #1e293b;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.gfw-donation-detail-nav {
+  margin-bottom: 1.5rem;
+}
+
+.gfw-donation-detail-back {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.2em;
+  gap: 0.35rem;
+  color: #64748b;
   text-decoration: none;
-  border-bottom: 2px solid;
-  color: #1a1a1a;
+  font-size: 0.9375rem;
   font-weight: 500;
-  transition: opacity 0.2s ease;
+  transition: color 0.15s ease;
 }
-.gfw-my-donations-detail .gfw-donation-detail-actions .gfw-view-detail-link:hover {
-  opacity: 0.5;
+.gfw-donation-detail-back:hover {
+  color: #1e293b;
+}
+.gfw-donation-detail-back svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.gfw-donation-detail-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gfw-donation-detail-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.gfw-donation-detail-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.gfw-donation-detail-campaign {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+.gfw-donation-detail-campaign .gfw-donation-detail-campaign-link {
+  color: #0f172a;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+.gfw-donation-detail-campaign .gfw-donation-detail-campaign-link:hover {
+  color: #334155;
+}
+
+.gfw-donation-detail-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.gfw-donation-detail-date {
+  font-family: ui-monospace, monospace;
+}
+
+.gfw-donation-detail-summary {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+}
+
+.gfw-donation-detail-amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.gfw-donation-detail-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+}
+
+.gfw-donation-detail-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.75em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.gfw-donation-detail-status.status-completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+.gfw-donation-detail-status.status-pending {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+.gfw-donation-detail-status.status-failed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.gfw-donation-detail-status.status-refunded {
+  background: #fef3c7;
+  color: #b45309;
+}
+.gfw-donation-detail-status.status-cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.gfw-donation-detail-summary-meta {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+.gfw-donation-detail-summary-meta span + span::before {
+  content: " · ";
+  margin: 0 0.25rem;
+}
+
+.gfw-donation-detail-type {
+  text-transform: capitalize;
+}
+
+.gfw-donation-detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.gfw-donation-detail-section-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .gfw-donation-detail-table {
   width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  font-size: 0.9rem;
-  margin: 0 0 2rem 0;
+  font-size: 0.9375rem;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #f0f0f0;
 }
-.gfw-donation-detail-table th, .gfw-donation-detail-table td {
-  padding: 1em;
+.gfw-donation-detail-table th,
+.gfw-donation-detail-table td {
+  padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-  background: none;
-  font-weight: normal;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: top;
 }
-.gfw-donation-detail-table th {
-  background: #f8fafc;
-  font-weight: 600;
-  font-size: 1;
-  color: #1a1a1a;
-  border-bottom: 2px solid #e5e7eb;
-  letter-spacing: 0;
-  text-align: left;
-}
-.gfw-donation-detail-table tr:first-child th {
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 1.1em;
-  text-align: left;
-  padding-top: 1em;
-  padding-bottom: 1em;
-}
+.gfw-donation-detail-table tr:last-child th,
 .gfw-donation-detail-table tr:last-child td {
   border-bottom: none;
 }
-.gfw-donation-detail-table .gfw-detail-label {
+.gfw-donation-detail-table .gfw-donation-detail-label {
+  width: 40%;
+  max-width: 160px;
   font-weight: 500;
-  width: 160px;
+  color: #64748b;
 }
-.gfw-donation-detail-table .gfw-detail-value {
+.gfw-donation-detail-table .gfw-donation-detail-value {
   font-weight: 400;
-  font-size: 1em;
+  color: #1e293b;
   word-break: break-word;
 }
-.gfw-donation-detail-table .gfw-donation-date {
-  font-family: monospace;
+.gfw-donation-detail-table .gfw-donation-detail-email {
+  font-family: ui-monospace, monospace;
   font-size: 0.9em;
 }
-@media (max-width: 600px) {
-  .gfw-donation-detail-table {
-    font-size: 0.9em;
-  }
-  .gfw-donation-detail-table th, .gfw-donation-detail-table td {
-    padding: 0.7em 0.7em;
-  }
-  .gfw-donation-detail-table .gfw-detail-label {
-    width: 110px;
-    font-size: 0.9em;
-  }
+.gfw-donation-detail-table .gfw-donation-detail-message {
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+.gfw-donation-detail-table .gfw-donation-detail-date {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
 }
 
+.gfw-donation-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.gfw-donation-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.gfw-donation-detail-btn svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.gfw-donation-detail-btn-back {
+  color: #64748b;
+  background: transparent;
+}
+.gfw-donation-detail-btn-back:hover {
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+.gfw-donation-detail-btn-primary {
+  color: #fff;
+  background: #0f172a;
+}
+.gfw-donation-detail-btn-primary:hover {
+  background: #334155;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .gfw-donation-detail-page {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .gfw-donation-detail-title {
+    font-size: 1.25rem;
+  }
+  .gfw-donation-detail-summary {
+    padding: 1rem 1.25rem;
+  }
+  .gfw-donation-detail-amount {
+    font-size: 1.25rem;
+  }
+  .gfw-donation-detail-table {
+    font-size: 0.875rem;
+  }
+  .gfw-donation-detail-table th,
+  .gfw-donation-detail-table td {
+    padding: 0.6rem 0.75rem;
+  }
+  .gfw-donation-detail-table .gfw-donation-detail-label {
+    max-width: 120px;
+  }
+  .gfw-donation-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .gfw-donation-detail-actions .gfw-donation-detail-btn {
+    justify-content: center;
+  }
+}
 .giftflow-donor-account-my-account {
   max-width: 700px;
   margin: 0 auto;
@@ -2192,6 +2441,57 @@
     border-radius: 0;
   }
 }
+.gfw-login-form .gfw-auth-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--giftflow-border-color);
+}
+.gfw-login-form .gfw-auth-tab {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--giftflow-text-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--giftflow-transition);
+}
+.gfw-login-form .gfw-auth-tab:hover {
+  color: var(--giftflow-text-color);
+}
+.gfw-login-form .gfw-auth-tab:focus {
+  outline: none;
+}
+.gfw-login-form .gfw-auth-tab.is-active {
+  color: var(--giftflow-primary-color);
+  border-bottom-color: var(--giftflow-primary-color);
+}
+.gfw-login-form .gfw-auth-panes {
+  margin: 0;
+}
+.gfw-login-form .gfw-auth-pane {
+  margin: 0;
+}
+.gfw-login-form .gfw-form-row {
+  margin: 0 0 1.25rem 0;
+}
+.gfw-login-form .gfw-form-row:last-of-type, .gfw-login-form .gfw-form-row--submit {
+  margin-bottom: 0;
+}
+.gfw-login-form .gfw-form-row--submit {
+  margin-top: 1.5rem;
+}
+.gfw-login-form .gfw-lostpassword-form,
+.gfw-login-form .gfw-register-form {
+  margin: 0;
+}
 .gfw-login-form form {
   margin: 0;
 }
@@ -2365,6 +2665,113 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   border-radius: 2px;
 }
 
+.gfw-donations-filter-form {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+}
+
+.gfw-donations-filter-form__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.gfw-donations-filter-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.gfw-donations-filter-form__label {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.gfw-donations-filter-form__input,
+.gfw-donations-filter-form__select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.gfw-donations-filter-form__input:focus,
+.gfw-donations-filter-form__select:focus {
+  outline: none;
+  border-color: #0f172a;
+}
+
+.gfw-donations-filter-form__select {
+  cursor: pointer;
+  -webkit-appearance: auto;
+     -moz-appearance: auto;
+          appearance: auto;
+}
+
+.gfw-donations-filter-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gfw-donations-filter-form__submit {
+  padding: 0.45rem 1rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: #fff;
+  background: #0f172a;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.gfw-donations-filter-form__submit svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  color: #fff;
+}
+.gfw-donations-filter-form__submit:hover {
+  background: #334155;
+}
+
+.gfw-donations-filter-form__clear {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.gfw-donations-filter-form__clear:hover {
+  color: #1e293b;
+}
+
+@media (max-width: 600px) {
+  .gfw-donations-filter-form {
+    padding: 0.875rem 1rem;
+  }
+  .gfw-donations-filter-form__fields {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
 .gfw-donor-account__title {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
@@ -2737,4 +3144,32 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }
+}
+
+.gfw-tag-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.gfw-tag-status.status-active {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+}
+.gfw-tag-status.status-completed {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+.gfw-tag-status.status-pending {
+  background-color: #fff8e1;
+  color: #f57c00;
+}
+.gfw-tag-status.status-closed {
+  background-color: #f5f5f5;
+  color: #757575;
+}
+.gfw-tag-status.status-unknown {
+  background-color: #f5f5f5;
+  color: var(--giftflow-text-light);
 }

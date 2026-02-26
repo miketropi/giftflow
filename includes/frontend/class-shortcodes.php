@@ -92,7 +92,7 @@ class Shortcodes extends Base {
 				'name'        => 'one-time',
 				'icon'        => '',
 				'label'       => __( 'One-time Donation', 'giftflow' ),
-				'description' => __( 'Make a single donation', 'giftflow' ),
+				'description' => __( 'Start with a single, one-time contribution — quick, simple, and secure. Thank you for making a difference!', 'giftflow' ),
 			);
 		}
 
@@ -103,7 +103,7 @@ class Shortcodes extends Base {
 				'name'        => 'recurring',
 				'icon'        => '',
 				'label'       => __( 'Recurring Donation', 'giftflow' ),
-				'description' => __( 'Give automatically on a schedule', 'giftflow' ),
+				'description' => __( 'Set up an automatic repeating donation. You can change or cancel your recurring donation whenever you need.', 'giftflow' ),
 			);
 		}
 

@@ -673,6 +673,8 @@ function giftflow_get_donation_data_by_id( $donation_id ) {
 
 	$donation_data->status = get_post_meta( $donation_id, '_status', true );
 	$donation_data->payment_method = get_post_meta( $donation_id, '_payment_method', true );
+	$payment_methods_options = giftflow_get_payment_methods_options();
+	$donation_data->payment_method_label = $payment_methods_options[ $donation_data->payment_method ] ?? $donation_data->payment_method;
 
 	// donation type.
 	$donation_data->donation_type = get_post_meta( $donation_id, '_donation_type', true );
@@ -838,67 +840,203 @@ function giftflow_get_donor_data_by_id( $donor_id = 0 ) {
 /**
  * Query donations by donor id, use wp_query
  *
- * @param string $donor_id Donor ID.
- * @param int $page Page number.
- * @param int $per_page Per page.
+ * @param string|int $donor_id Donor ID.
+ * @param int        $page Page number.
+ * @param int        $per_page Per page.
+ * @param array      $filters Optional. Filter by date/status/payment: date_from (Y-m-d), date_to (Y-m-d), status, payment_method.
  * @return WP_Query Donations.
  */
-function giftflow_query_donation_by_donor_id( $donor_id, $page = 1, $per_page = 20 ) {
-	$donations = new WP_Query(
+function giftflow_query_donation_by_donor_id( $donor_id, $page = 1, $per_page = 20, $filters = array() ) {
+	// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+	$meta_query = array(
+		'relation' => 'AND',
 		array(
-			'post_type' => 'donation',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'meta_key' => '_donor_id',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			'meta_value' => $donor_id,
-			'posts_per_page' => $per_page,
-			'paged' => $page,
-			'orderby' => 'date',
-			'order' => 'DESC',
-			'post_status' => 'publish',
-		)
+			'key'   => '_donor_id',
+			'value' => $donor_id,
+		),
+		// _is_subscription_parent = 1
+		array(
+			'relation' => 'OR',
+			array(
+				'key'   => '_donation_type',
+				'value' => 'one-time',
+				'compare' => '=',
+			),
+			array(
+				'key'   => '_is_subscription_parent',
+				'value' => 1,
+			),
+		),
 	);
+
+	if ( ! empty( $filters['status'] ) ) {
+		$meta_query[] = array(
+			'key'   => '_status',
+			'value' => sanitize_text_field( $filters['status'] ),
+		);
+	}
+	if ( ! empty( $filters['payment_method'] ) ) {
+		$meta_query[] = array(
+			'key'   => '_payment_method',
+			'value' => sanitize_text_field( $filters['payment_method'] ),
+		);
+	}
+
+	$date_query = array();
+	if ( ! empty( $filters['date_from'] ) || ! empty( $filters['date_to'] ) ) {
+		$clause = array( 'inclusive' => true );
+		if ( ! empty( $filters['date_from'] ) ) {
+			$clause['after'] = sanitize_text_field( $filters['date_from'] ) . ' 00:00:00';
+		}
+		if ( ! empty( $filters['date_to'] ) ) {
+			$clause['before'] = sanitize_text_field( $filters['date_to'] ) . ' 23:59:59';
+		}
+		$date_query[] = $clause;
+	}
+
+	$query_args = array(
+		'post_type'      => 'donation',
+		'posts_per_page' => $per_page,
+		'paged'          => $page,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		'post_status'    => 'publish',
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		'meta_query'     => $meta_query,
+	);
+
+	if ( ! empty( $date_query ) ) {
+		$query_args['date_query'] = $date_query;
+	}
+
+	$donations = new WP_Query( $query_args );
 
 	return $donations;
 }
 
 /**
- * Get donor id by email.
+ * Get all donations by parent donation id, with optional extra filtering.
+ *
+ * @param int   $parent_donation_id Parent Donation ID.
+ * @param array $filters Optional. Additional meta filters (key => value).
+ * @return array Array of WP_Post objects.
+ */
+function giftflow_get_donations_by_parent_id( $parent_donation_id, $filters = array() ) {
+	$meta_query = array(
+		array(
+			'key'   => '_parent_donation_id',
+			'value' => $parent_donation_id,
+		),
+	);
+
+	// Support for optional meta filters (key => value).
+	if ( ! empty( $filters ) && is_array( $filters ) ) {
+		foreach ( $filters as $meta_key => $meta_value ) {
+			if ( $meta_key && '' !== $meta_value ) {
+				$meta_query[] = array(
+					'key'   => $meta_key,
+					'value' => sanitize_text_field( $meta_value ),
+				);
+			}
+		}
+	}
+
+	$args = array(
+		'post_type'      => 'donation',
+		'posts_per_page' => -1, // Get all.
+		'post_status'    => 'publish',
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		'meta_query'     => $meta_query,
+	);
+
+	return get_posts( $args );
+}
+
+
+/**
+ * Get donor id by email. Creates a new donor if none exists.
  *
  * @param string $email Email.
- * @return int Donor ID.
+ * @return int Donor ID, or 0 if invalid email or creation failed.
  */
 function giftflow_get_donor_id_by_email( $email ) {
-	$donor = get_posts(
+	$email = sanitize_email( $email );
+	if ( ! is_email( $email ) ) {
+		return 0;
+	}
+
+	$donors = get_posts(
 		array(
-			'post_type' => 'donor',
+			'post_type'      => 'donor',
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'meta_key' => '_email',
+			'meta_key'       => '_email',
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			'meta_value' => $email,
+			'meta_value'     => $email,
 			'posts_per_page' => 1,
+			// any status.
+			'post_status'    => 'any',
 		)
 	);
 
-	if ( $donor ) {
-		return $donor[0]->ID;
+	if ( ! empty( $donors ) ) {
+
+		// validate donor status.
+		if ( 'publish' !== $donors[0]->post_status ) {
+			return 0;
+		}
+
+		return (int) $donors[0]->ID;
 	}
 
-	return 0;
+	// Create new donor.
+	$donor_id = wp_insert_post(
+		array(
+			'post_title'  => $email,
+			'post_type'   => 'donor',
+			'post_status' => 'publish',
+		)
+	);
+
+	if ( is_wp_error( $donor_id ) || ! $donor_id ) {
+		return 0;
+	}
+
+	update_post_meta( $donor_id, '_email', $email );
+
+	/**
+	 * Fires after a donor is created by email lookup.
+	 *
+	 * @param int $donor_id Donor ID.
+	 */
+	do_action( 'giftflow_donor_added', $donor_id, array() );
+
+	return (int) $donor_id;
 }
 
 /**
  * Get donations by user id.
  *
- * @param int $user_id User ID.
- * @param int $page Page number.
- * @param int $per_page Per page.
+ * @param int   $user_id User ID.
+ * @param int   $page Page number.
+ * @param int   $per_page Per page.
+ * @param array $filters Optional. Same as giftflow_query_donation_by_donor_id $filters.
  * @return WP_Query Donations.
  */
-function giftflow_get_donations_by_user( $user_id, $page = 1, $per_page = 20 ) {
-	$user_email = get_user_by( 'id', $user_id )->user_email;
-	$donor_id = giftflow_get_donor_id_by_email( $user_email );
-	$donations = giftflow_query_donation_by_donor_id( $donor_id, $page, $per_page );
+function giftflow_get_donations_by_user( $user_id, $page = 1, $per_page = 20, $filters = array() ) {
+	$user_data = get_user_by( 'id', $user_id );
+	if ( ! $user_data ) {
+		return new WP_Query(
+			array(
+				'post_type' => 'donation',
+				'posts_per_page' => $per_page,
+				'post__in' => array( 0 ),
+			)
+		);
+	}
+	$donor_id  = giftflow_get_donor_id_by_email( $user_data->user_email );
+	$donations = giftflow_query_donation_by_donor_id( $donor_id, $page, $per_page, $filters );
 	return $donations;
 }
 
@@ -976,6 +1114,22 @@ function giftflow_get_payment_methods_options() {
 	 * Allow developers to customize the payment methods options.
 	 */
 	return apply_filters( 'giftflow_payment_methods_options', $options );
+}
+
+/**
+ * Get donation status options for filters/selects.
+ *
+ * @return array Status key => label.
+ */
+function giftflow_get_donation_status_options() {
+	$options = array(
+		'pending'   => __( 'Pending', 'giftflow' ),
+		'completed' => __( 'Completed', 'giftflow' ),
+		'failed'    => __( 'Failed', 'giftflow' ),
+		'refunded'  => __( 'Refunded', 'giftflow' ),
+		'cancelled' => __( 'Cancelled', 'giftflow' ),
+	);
+	return apply_filters( 'giftflow_donation_status_options', $options );
 }
 
 /**
@@ -1161,4 +1315,75 @@ function giftflow_sanitize_array( array $data ) {
 	}
 
 	return $sanitized;
+}
+
+/**
+ * My donations table filter form
+ *
+ * @param object $current_user Current user.
+ * @param object $donations Donations.
+ * @param int $page Page number.
+ * @return void
+ */
+function giftflow_my_donations_filter_form( $current_user, $donations, $page ) {
+	// load template donations-filter-form.php.
+	giftflow_load_template(
+		'block/donations-filter-form.php',
+		array(
+			'current_user' => $current_user,
+			'donations' => $donations,
+			'page' => $page,
+		)
+	);
+}
+
+/**
+ * Render a human-friendly "time ago" string from a datetime string.
+ *
+ * @param string $datetime The datetime string to render.
+ * @return string The human-friendly "time ago" string.
+ */
+function giftflow_render_time_ago( $datetime ) {
+	$timestamp = strtotime( $datetime );
+
+	if ( ! $timestamp ) {
+		return __( 'Invalid datetime', 'giftflow' );
+	}
+
+	$now  = time();
+	$diff = $now - $timestamp;
+
+	if ( $diff < 0 ) {
+		return __( 'Invalid datetime', 'giftflow' );
+	}
+
+	// If more than 3 days, show date format normally.
+	if ( $diff > 3 * DAY_IN_SECONDS ) {
+		return $datetime;
+	}
+
+	if ( $diff < 10 ) {
+		return __( 'just now', 'giftflow' );
+	}
+
+	$units = array(
+		'day'    => DAY_IN_SECONDS,
+		'hour'   => HOUR_IN_SECONDS,
+		'minute' => MINUTE_IN_SECONDS,
+		'second' => 1,
+	);
+
+	foreach ( $units as $label => $seconds ) {
+		$value = floor( $diff / $seconds );
+		if ( $value >= 1 ) {
+			return sprintf(
+				/* translators: %1$s: number, %2$s: time unit */
+				__( '%1$s %2$s ago', 'giftflow' ),
+				$value,
+				$value > 1 ? $label . __( 's', 'giftflow' ) : $label
+			);
+		}
+	}
+
+	return __( 'just now', 'giftflow' );
 }

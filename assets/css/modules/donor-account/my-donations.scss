@@ -1,74 +1,259 @@
+// My Donations table + sub-donations
+// Variables (aligned with donor-account)
+$gfw-table-border: 1px solid #e5e7eb;
+$gfw-table-bg: #ffffff;
+$gfw-table-bg-head: #f8fafc;
+$gfw-table-bg-sub: #f1f5f9;
+$gfw-text: #1e293b;
+$gfw-text-muted: #64748b;
+$gfw-radius: 6px;
 
+// -----------------------------------------------------------------------------
+// Main table
+// -----------------------------------------------------------------------------
 .gfw-my-donations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  background: $gfw-table-bg;
+  border: $gfw-table-border;
+  border-radius: $gfw-radius;
+  overflow: hidden;
+
+  thead {
+    background: $gfw-table-bg-head;
+
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: $gfw-text;
+      border-bottom: $gfw-table-border;
+      font-size: 0.8125rem;
+      text-transform: none;
+    }
+  }
+
+  tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: $gfw-table-border;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
   .giftflow-currency-formatted-amount {
-    font-weight: bold;
-    font-family: monospace;
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+    color: $gfw-text;
   }
 
   .gfw-campaign-title-link {
     font-weight: 600;
+    text-decoration: none;
+    color: inherit;
+
+    svg {
+      width: 1em;
+      height: 1em;
+      flex-shrink: 0;
+      margin-left: 0.2em;
+      color: $gfw-text-muted;
+    }
+
+    &:hover svg {
+      color: $gfw-text;
+    }
   }
 
   .gfw-donation-date {
-    font-family: monospace;
-    opacity: .8;
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
+    color: $gfw-text-muted;
   }
 }
 
 .gfw-my-donations-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+
+  .gfw-donor-account__title {
+    margin: 0 0 0.35rem 0;
+  }
+
+  .gfw-my-donations-desc {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: $gfw-text-muted;
+    line-height: 1.5;
+  }
 }
 
 .gfw-view-detail-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: .2em;
+  gap: 0.2em;
+  font-size: 0.875rem;
+  font-weight: 500;
   text-decoration: none;
-  border-bottom: 2px solid;
+  color: $gfw-text;
+  border-bottom: 1px solid currentColor;
+  transition: opacity 0.15s ease;
 
   &:hover {
-    opacity: .5;
+    opacity: 0.7;
   }
 }
 
-
+// -----------------------------------------------------------------------------
+// Status pills
+// -----------------------------------------------------------------------------
 .donation-status {
   display: inline-block;
-  padding: 0.25em 0.75em;
-  font-size: 0.8em;
-  border-radius: 16px;
+  padding: 0.2em 0.6em;
+  font-size: 0.75rem;
   font-weight: 500;
-  background: #f3f4f6;
-  color: #444;
-  border: 1px solid #e5e7eb;
-  vertical-align: middle;
+  border-radius: 9999px;
   text-transform: capitalize;
-  transition: background 0.15s, color 0.15s, border 0.15s;
-  font-family: monospace;
+  white-space: nowrap;
 
   &.status-completed {
-    background: #e6f9ed;
+    background: #dcfce7;
     color: #15803d;
-    border-color: #bbf7d0;
   }
 
   &.status-refunded {
     background: #fef3c7;
     color: #b45309;
-    border-color: #fde68a;
   }
 
   &.status-pending {
-    background: #f3f4f6;
-    color: #6366f1;
-    border-color: #c7d2fe;
+    background: #e0e7ff;
+    color: #4f46e5;
   }
 
   &.status-failed {
     background: #fee2e2;
     color: #b91c1c;
-    border-color: #fecaca;
   }
-} 
 
+  &.status-cancelled {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Sub-donations: toggle (details/summary) + simple list
+// -----------------------------------------------------------------------------
+.gfw-my-donations-sub-row {
+  background: $gfw-table-bg-sub;
+
+  .gfw-my-donations-sub-cell {
+    padding: 0.5rem 1rem 0.75rem 1.5rem;
+    border-top: none;
+    vertical-align: top;
+  }
+}
+
+.gfw-my-donations-sub-details {
+  font-size: 0.875rem;
+
+  &[open] .gfw-my-donations-sub-summary::before {
+    transform: rotate(90deg);
+  }
+}
+
+.gfw-my-donations-sub-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0;
+  color: $gfw-text-muted;
+  user-select: none;
+
+  &::-webkit-details-marker,
+  &::marker {
+    display: none;
+  }
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 5px solid currentColor;
+    transition: transform 0.15s ease;
+  }
+
+  &:hover {
+    color: $gfw-text;
+  }
+}
+
+.gfw-my-donations-sub-summary-text {
+  font-weight: 500;
+}
+
+.gfw-my-donations-sub-list {
+  margin: 0.5rem 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 0.75rem;
+}
+
+.gfw-my-donations-sub-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.35rem 0;
+  font-size: 0.8125rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .gfw-my-donations-sub-id {
+    font-family: ui-monospace, monospace;
+    color: $gfw-text-muted;
+  }
+
+  .gfw-my-donations-sub-amount {
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+  }
+
+  .gfw-my-donations-sub-date {
+    font-family: ui-monospace, monospace;
+    color: $gfw-text-muted;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Pagination
+// -----------------------------------------------------------------------------
+.gfw-pagination {
+  margin-top: 1.5rem;
+}
+
+.gfw-no-donations {
+  padding: 2rem;
+  text-align: center;
+  color: $gfw-text-muted;
+  background: $gfw-table-bg-head;
+  border: $gfw-table-border;
+  border-radius: $gfw-radius;
+}
+
+.gfw-my-donations-table-container {
+  border: $gfw-table-border;
+  border-radius: $gfw-radius;
+  overflow: hidden;
+}

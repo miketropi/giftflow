@@ -251,14 +251,24 @@ function giftflow_donor_account_my_donations_callback() {
 		return;
 	}
 
-  // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$page = isset( $_GET['_page'] ) ? intval( $_GET['_page'] ) : 1;
-	if ( $page < 1 ) {
-		$page = 1;
-	}
+	// use giftflow_sanitize_array.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$filters_raw = giftflow_sanitize_array( $_GET ?? array() );
 
-	// query donations by donor id.
-	$donations = giftflow_get_donations_by_user( $current_user->ID, $page, 20 );
+	// page number.
+	$page = $filters_raw['_page'] ?? 1;
+	$page = max( 1, absint( $page ) );
+
+	// Filter params from GET (donations filter form).
+	$filters = array(
+		'date_from'       => $filters_raw['_filter_date_from'] ?? '',
+		'date_to'         => $filters_raw['_filter_date_to'] ?? '',
+		'status'          => $filters_raw['_filter_status'] ?? '',
+		'payment_method'  => $filters_raw['_filter_payment_method'] ?? '',
+	);
+
+	// Query donations by donor id (with optional filters).
+	$donations = giftflow_get_donations_by_user( $current_user->ID, $page, 20, $filters );
 
 	// load template donor-account--my-donations.
 	giftflow_load_template(

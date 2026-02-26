@@ -21,3 +21,7 @@ add_action( 'giftflow_donation_form_before_process_donation', 'giftflow_donation
 
 // hooks add custom enqueue scripts.
 add_action( 'wp_enqueue_scripts', 'giftflow_donation_form_enqueue_custom_scripts', 20 );
+
+
+// hooks for my donations table.
+add_action( 'giftflow_my_donations_table_before', 'giftflow_my_donations_filter_form', 10, 3 );

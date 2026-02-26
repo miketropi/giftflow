@@ -284,27 +284,129 @@ $mobile: 480px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    
+
     @include tablet {
       grid-template-columns: 1fr;
     }
 
+    // Donation type: select-style, one option per line
     &--donation-type {
-      input[type="radio"] {
-        display: none;
-
-        // is checked
-        &:checked + .donation-form__radio-label {
-          border-color: $primary-color;
-          // box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
-          background-color: $primary-color;
-          color: white;
-        }
-      }
-      
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid $border-color;
+      border-radius: $border-radius;
+      overflow: hidden;
+      background: white;
     }
   }
 
+  // Single-row radio option (donation type): select-one pattern with checked icon + standard active state
+  &__radio-option {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+    transition: $transition;
+    border-bottom: 1px solid $border-color;
+    position: relative;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    input[type="radio"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+
+      &:focus-visible + .donation-form__radio-option-content {
+        outline: 2px solid $primary-color;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__radio-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    padding: 1rem 1.25rem;
+    min-width: 0;
+    border-left: 3px solid transparent;
+    transition: $transition;
+
+    @include mobile {
+      padding: 0.875rem 1rem;
+    }
+
+    .donation-form__radio-option:hover & {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    // Standard active state: subtle background, accent border; selection conveyed by checked icon
+    .donation-form__radio-option input[type="radio"]:checked + & {
+      background-color: rgba(0, 0, 0, 0.04);
+      border-left-color: $primary-color;
+    }
+  }
+
+  // Checked icon: visible only when this option is selected
+  &__radio-option-check {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    margin-right: 1rem;
+    color: $primary-color;
+    opacity: 0;
+    transition: $transition;
+    position: absolute;
+    right: 1rem;
+
+    .donation-form__radio-option input[type="radio"]:checked ~ & {
+      opacity: 1;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  &__radio-option-title {
+    font-weight: 500;
+    color: $text-color;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__radio-option-description {
+    font-size: 0.875rem;
+    color: $text-light;
+    line-height: 1.4;
+    max-width: 85%;
+
+    @include mobile {
+      font-size: 0.8125rem;
+    }
+  }
+
+  // Legacy radio label/content (e.g. other radio groups)
   &__radio-label {
     position: relative;
     display: block;
@@ -315,9 +417,9 @@ $mobile: 480px;
     border-radius: $border-radius;
 
     &:hover {
-      transform: translateY(-1px);
+      border-color: $primary-color;
     }
-    
+
     @include mobile {
       padding: 1rem;
     }
@@ -325,14 +427,10 @@ $mobile: 480px;
     input[type="radio"] {
       position: absolute;
       opacity: 0;
-      
+
       &:checked + .donation-form__radio-content {
         color: $primary-color;
       }
-    }
-
-    &:hover {
-      border-color: $primary-color;
     }
   }
 
@@ -358,7 +456,7 @@ $mobile: 480px;
   &__radio-description {
     font-size: 0.875rem;
     color: $text-light;
-    
+
     @include mobile {
       font-size: 0.75rem;
     }

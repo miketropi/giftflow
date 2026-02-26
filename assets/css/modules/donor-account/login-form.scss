@@ -19,6 +19,72 @@
     border-radius: 0;
   }
 
+  // Auth tabs (Login | Forgot password | Register)
+  .gfw-auth-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0 0 1.5rem 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid $border-color;
+  }
+
+  .gfw-auth-tab {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: $text-light;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition;
+
+    &:hover {
+      color: $text-color;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &.is-active {
+      color: $primary-color;
+      border-bottom-color: $primary-color;
+    }
+  }
+
+  // Auth panes (only one visible at a time via [hidden])
+  .gfw-auth-panes {
+    margin: 0;
+  }
+
+  .gfw-auth-pane {
+    margin: 0;
+  }
+
+  // Forgot password & register form rows (match login form spacing)
+  .gfw-form-row {
+    margin: 0 0 1.25rem 0;
+
+    &:last-of-type,
+    &--submit {
+      margin-bottom: 0;
+    }
+  }
+
+  .gfw-form-row--submit {
+    margin-top: 1.5rem;
+  }
+
+  .gfw-lostpassword-form,
+  .gfw-register-form {
+    margin: 0;
+  }
+
   // Form container
   form {
     margin: 0;

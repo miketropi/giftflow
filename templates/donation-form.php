@@ -92,29 +92,28 @@ $no_payment_methods = count( $gateways ) === 0;
 					?>
 						">
 						<legend class="donation-form__legend"><?php esc_html_e( 'Donation One-time or Monthly', 'giftflow' ); ?></legend>
-						<div class="donation-form__radio-group donation-form__radio-group--donation-type">
+						<div class="donation-form__radio-group donation-form__radio-group--donation-type" role="radiogroup" aria-label="<?php esc_attr_e( 'Donation type', 'giftflow' ); ?>">
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							foreach ( $donation_types as $index => $donation_type ) :
-								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-								$is_checked = 0 === $index ? 'checked' : '';
+								$option_id = 'donation_type_' . $donation_type['name'];
 								?>
-								<label>
-									<input 
-										type="radio" 
-										name="donation_type" 
+								<label class="donation-form__radio-option" for="<?php echo esc_attr( $option_id ); ?>">
+									<input
+										type="radio"
+										name="donation_type"
 										value="<?php echo esc_attr( $donation_type['name'] ); ?>"
-										id="donation_type_<?php echo esc_attr( $donation_type['name'] ); ?>" 
-										<?php echo esc_attr( $is_checked ); ?>>
-									<div class="donation-form__radio-label" for="donation_type_<?php echo esc_attr( $donation_type['name'] ); ?>">
-										<span class="donation-form__radio-content">
-											<span class="donation-form__radio-title">
-												<?php echo wp_kses( $donation_type['icon'], giftflow_allowed_svg_tags() ); ?>	
-												<?php echo esc_html( $donation_type['label'] ); ?>
-											</span>
-											<span class="donation-form__radio-description"><?php echo esc_html( $donation_type['description'] ); ?></span>
+										id="<?php echo esc_attr( $option_id ); ?>"
+										<?php checked( 0, $index ); ?>
+									>
+									<span class="donation-form__radio-option-content">
+										<span class="donation-form__radio-option-title">
+											<?php echo wp_kses( $donation_type['icon'], giftflow_allowed_svg_tags() ); ?>
+											<?php echo esc_html( $donation_type['label'] ); ?>
 										</span>
-									</div>
+										<span class="donation-form__radio-option-description"><?php echo esc_html( $donation_type['description'] ); ?></span>
+									</span>
+									<span class="donation-form__radio-option-check" aria-hidden="true"><?php echo wp_kses( giftflow_svg_icon( 'checkmark-circle' ), giftflow_allowed_svg_tags() ); ?></span>
 								</label>
 							<?php endforeach; ?>
 						</div>
