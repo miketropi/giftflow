@@ -137,6 +137,26 @@ class Loader extends Base {
 		new \GiftFlow\Frontend\Forms();
 
 		\GiftFlow\Gateways\Gateway_Base::init_gateways();
+
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			// Block Theme.
+			$this->is_block_theme_init();
+		} else {
+			// Classic Theme.
+			$this->is_classic_theme_init();
+		}
+	}
+
+	/**
+	 * Initialize block theme.
+	 */
+	public function is_block_theme_init() {
+	}
+
+	/**
+	 * Initialize classic theme.
+	 */
+	public function is_classic_theme_init() {
 	}
 
 	/**
@@ -156,6 +176,27 @@ class Loader extends Base {
 	 * Create 2 pages donor-account and thank-donor & set template for there.
 	 */
 	public function create_pages_init() {
+
+		// create page campaigns.
+		$campaigns_page = get_page_by_path( 'campaigns' );
+		if ( ! $campaigns_page ) {
+
+			$campaigns_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
+					'post_content' => '',
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
+			);
+
+			update_post_meta(
+				$campaigns_page,
+				'_wp_page_template',
+				'campaigns-page'
+			);
+		}
+
 		// create 2 pages donor-account and thank-donor & set template for there.
 		$donor_account_page = get_page_by_path( 'donor-account' );
 		if ( ! $donor_account_page ) {
