@@ -189,6 +189,16 @@ function giftflow_initialize_settings() {
 					'step'        => '1',
 					'description' => __( 'Set the maximum amount that can be donated', 'giftflow' ),
 				),
+				// campaigns page.
+				'campaign_page'      => array(
+					'id'          => 'giftflow_campaigns_page',
+					'name'        => 'giftflow_general_options[campaigns_page]',
+					'type'        => 'select',
+					'options'     => giftflow_get_pages(),
+					'value'       => giftflow_get_campaigns_page(),
+					'label'       => __( 'Campaigns Page', 'giftflow' ),
+					'description' => __( 'Select the campaigns page', 'giftflow' ),
+				),
 				// donor account page.
 				'donor_account_page'      => array(
 					'id'          => 'giftflow_donor_account_page',

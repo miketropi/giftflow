@@ -686,6 +686,29 @@ function giftflow_get_donation_data_by_id( $donation_id ) {
 }
 
 /**
+ * Get campaigns page
+ *
+ * @return string Campaigns page.
+ */
+function giftflow_get_campaigns_page() {
+	$options = get_option( 'giftflow_general_options' );
+	$campaigns_page = isset( $options['campaigns_page'] ) ? $options['campaigns_page'] : '';
+
+	// if empty please search by path 'campaigns'.
+	if ( ! $campaigns_page ) {
+		$campaigns_page = get_page_by_path( 'campaigns' );
+		// Validate that $campaigns_page is a valid WP_Post object before accessing its ID.
+		if ( $campaigns_page && is_a( $campaigns_page, 'WP_Post' ) ) {
+			$campaigns_page = $campaigns_page->ID;
+		} else {
+			$campaigns_page = '';
+		}
+	}
+
+	return $campaigns_page;
+}
+
+/**
  * Get donor account page
  *
  * @return string Donor account page.

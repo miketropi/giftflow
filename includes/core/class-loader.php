@@ -138,6 +138,8 @@ class Loader extends Base {
 
 		\GiftFlow\Gateways\Gateway_Base::init_gateways();
 
+		add_filter( 'display_post_states', array( $this, 'display_post_states' ), 10, 2 );
+
 		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
 			// Block Theme.
 			$this->is_block_theme_init();
@@ -145,6 +147,22 @@ class Loader extends Base {
 			// Classic Theme.
 			$this->is_classic_theme_init();
 		}
+	}
+
+	/**
+	 * Display post states
+	 *
+	 * @param array $states The post states.
+	 * @param WP_Post $post The post object.
+	 * @return array The post states.
+	 */
+	public function display_post_states( $states, $post ) {
+		$campaigns_page = get_page_by_path( 'campaigns' );
+		if ( $post->ID === $campaigns_page->ID ) {
+			$states[] = __( 'Campaigns Page', 'giftflow' );
+		}
+
+		return $states;
 	}
 
 	/**
@@ -157,6 +175,30 @@ class Loader extends Base {
 	 * Initialize classic theme.
 	 */
 	public function is_classic_theme_init() {
+
+		// override template of campaign details page.
+		add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
+	}
+
+	/**
+	 * Override the content of campaign details page
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_campaign_details_page_template( $template ) {
+		// check is current page is campaign details page.
+		if ( is_singular( 'campaign' ) ) {
+
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'single-campaign.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
 	}
 
 	/**
@@ -181,10 +223,16 @@ class Loader extends Base {
 		$campaigns_page = get_page_by_path( 'campaigns' );
 		if ( ! $campaigns_page ) {
 
+			$campaigns_page_block_content = '<!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignwide"><!-- wp:shortcode -->
+[giftflow_campaign_grid per_page="9" orderby="date" order="DESC" paged="1"]
+<!-- /wp:shortcode --></div>
+<!-- /wp:group -->';
+
 			$campaigns_page = wp_insert_post(
 				array(
 					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
-					'post_content' => '',
+					'post_content' => $campaigns_page_block_content,
 					'post_status'  => 'publish',
 					'post_type'    => 'page',
 				)

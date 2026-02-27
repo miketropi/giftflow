@@ -347,6 +347,8 @@
   color: var(--giftflow-text-light);
   line-height: 1.4;
   max-width: 85%;
+  text-transform: none;
+  letter-spacing: 0;
 }
 @media (max-width: 480px) {
   .donation-form__radio-option-description {
@@ -422,11 +424,13 @@
   transition: var(--giftflow-transition);
   box-sizing: border-box;
   font-size: 1rem;
+  margin-bottom: 0;
   font-size: 1.25rem;
   font-weight: 600;
   text-align: center;
   padding-left: 2.5rem;
   font-family: var(--giftflow-font-family-monospace);
+  margin-bottom: 0;
 }
 .donation-form__amount-input input:focus {
   outline: none;
@@ -467,6 +471,7 @@
   transition: var(--giftflow-transition);
   border-radius: var(--giftflow-border-radius);
   font-family: var(--giftflow-font-family-monospace);
+  letter-spacing: 0;
 }
 .donation-form__preset-amounts button > * {
   pointer-events: none;
@@ -505,6 +510,7 @@
   transition: var(--giftflow-transition);
   box-sizing: border-box;
   font-size: 1rem;
+  margin-bottom: 0;
 }
 .donation-form__field input[type=text]:focus, .donation-form__field input[type=email]:focus, .donation-form__field input[type=tel]:focus, .donation-form__field textarea:focus {
   outline: none;
@@ -552,6 +558,7 @@
   width: 16px;
   height: 16px;
   vertical-align: middle;
+  opacity: 1;
 }
 .donation-form__payment-methods {
   display: grid;
@@ -595,6 +602,7 @@
 }
 .donation-form__payment-method input[type=radio] {
   margin: 0;
+  opacity: 1;
 }
 .donation-form__payment-method-content {
   display: flex;
@@ -666,6 +674,10 @@
   margin: 0;
   font-weight: 500;
   color: var(--giftflow-text-color);
+  white-space: nowrap;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .donation-form__step-actions {
   display: flex;
@@ -697,6 +709,7 @@
   justify-content: center;
   flex: 1;
   gap: 0.5rem;
+  letter-spacing: 0;
 }
 .donation-form__button > * {
   pointer-events: none;

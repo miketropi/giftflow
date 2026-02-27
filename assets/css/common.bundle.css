@@ -42,126 +42,230 @@
   }
 }
 
-.gfw-donation-list-container {
-  border-radius: 1px;
-}
-.gfw-donation-list-container .gfw-donation-list-header {
-  padding: 15px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-.gfw-donation-list-container .gfw-donation-list-header .gfw-donation-count {
-  font-size: 13px;
-  font-weight: 500;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item {
-  border-bottom: 1px solid #f0f0f0;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item:last-child {
-  border-bottom: none;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 18px 0;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left {
-  flex: 1;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donor-info {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donor-info .gfw-location {
-  font-weight: normal;
-  opacity: 0.7;
-  margin-left: 5px;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donation-message {
-  font-size: 13px;
-  font-style: italic;
-  opacity: 0.8;
-  margin-bottom: 8px;
-  line-height: 1.4;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donation-time {
-  font-size: 12px;
-  opacity: 0.6;
-}
-.gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-right .gfw-donation-amount {
-  font-size: 13px;
+.gfw-donation-list-header {
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.875rem;
   font-weight: 600;
-  text-align: right;
+  color: var(--giftflow-text-color);
 }
-.gfw-donation-list-container .gfw-donation-pagination {
-  padding: 15px 0;
-  border-top: 1px solid #e5e7eb;
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.7;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-.gfw-donation-list-container .gfw-donation-empty {
-  padding: 40px 20px;
-  text-align: center;
-}
-.gfw-donation-list-container .gfw-donation-empty p {
-  font-size: 13px;
-  opacity: 0.6;
-  margin: 0;
-}
-.gfw-donation-list-container .gfw-pagination-buttons {
-  display: flex;
-  gap: 1em;
-}
-.gfw-donation-list-container .gfw-pagination-buttons button {
-  border: none;
-  background: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  opacity: 0.6;
-}
-.gfw-donation-list-container .gfw-pagination-buttons button:hover {
-  text-decoration: underline;
-  opacity: 1;
+.gfw-donation-list-header .gfw-donation-count {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
-@media (max-width: 768px) {
-  .gfw-donation-list-container .gfw-donation-list-header {
-    padding: 12px 15px;
+.gfw-donation-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.gfw-donation-list__head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem 1.5rem;
+  padding: 0.75rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--giftflow-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #eee;
+}
+@media (max-width: 480px) {
+  .gfw-donation-list__head {
+    grid-template-columns: 1fr auto;
+    padding: 0.65rem 1rem;
+    gap: 0.75rem 1rem;
   }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row {
-    padding: 15px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left {
-    margin-bottom: 10px;
-  }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donor-info {
-    margin-bottom: 6px;
-  }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-left .gfw-donation-message {
-    margin-bottom: 6px;
-  }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-right {
-    align-self: flex-end;
-  }
-  .gfw-donation-list-container .gfw-donation-list .gfw-donation-item .gfw-donation-row .gfw-donation-right .gfw-donation-amount {
-    text-align: left;
-  }
-  .gfw-donation-list-container .gfw-donation-pagination {
-    padding: 12px 15px;
-  }
-  .gfw-donation-list-container .gfw-donation-empty {
-    padding: 30px 15px;
+  .gfw-donation-list__head .gfw-donation-list__head-cell--date {
+    display: none;
   }
 }
+
+.gfw-donation-list__head-cell--amount, .gfw-donation-list__head-cell--date {
+  text-align: right;
+}
+
+.gfw-donation-list__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem 1.5rem;
+  align-items: start;
+  padding: 1rem 0;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  min-height: 4rem;
+}
+.gfw-donation-list__row:last-child {
+  border-bottom: none;
+}
+@media (max-width: 480px) {
+  .gfw-donation-list__row {
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
+    min-height: 3.5rem;
+  }
+  .gfw-donation-list__row .gfw-donation-list__cell--date {
+    display: none;
+  }
+}
+
+.gfw-donation-list__cell {
+  min-width: 0;
+}
+.gfw-donation-list__cell--donor {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+.gfw-donation-list__cell--amount {
+  text-align: right;
+  font-size: 0.87rem;
+}
+.gfw-donation-list__cell--date {
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--giftflow-text-light);
+  white-space: nowrap;
+}
+.gfw-donation-list__cell--date time {
+  font-size: inherit;
+  color: inherit;
+}
+
+.gfw-donation-list__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gfw-donation-list__avatar .gfw-donation-list__avatar-img,
+.gfw-donation-list__avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.gfw-donation-list__avatar .gfw-donation-list__avatar-placeholder {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--giftflow-text-light);
+  text-transform: uppercase;
+}
+
+.gfw-donation-list__donor-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.gfw-donation-list__donor-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--giftflow-text-color);
+  line-height: 1.3;
+}
+
+.gfw-donation-list__donor-secondary {
+  font-size: 0.8125rem;
+  color: var(--giftflow-text-light);
+  line-height: 1.3;
+}
+
+.gfw-donation-list__date-mobile {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--giftflow-text-light);
+  margin-top: 0.1rem;
+}
+.gfw-donation-list__date-mobile time {
+  font-size: inherit;
+  color: inherit;
+}
+
+.gfw-donation-list__message {
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  padding: 1em;
+  border-radius: 0 1.5em 1.5em 1.5em;
+  border: solid 1px #eee;
+  font-family: serif;
+}
+
+.gfw-donation-list__amount-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--giftflow-text-color);
+  background: #f5f5f5;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .gfw-donation-list__date-mobile {
+    display: block;
+  }
+}
+.gfw-donation-list-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+  font-size: 0.8125rem;
+  color: var(--giftflow-text-light);
+}
+
+.gfw-donation-list-pagination__buttons {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.gfw-donation-list-pagination__btn {
+  padding: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--giftflow-text-color);
+  background: #fff;
+  cursor: pointer;
+  opacity: 1;
+  border: none;
+}
+.gfw-donation-list-pagination__btn:hover {
+  opacity: 0.7;
+  background: none;
+}
+.gfw-donation-list-pagination__btn:focus {
+  outline: 2px solid var(--giftflow-primary-color);
+  outline-offset: 2px;
+}
+
+.gfw-donation-list-empty {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--giftflow-text-light);
+  background: #fff;
+}
+.gfw-donation-list-empty p {
+  margin: 0;
+}
+
 .gfw-campaign-comments-list {
   list-style: none;
   margin: 0;
@@ -544,6 +648,8 @@
   overflow: hidden;
   min-height: 48px;
   font-size: 1rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .giftflow-donation-button .donation-btn--full-width {
   width: 100% !important;
@@ -831,6 +937,7 @@
   right: 10px;
   width: 32px;
   height: 32px;
+  padding: 8px;
   border: none;
   background: black;
   border-radius: 50%;
@@ -1377,6 +1484,8 @@
   height: 36px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: var(--giftflow-transition);
+  background: black;
+  padding: 0;
 }
 .giftflow-campaign-single-images-lightbox-open-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -1441,7 +1550,6 @@
   transition: var(--giftflow-transition);
 }
 .giftflow-campaign-grid__item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
   border-color: #ddd;
 }
@@ -1509,12 +1617,17 @@
   color: var(--giftflow-text-light);
   line-height: 1.3;
   text-transform: none;
+  text-decoration: none;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .giftflow-campaign-grid__category:hover {
   background: #f5f5f5;
   color: #000;
   border-color: #f5f5f5;
+}
+.giftflow-campaign-grid__category:focus {
+  outline: 2px solid var(--giftflow-primary-color);
+  outline-offset: 2px;
 }
 .giftflow-campaign-grid__title {
   margin: 0;
@@ -1605,8 +1718,8 @@
   font-weight: 500;
 }
 .giftflow-campaign-grid a.giftflow-campaign-grid__button .giftflow-campaign-grid__button-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: white;
   transition: var(--giftflow-transition);
   line-height: 0;

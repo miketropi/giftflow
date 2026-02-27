@@ -214,6 +214,16 @@ class Shortcodes extends Base {
 			$query_args['search'] = $atts['search'];
 		}
 
+		/**
+		 * Filter the campaign grid query arguments.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $query_args The query arguments for the campaign grid.
+		 * @param array $atts       The shortcode attributes.
+		 */
+		$query_args = apply_filters( 'giftflow_campaign_grid_query_args', $query_args, $atts );
+
 		$campaigns_result = $campaigns_class->get_campaigns( $query_args );
 
 		// Add campaigns data to atts for template.
