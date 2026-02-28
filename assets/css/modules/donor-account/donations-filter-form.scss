@@ -51,6 +51,7 @@ $gfw-filter-primary-hover: #334155;
   border-radius: 4px;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
+  margin-bottom: 0;
 
   &:focus {
     outline: none;
@@ -84,6 +85,7 @@ $gfw-filter-primary-hover: #334155;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  padding: 1rem 1.5rem;
 
   svg {
     width: 1em;

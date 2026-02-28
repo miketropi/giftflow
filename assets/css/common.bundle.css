@@ -347,6 +347,7 @@
   border: 1px solid var(--giftflow-border-color);
   border-radius: var(--giftflow-border-radius);
   font-size: 1rem;
+  font-family: serif;
 }
 .gfw-campaign-comments-list .comment .comment-body .comment-content p {
   margin: 0 0 15px;
@@ -2221,8 +2222,6 @@
 .gfw-donation-detail-table {
   width: 100%;
   font-size: 0.9375rem;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -2230,7 +2229,7 @@
 .gfw-donation-detail-table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f3f3f3 !important;
   vertical-align: top;
 }
 .gfw-donation-detail-table tr:last-child th,
@@ -2255,6 +2254,8 @@
 .gfw-donation-detail-table .gfw-donation-detail-message {
   white-space: pre-wrap;
   max-width: 100%;
+  font-family: serif;
+  font-size: 1rem;
 }
 .gfw-donation-detail-table .gfw-donation-detail-date {
   font-family: ui-monospace, monospace;
@@ -2339,7 +2340,6 @@
   }
 }
 .giftflow-donor-account-my-account {
-  max-width: 700px;
   margin: 0 auto;
 }
 .giftflow-donor-account-my-account .gfw-message {
@@ -2819,6 +2819,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   border-radius: 4px;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
+  margin-bottom: 0;
 }
 .gfw-donations-filter-form__input:focus,
 .gfw-donations-filter-form__select:focus {
@@ -2854,6 +2855,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  padding: 1rem 1.5rem;
 }
 .gfw-donations-filter-form__submit svg {
   width: 1em;
@@ -3074,6 +3076,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   font-size: 15px;
   overflow: hidden;
   border: 1px solid #f0f0f0;
+  margin-bottom: 0;
 }
 .giftflow-table th, .giftflow-table td {
   padding: 1em;
@@ -3082,6 +3085,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   vertical-align: top;
   background: none;
   font-weight: normal;
+  border: none;
 }
 .giftflow-table th {
   background: #f8fafc;

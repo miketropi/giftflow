@@ -22,13 +22,14 @@
         return;
       }
 
+      if (!originalFormTitle) {
+        originalFormTitle = form.find('#reply-title').html();
+        console.log('originalFormTitle', 3, originalFormTitle);
+      }
+
       // Store original position if not already stored
       if (!originalFormPosition) {
         originalFormPosition = form.parent();
-      }
-
-      if (!originalFormTitle) {
-        originalFormTitle = form.find('#reply-title').html();
       }
 
       // set parent comment ID
@@ -49,6 +50,7 @@
     // Add cancel reply handler
     $(document).on('click', '#cancel-comment-reply-link', function (e) {
       e.preventDefault();
+
       const form = $('#respond');
       const parentInput = form.find('input[name="comment_parent"]');
 
@@ -58,16 +60,24 @@
       // Return form to original position
       if (originalFormPosition) {
         originalFormPosition.append(form);
+        console.log('originalFormPosition', 1);
       }
 
       // Reset form title
       if (originalFormTitle) {
         form.find('#reply-title').html(originalFormTitle);
+        console.log('originalFormTitle', 2, originalFormTitle);
       }
     });
   }
 
   $(() => {
+
+    // if window have variable __giftflow_disable_reply_comment_handle = true when return
+    if (window.__giftflow_disable_reply_comment_handle) {
+      return;
+    }
+
     replyCommentHandle();
   })
 })(window, jQuery)

@@ -1235,13 +1235,14 @@ window.GiftFlowTabWidget = GiftFlowTabWidget;
         console.error('Missing comment ID or form elements');
         return;
       }
+      if (!originalFormTitle) {
+        originalFormTitle = form.find('#reply-title').html();
+        console.log('originalFormTitle', 3, originalFormTitle);
+      }
 
       // Store original position if not already stored
       if (!originalFormPosition) {
         originalFormPosition = form.parent();
-      }
-      if (!originalFormTitle) {
-        originalFormTitle = form.find('#reply-title').html();
       }
 
       // set parent comment ID
@@ -1270,15 +1271,21 @@ window.GiftFlowTabWidget = GiftFlowTabWidget;
       // Return form to original position
       if (originalFormPosition) {
         originalFormPosition.append(form);
+        console.log('originalFormPosition', 1);
       }
 
       // Reset form title
       if (originalFormTitle) {
         form.find('#reply-title').html(originalFormTitle);
+        console.log('originalFormTitle', 2, originalFormTitle);
       }
     });
   };
   $(function () {
+    // if window have variable __giftflow_disable_reply_comment_handle = true when return
+    if (window.__giftflow_disable_reply_comment_handle) {
+      return;
+    }
     replyCommentHandle();
   });
 })(window, jQuery);

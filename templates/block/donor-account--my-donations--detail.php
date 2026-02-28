@@ -133,7 +133,7 @@ $detail_rows = apply_filters( 'giftflow_donation_detail_table_rows', $detail_row
 
 	<section class="gfw-donation-detail-section" aria-labelledby="gfw-donation-details-heading">
 		<h2 id="gfw-donation-details-heading" class="gfw-donation-detail-section-title"><?php esc_html_e( 'Donation details', 'giftflow' ); ?></h2>
-		<table class="gfw-donation-detail-table">
+		<table class="gfw-donation-detail-table giftflow-table">
 			<tbody>
 				<?php foreach ( $detail_rows as $row ) : ?>
 					<?php

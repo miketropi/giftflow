@@ -158,6 +158,12 @@ class Loader extends Base {
 	 */
 	public function display_post_states( $states, $post ) {
 		$campaigns_page = get_page_by_path( 'campaigns' );
+
+		// validate $campaigns_page is object and has ID.
+		if ( ! is_object( $campaigns_page ) || ! isset( $campaigns_page->ID ) ) {
+			return $states;
+		}
+
 		if ( $post->ID === $campaigns_page->ID ) {
 			$states[] = __( 'Campaigns Page', 'giftflow' );
 		}
@@ -178,6 +184,12 @@ class Loader extends Base {
 
 		// override template of campaign details page.
 		add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
+
+		// override template of campaign taxonomy archive page.
+		add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
+
+		// override template of my donor account page.
+		add_action( 'template_include', array( $this, 'override_donor_account_page_template' ), 10, 1 );
 	}
 
 	/**
@@ -191,7 +203,48 @@ class Loader extends Base {
 
 			// use get_template_path of class Template.
 			$template = new \GiftFlow\Frontend\Template();
-			$template_path = $template->get_template_path( 'single-campaign.php' );
+			$template_path = $template->get_template_path( 'classic/single-campaign.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Override the template of campaign taxonomy archive page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_campaign_taxonomy_archive_page_template( $template ) {
+		// check is current page is campaign taxonomy archive page.
+		if ( is_tax( 'campaign-tax' ) ) {
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/taxonomy-campaign-archive.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Override the template of my donor account page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_donor_account_page_template( $template ) {
+		// check is current page is my donor account page.
+		if ( is_page( giftflow_get_donor_account_page() ) ) {
+
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/donor-account.php' );
 
 			if ( $template_path ) {
 				return $template_path;
@@ -223,16 +276,36 @@ class Loader extends Base {
 		$campaigns_page = get_page_by_path( 'campaigns' );
 		if ( ! $campaigns_page ) {
 
-			$campaigns_page_block_content = '<!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignwide"><!-- wp:shortcode -->
-[giftflow_campaign_grid per_page="9" orderby="date" order="DESC" paged="1"]
-<!-- /wp:shortcode --></div>
+			$campaigns_page_block_content = '<!-- wp:group {"tagName":"main","align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:query {"queryId":22,"query":{"perPage":9,"pages":0,"offset":0,"postType":"campaign","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false,"parents":[],"format":[]},"metadata":{"categories":["posts"],"patternName":"core/query-grid-posts","name":"Grid"}} -->
+<div class="wp-block-query"><!-- wp:post-template {"style":{"spacing":{"blockGap":"var:preset|spacing|40"}},"layout":{"type":"grid","columnCount":3,"minimumColumnWidth":null}} -->
+<!-- wp:group {"style":{"spacing":{"padding":{"top":"20px","right":"20px","bottom":"20px","left":"20px"}},"border":{"color":"#e0e0e0","width":"1px","radius":"1px"}},"backgroundColor":"base","layout":{"type":"default"}} -->
+<div class="wp-block-group has-border-color has-base-background-color has-background" style="border-color:#e0e0e0;border-width:1px;border-radius:1px;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px"><!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->
+
+<!-- wp:post-terms {"term":"campaign-tax","prefix":"in ","fontSize":"small"} /-->
+
+<!-- wp:post-title {"level":4,"isLink":true,"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"medium"} /-->
+
+<!-- wp:post-excerpt {"excerptLength":15,"fontSize":"medium"} /-->
+
+<!-- wp:giftflow/campaign-status-bar {"__editorPostId":5} /--></div>
+<!-- /wp:group -->
+<!-- /wp:post-template -->
+
+<!-- wp:query-pagination {"paginationArrow":"arrow","layout":{"type":"flex","justifyContent":"center","orientation":"horizontal","flexWrap":"wrap"}} -->
+<!-- wp:query-pagination-previous /-->
+
+<!-- wp:query-pagination-numbers /-->
+
+<!-- wp:query-pagination-next /-->
+<!-- /wp:query-pagination --></div>
+<!-- /wp:query --></main>
 <!-- /wp:group -->';
 
 			$campaigns_page = wp_insert_post(
 				array(
 					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
-					'post_content' => $campaigns_page_block_content,
+					'post_content' => apply_filters( 'giftflow_campaigns_page_content_on_create', $campaigns_page_block_content ),
 					'post_status'  => 'publish',
 					'post_type'    => 'page',
 				)

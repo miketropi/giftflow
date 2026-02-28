@@ -218,8 +218,8 @@ $gfw-detail-cancelled-bg: #f1f5f9;
   width: 100%;
   // border-collapse: collapse;
   font-size: 0.9375rem;
-  background: $gfw-detail-bg-card;
-  border: $gfw-detail-border-light;
+  // background: $gfw-detail-bg-card;
+  // border: $gfw-detail-border-light;
   border-radius: $gfw-detail-radius;
   overflow: hidden;
 
@@ -227,7 +227,7 @@ $gfw-detail-cancelled-bg: #f1f5f9;
   td {
     padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: $gfw-detail-border-light;
+    border-bottom: 1px solid #f3f3f3 !important;
     vertical-align: top;
   }
 
@@ -258,6 +258,8 @@ $gfw-detail-cancelled-bg: #f1f5f9;
   .gfw-donation-detail-message {
     white-space: pre-wrap;
     max-width: 100%;
+    font-family: serif;
+    font-size: 1rem;
   }
 
   .gfw-donation-detail-date {
