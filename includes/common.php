@@ -1448,11 +1448,76 @@ function giftflow_render_current_user_info() {
 	<?php
 }
 
+/**
+ * Render the payment method and donation type as HTML template tags.
+ *
+ * @param object $d Donation data object, expects ->payment_method_label and ->donation_type.
+ * @return string HTML markup for payment method and donation type.
+ */
+function giftflow_donation_payment_template_tags( $d ) {
+	if ( empty( $d ) ) {
+		return '';
+	}
 
+	$payment_method = isset( $d->payment_method_label ) ? $d->payment_method_label : '';
+	$donation_type  = isset( $d->donation_type ) ? $d->donation_type : '';
 
+	// _recurring_status.
+	$recurring_status = get_post_meta( $d->ID, '_recurring_status', true );
 
+	// _recurring_interval.
+	$recurring_interval = get_post_meta( $d->ID, '_recurring_interval', true );
 
+	ob_start();
+	?>
+	<div class="gfw-payment-method gfw-payment-method-<?php echo esc_attr( sanitize_title( $payment_method ) ); ?>" title="<?php echo esc_attr__( 'Payment Method', 'giftflow' ); ?>">
+		<?php echo esc_html( ucfirst( $payment_method ) ); ?>
+	</div>
+	<?php if ( ! empty( $donation_type ) ) : ?>
+		<div class="gfw-donation-type gfw-tag-status status-closed gfw-donation-type-<?php echo esc_attr( sanitize_title( $donation_type ) ); ?>" title="<?php echo esc_attr__( 'Donation Type', 'giftflow' ); ?>">
+			<?php echo esc_html( ucfirst( $donation_type ) ); ?>
+		</div>
+	<?php endif; ?>
 
+	<?php
+	if ( ! empty( $donation_type ) && 'recurring' === $donation_type ) :
+		if ( ! empty( $recurring_status ) ) :
+			?>
+			<div class="gfw-recurring-status gfw-tag-status status-closed gfw-recurring-status-<?php echo esc_attr( strtolower( $recurring_status ) ); ?>" title="<?php echo esc_attr__( 'Recurring Status', 'giftflow' ); ?>">
+				<?php echo esc_html( ucfirst( $recurring_status ) ); ?>
+			</div>
+			<?php
+		endif;
+		if ( ! empty( $recurring_interval ) ) :
+			?>
+			<div class="gfw-recurring-interval gfw-tag-status status-closed" title="<?php echo esc_attr__( 'Recurring Interval', 'giftflow' ); ?>">
+				<?php echo esc_html( ucfirst( $recurring_interval ) ); ?>
+			</div>
+			<?php
+		endif;
+	endif;
+	?>
+
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Get the donation type label.
+ *
+ * @param array $donation_types The donation types.
+ * @return string The donation type label.
+ */
+function giftflow_donation_type_label( $donation_types = array() ) {
+	if ( count( $donation_types ) === 1 ) {
+		return $donation_types[0]['label'];
+	} else {
+		$labels = array_column( $donation_types, 'label' );
+		$label = implode( ' / ', $labels );
+		// translators: %s is the donation type label.
+		return sprintf( esc_html__( 'Select: %s', 'giftflow' ), $label );
+	}
+}
 
 
 

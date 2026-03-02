@@ -66,7 +66,7 @@ $no_payment_methods = count( $gateways ) === 0;
 				<li class="donation-form__step-item nav-step-2">
 					<a href="#payment-method" class="donation-form__step-link" data-step="payment-method">
 						<span class="donation-form__step-number">2</span>
-						<span class="donation-form__step-text"><?php esc_html_e( 'Payment Method', 'giftflow' ); ?></span>
+						<span class="donation-form__step-text"><?php esc_html_e( 'Select Payment', 'giftflow' ); ?></span>
 					</a>
 				</li>
 			</ol>
@@ -86,13 +86,12 @@ $no_payment_methods = count( $gateways ) === 0;
 							array(
 								'donation-form__fieldset',
 								'__count-donation-types-' . count( $donation_types ),
-								count( $donation_types ) === 1 ? '__hidden-fieldset' : '',
 							)
 						)
 					);
 					?>
 						">
-						<legend class="donation-form__legend"><?php esc_html_e( 'Donation One-time or Recurring', 'giftflow' ); ?></legend>
+						<legend class="donation-form__legend"><?php echo esc_html( giftflow_donation_type_label( $donation_types ) ); ?></legend>
 						<div class="donation-form__radio-group donation-form__radio-group--donation-type" role="radiogroup" aria-label="<?php esc_attr_e( 'Donation type', 'giftflow' ); ?>">
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound

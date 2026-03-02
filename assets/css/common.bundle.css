@@ -2276,35 +2276,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0;
   font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
-  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.8rem;
   transition: background 0.15s ease, color 0.15s ease;
 }
 .gfw-donation-detail-btn svg {
   width: 1em;
   height: 1em;
   flex-shrink: 0;
-}
-
-.gfw-donation-detail-btn-back {
-  color: #64748b;
-  background: transparent;
-}
-.gfw-donation-detail-btn-back:hover {
-  color: #1e293b;
-  background: #f8fafc;
-}
-
-.gfw-donation-detail-btn-primary {
-  color: #fff;
-  background: #0f172a;
-}
-.gfw-donation-detail-btn-primary:hover {
-  background: #334155;
-  color: #fff;
 }
 
 @media (max-width: 600px) {
@@ -2842,20 +2825,10 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 }
 
 .gfw-donations-filter-form__submit {
-  padding: 0.45rem 1rem;
-  font-size: 0.9375rem;
-  font-family: inherit;
-  color: #fff;
-  background: #0f172a;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 1rem 1.5rem;
+  gap: 1rem;
 }
 .gfw-donations-filter-form__submit svg {
   width: 1em;

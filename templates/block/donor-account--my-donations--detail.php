@@ -37,6 +37,8 @@ $detail_data = array(
 	'date'          => $donation_date,
 );
 
+$detail_data = apply_filters( 'giftflow_donation_detail_data', $detail_data, $donation );
+
 /**
  * Table rows.
  *
@@ -131,6 +133,17 @@ $detail_rows = apply_filters( 'giftflow_donation_detail_table_rows', $detail_row
 		<?php endif; ?>
 	</section>
 
+	<?php
+	/**
+	 * Action hook: giftflow_donor_account_before_donation_detail_table
+	 *
+	 * Allows other plugins or themes to add custom content before the donation detail table.
+	 *
+	 * @param array $donation The donation object/array.
+	 */
+	do_action( 'giftflow_donor_account_before_donation_detail_table', $donation );
+	?>
+
 	<section class="gfw-donation-detail-section" aria-labelledby="gfw-donation-details-heading">
 		<h2 id="gfw-donation-details-heading" class="gfw-donation-detail-section-title"><?php esc_html_e( 'Donation details', 'giftflow' ); ?></h2>
 		<table class="gfw-donation-detail-table giftflow-table">
@@ -164,6 +177,17 @@ $detail_rows = apply_filters( 'giftflow_donation_detail_table_rows', $detail_row
 			</tbody>
 		</table>
 	</section>
+
+	<?php
+	/**
+	 * Action hook: giftflow_donor_account_after_donation_detail_table
+	 *
+	 * Allows other plugins or themes to add custom content after the donation detail table.
+	 *
+	 * @param array $donation The donation object/array.
+	 */
+	do_action( 'giftflow_donor_account_after_donation_detail_table', $donation );
+	?>
 
 	<footer class="gfw-donation-detail-actions">
 		<a class="gfw-donation-detail-btn gfw-donation-detail-btn-back" href="<?php echo esc_url( $back_url ); ?>">

@@ -285,11 +285,13 @@ $gfw-detail-cancelled-bg: #f1f5f9;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0;
   font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
-  border-radius: $gfw-detail-radius-sm;
+  // border-radius: $gfw-detail-radius-sm;
+  font-weight: bold;
+  font-size: .8rem;
   transition: background 0.15s ease, color 0.15s ease;
 
   svg {
@@ -299,25 +301,25 @@ $gfw-detail-cancelled-bg: #f1f5f9;
   }
 }
 
-.gfw-donation-detail-btn-back {
-  color: $gfw-detail-text-muted;
-  background: transparent;
+// .gfw-donation-detail-btn-back {
+//   color: $gfw-detail-text-muted;
+//   background: transparent;
 
-  &:hover {
-    color: $gfw-detail-text;
-    background: $gfw-detail-bg;
-  }
-}
+//   &:hover {
+//     color: $gfw-detail-text;
+//     background: $gfw-detail-bg;
+//   }
+// }
 
-.gfw-donation-detail-btn-primary {
-  color: #fff;
-  background: $gfw-detail-primary;
+// .gfw-donation-detail-btn-primary {
+//   color: #fff;
+//   background: $gfw-detail-primary;
 
-  &:hover {
-    background: $gfw-detail-primary-hover;
-    color: #fff;
-  }
-}
+//   &:hover {
+//     background: $gfw-detail-primary-hover;
+//     color: #fff;
+//   }
+// }
 
 // -----------------------------------------------------------------------------
 // Responsive

@@ -47,7 +47,7 @@ if ( $donations instanceof WP_Query && $donations->have_posts() ) {
 			// donation type.
 			'donation_type'     => $d->donation_type,
 			// template for payment method + donation type.
-			'payment_template'  => "<div class='gfw-payment-method gfw-payment-method-" . esc_attr( $d->payment_method_label ) . "' title='" . esc_attr__( 'Payment Method', 'giftflow' ) . "'>" . esc_html( ucfirst( $d->payment_method_label ) ) . "</div> <div class='gfw-donation-type gfw-tag-status status-closed gfw-donation-type-" . esc_attr( $d->donation_type ) . "' title='" . esc_attr__( 'Donation Type', 'giftflow' ) . "'>" . esc_html( ucfirst( $d->donation_type ) ) . '</div>',
+			'payment_template'  => giftflow_donation_payment_template_tags( $d ),
 			'date'              => $d->__date,
 			'date_gmt'          => $d->__date_gmt,
 			'date_ago'          => '<span class="gfw-donation-date-ago" title="' . esc_attr( $d->__date_gmt ) . '">' . giftflow_render_time_ago( $d->__date_gmt ) . '</span>',
@@ -86,7 +86,7 @@ $table_columns = array(
 		'label' => __( 'Campaign', 'giftflow' ),
 		'value' => 'campaign_title',
 		'format' => 'campaign',
-		'width' => '30%',
+		'width' => '25%',
 	),
 	array(
 		'label' => __( 'Amount', 'giftflow' ),
