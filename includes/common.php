@@ -1519,7 +1519,48 @@ function giftflow_donation_type_label( $donation_types = array() ) {
 	}
 }
 
+/**
+ * Get donation privacy policy page
+ *
+ * @return string The donation privacy policy page.
+ */
+function giftflow_get_donation_privacy_policy_page() {
+	$options = get_option( 'giftflow_general_options' );
+	$donation_privacy_policy_page = isset( $options['donation_privacy_policy_page'] ) ? $options['donation_privacy_policy_page'] : '';
 
+	// if empty please search by path 'donation-privacy-policy'.
+	if ( ! $donation_privacy_policy_page ) {
+		$donation_privacy_policy_page = get_page_by_path( 'donation-privacy-policy' );
+		// Validate that $donation_privacy_policy_page is a valid WP_Post object before accessing its ID.
+		if ( $donation_privacy_policy_page && is_a( $donation_privacy_policy_page, 'WP_Post' ) ) {
+			$donation_privacy_policy_page = $donation_privacy_policy_page->ID;
+		} else {
+			$donation_privacy_policy_page = '';
+		}
+	}
 
+	return $donation_privacy_policy_page;
+}
 
+/**
+ * Get donation terms & conditions page
+ *
+ * @return string The donation terms & conditions page.
+ */
+function giftflow_get_donation_terms_conditions_page() {
+	$options = get_option( 'giftflow_general_options' );
+	$donation_terms_conditions_page = isset( $options['donation_terms_conditions_page'] ) ? $options['donation_terms_conditions_page'] : '';
 
+	// if empty please search by path 'donation-terms-conditions'.
+	if ( ! $donation_terms_conditions_page ) {
+		$donation_terms_conditions_page = get_page_by_path( 'donation-terms-conditions' );
+		// Validate that $donation_terms_conditions_page is a valid WP_Post object before accessing its ID.
+		if ( $donation_terms_conditions_page && is_a( $donation_terms_conditions_page, 'WP_Post' ) ) {
+			$donation_terms_conditions_page = $donation_terms_conditions_page->ID;
+		} else {
+			$donation_terms_conditions_page = '';
+		}
+	}
+
+	return $donation_terms_conditions_page;
+}

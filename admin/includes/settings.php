@@ -199,6 +199,7 @@ function giftflow_initialize_settings() {
 					'label'       => __( 'Campaigns Page', 'giftflow' ),
 					'description' => __( 'Select the campaigns page', 'giftflow' ),
 				),
+
 				// donor account page.
 				'donor_account_page'      => array(
 					'id'          => 'giftflow_donor_account_page',
@@ -209,6 +210,7 @@ function giftflow_initialize_settings() {
 					'label'       => __( 'Donor Account Page', 'giftflow' ),
 					'description' => __( 'Select the donor account page', 'giftflow' ),
 				),
+
 				// thank donor page.
 				'thank_donor_page'        => array(
 					'id'          => 'giftflow_thank_donor_page',
@@ -218,6 +220,28 @@ function giftflow_initialize_settings() {
 					'value'       => giftflow_get_thank_donor_page(),
 					'label'       => __( 'Thank Donor Page', 'giftflow' ),
 					'description' => __( 'Select the thank donor page', 'giftflow' ),
+				),
+
+				// Donation Privacy Policy page.
+				'donation_privacy_policy_page' => array(
+					'id'          => 'giftflow_donation_privacy_policy_page',
+					'name'        => 'giftflow_general_options[donation_privacy_policy_page]',
+					'type'        => 'select',
+					'options'     => giftflow_get_pages(),
+					'value'       => giftflow_get_donation_privacy_policy_page(),
+					'label'       => __( 'Privacy Policy Page', 'giftflow' ),
+					'description' => __( 'Select the donation privacy policy page', 'giftflow' ),
+				),
+
+				// Donation Terms & Conditions page.
+				'donation_terms_conditions_page' => array(
+					'id'          => 'giftflow_donation_terms_conditions_page',
+					'name'        => 'giftflow_general_options[donation_terms_conditions_page]',
+					'type'        => 'select',
+					'options'     => giftflow_get_pages(),
+					'value'       => giftflow_get_donation_terms_conditions_page(),
+					'label'       => __( 'Terms & Conditions Page', 'giftflow' ),
+					'description' => __( 'Select the donation terms & conditions page', 'giftflow' ),
 				),
 			),
 		),
