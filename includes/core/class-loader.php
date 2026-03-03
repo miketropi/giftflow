@@ -158,14 +158,18 @@ class Loader extends Base {
 	 */
 	public function display_post_states( $states, $post ) {
 		$campaigns_page = get_page_by_path( 'campaigns' );
-
-		// validate $campaigns_page is object and has ID.
-		if ( ! is_object( $campaigns_page ) || ! isset( $campaigns_page->ID ) ) {
-			return $states;
+		if ( $campaigns_page && $post->ID === $campaigns_page->ID ) {
+			$states[] = __( 'Campaigns Page', 'giftflow' );
 		}
 
-		if ( $post->ID === $campaigns_page->ID ) {
-			$states[] = __( 'Campaigns Page', 'giftflow' );
+		$donation_privacy_policy_page = get_page_by_path( 'donation-privacy-policy' );
+		if ( $donation_privacy_policy_page && $post->ID === $donation_privacy_policy_page->ID ) {
+			$states[] = __( 'Donation Privacy Policy', 'giftflow' );
+		}
+
+		$donation_terms_conditions_page = get_page_by_path( 'donation-terms-conditions' );
+		if ( $donation_terms_conditions_page && $post->ID === $donation_terms_conditions_page->ID ) {
+			$states[] = __( 'Donation Terms & Conditions', 'giftflow' );
 		}
 
 		return $states;
@@ -354,6 +358,32 @@ class Loader extends Base {
 				$thank_donor_page,
 				'_wp_page_template',
 				'thank-donor'
+			);
+		}
+
+		// create donation Privacy Policy page.
+		$donation_privacy_policy_page = get_page_by_path( 'donation-privacy-policy' );
+		if ( ! $donation_privacy_policy_page ) {
+			$donation_privacy_policy_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Donation Privacy Policy', 'giftflow' ),
+					'post_content' => giftflow_get_file_content( GIFTFLOW_PLUGIN_DIR . 'block-templates/page-content/donation-privacy-policy.html' ),
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
+			);
+		}
+
+		// create donation Terms & Conditions page.
+		$donation_terms_conditions_page = get_page_by_path( 'donation-terms-conditions' );
+		if ( ! $donation_terms_conditions_page ) {
+			$donation_terms_conditions_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Donation Terms & Conditions', 'giftflow' ),
+					'post_content' => giftflow_get_file_content( GIFTFLOW_PLUGIN_DIR . 'block-templates/page-content/donation-terms-conditions.html' ),
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
 			);
 		}
 	}

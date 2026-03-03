@@ -1564,3 +1564,28 @@ function giftflow_get_donation_terms_conditions_page() {
 
 	return $donation_terms_conditions_page;
 }
+
+
+/**
+ * Get the file content if the file exists.
+ *
+ * @param string $file_path Absolute path to the file.
+ * @return string File content.
+ */
+function giftflow_get_file_content( $file_path = '' ) {
+	$_content = '';
+
+	// if file path is empty, return empty content.
+	if ( empty( $file_path ) ) {
+		return $_content;
+	}
+
+	// if file exists and is readable, get the file content.
+	if ( file_exists( $file_path ) && is_readable( $file_path ) ) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$_content = file_get_contents( $file_path );
+	}
+
+	// apply filters to the file content.
+	return apply_filters( 'giftflow_get_file_content_filter', $_content, $file_path );
+}

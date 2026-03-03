@@ -283,15 +283,11 @@ function giftflow_add_first_activation_notice() {
 				class="notice notice-info is-dismissible giftflow-first-activation-notice"
 				data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_dismiss_notice' ) ); ?>">
 				<p>
-					<strong><?php esc_html_e( 'Welcome to GiftFlow!', 'giftflow' ); ?></strong>
 					<?php esc_html_e( 'It looks like you\'re using GiftFlow for the first time. We highly recommend visiting the documentation page to quickly get started and make the most out of your donation campaigns.', 'giftflow' ); ?>
-				</p>
-				<p>
 					<a 
 						href="<?php echo esc_url( $docs_url ); ?>" 
-						class="button button-primary" 
 						target="_blank" >
-						<?php esc_html_e( 'View Documentation', 'giftflow' ); ?>
+						<?php esc_html_e( 'View documentation here.', 'giftflow' ); ?>
 					</a>
 				</p>
 			</div>
