@@ -120,8 +120,10 @@ if ( empty( $campaigns ) ) {
 								if ( ! isset( $category->name ) ) {
 									continue;
 								}
+								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 								$term_link = get_term_link( $category );
 								if ( is_wp_error( $term_link ) ) {
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									$term_link = '';
 								}
 								?>

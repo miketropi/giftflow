@@ -11,10 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $redirect_url    = get_permalink( giftflow_get_donor_account_page() );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $users_can_register = get_option( 'users_can_register' );
-$initial_view    = isset( $_GET['view'] ) ? sanitize_key( $_GET['view'] ) : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+$initial_view    = isset( $_GET['view'] ) ? sanitize_key( $_GET['view'] ) : 'login';
 if ( ! in_array( $initial_view, array( 'login', 'forgot', 'register' ), true ) || ( 'register' === $initial_view && ! $users_can_register ) ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$initial_view = 'login';
 }
 ?>
@@ -23,7 +28,10 @@ if ( ! in_array( $initial_view, array( 'login', 'forgot', 'register' ), true ) |
 		<button type="button" id="gfw-tab-login" class="gfw-auth-tab gfw-auth-tab--login is-active" data-gfw-view="login" aria-selected="true" aria-controls="gfw-pane-login">
 			<?php esc_html_e( 'Log in', 'giftflow' ); ?>
 		</button>
-		<?php if ( $users_can_register ) : ?>
+		<?php
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		if ( $users_can_register ) :
+			?>
 			<button type="button" id="gfw-tab-register" class="gfw-auth-tab gfw-auth-tab--register" data-gfw-view="register" aria-selected="false" aria-controls="gfw-pane-register">
 				<?php esc_html_e( 'Register', 'giftflow' ); ?>
 			</button>

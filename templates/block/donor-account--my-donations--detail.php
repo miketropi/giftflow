@@ -12,21 +12,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donation_id    = $donation->ID;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $payment_method = $donation->payment_method ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $payment_method_label = $donation->payment_method_label ?? ucfirst( str_replace( '_', ' ', $payment_method ) );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donation_date  = $donation->__date_gmt ?? $donation->__date ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $campaign_name  = $donation->campaign_name ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $campaign_url   = $donation->campaign_url ?? '#';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donation_type  = $donation->donation_type ?? '';
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $amount       = $donation->__amount_formatted ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $d_status       = $donation->status ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $status_class = 'status-' . esc_attr( strtolower( $d_status ) );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $status_label = $d_status ? ucfirst( $d_status ) : '—';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $back_url     = giftflow_donor_account_page_url( 'donations' );
 
 // Single-row data for the details table. Keys match row definitions below.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $detail_data = array(
 	'donor_name'    => $donation->donor_name ?? '',
 	'donor_email'   => $donation->donor_email ?? '',
@@ -37,6 +50,7 @@ $detail_data = array(
 	'date'          => $donation_date,
 );
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $detail_data = apply_filters( 'giftflow_donation_detail_data', $detail_data, $donation );
 
 /**
@@ -44,6 +58,7 @@ $detail_data = apply_filters( 'giftflow_donation_detail_data', $detail_data, $do
  *
  * @var array $detail_rows Table rows.
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $detail_rows = array(
 	array(
 		'label' => __( 'Donor name', 'giftflow' ),
@@ -84,6 +99,8 @@ $detail_rows = array(
 		'td_class' => 'gfw-donation-detail-date',
 	),
 );
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $detail_rows = apply_filters( 'giftflow_donation_detail_table_rows', $detail_rows, $donation );
 ?>
 
@@ -148,24 +165,35 @@ $detail_rows = apply_filters( 'giftflow_donation_detail_table_rows', $detail_row
 		<h2 id="gfw-donation-details-heading" class="gfw-donation-detail-section-title"><?php esc_html_e( 'Donation details', 'giftflow' ); ?></h2>
 		<table class="gfw-donation-detail-table giftflow-table">
 			<tbody>
-				<?php foreach ( $detail_rows as $row ) : ?>
-					<?php
+				<?php
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+				foreach ( $detail_rows as $row ) :
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					$key  = $row['value'] ?? '';
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					$val  = isset( $detail_data[ $key ] ) ? $detail_data[ $key ] : '';
 					if ( isset( $row['show_if_empty'] ) && false === $row['show_if_empty'] && '' === (string) $val ) {
 						continue;
 					}
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					$format   = $row['format'] ?? 'text';
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					$td_class = 'gfw-donation-detail-value' . ( ! empty( $row['td_class'] ) ? ' ' . $row['td_class'] : '' );
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					if ( 'yesno' === $format ) {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$display = $val ? __( 'Yes', 'giftflow' ) : __( 'No', 'giftflow' );
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					} elseif ( 'html' === $format ) {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$display = wp_kses_post( $val );
 					} elseif ( 'status' === $format ) {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$display = '' !== $val && null !== $val
 						? '<span class="donation-status status-' . esc_attr( strtolower( (string) $val ) ) . '">' . esc_html( ucfirst( (string) $val ) ) . '</span>'
 						: '—';
 					} else {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$display = '' !== $val && null !== $val ? $val : '—';
 					}
 					?>

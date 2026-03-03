@@ -96,6 +96,7 @@ $no_payment_methods = count( $gateways ) === 0;
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							foreach ( $donation_types as $index => $donation_type ) :
+								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 								$option_id = 'donation_type_' . $donation_type['name'];
 								?>
 								<label class="donation-form__radio-option" for="<?php echo esc_attr( $option_id ); ?>">
@@ -275,12 +276,15 @@ $no_payment_methods = count( $gateways ) === 0;
 								foreach ( $gateways as $method ) {
 									if ( $method->is_enabled() ) {
 										// get supports.
+										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 										$supports = $method->get_supports();
 
 										// recurring.
+										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 										$recurring_class = in_array( 'recurring', $supports, true ) ? 'recurring-support' : '';
 
 										// class.
+										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 										$classes = 'donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . ' ' . esc_attr( $recurring_class );
 
 										echo '<div class="' . esc_attr( $classes ) . '" data-gateway="' . esc_attr( $method->get_id() ) . '">';

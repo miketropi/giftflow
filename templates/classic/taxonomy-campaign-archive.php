@@ -13,10 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header( 'giftflow' );
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $current_term = get_queried_object();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $current_term_id = $current_term->term_id;
 
 // do_blocks the block content.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $block_content = '
 <!-- wp:group {"tagName":"main","align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
 <main class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)">
@@ -49,7 +52,7 @@ $block_content = '
 do_action( 'giftflow_campaign_taxonomy_archive_before_content' );
 
 // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-echo '<h1 class="m-0 text-center">' . esc_html__( 'Category', 'giftflow' ) . ': ' . esc_html__( $current_term->name ) . '</h1>';
+echo '<h1 class="m-0 text-center">' . esc_html__( 'Category', 'giftflow' ) . ': ' . esc_html( $current_term->name ) . '</h1>';
 
 // print the block content.
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -13,7 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 // --- Input ---
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound, WordPress.WP.GlobalVariablesOverride.Prohibited
 $posts      = $donations['posts'] ?? array();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $total      = $donations['total'] ?? 0;
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $pagination = $donations['pagination'] ?? 1;
 // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 $paged      = $paged ?? 1;
@@ -24,6 +26,7 @@ $paged      = $paged ?? 1;
  *
  * @var array $list_columns
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $list_columns = array(
 	array(
 		'label'          => __( 'Donor name', 'giftflow' ),
@@ -47,43 +50,65 @@ $list_columns = array(
 		'head_cell_class' => 'gfw-donation-list__head-cell--date',
 	),
 );
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $list_columns = apply_filters( 'giftflow_donation_list_columns', $list_columns );
 
-// --- Build row data (one array per donation; keys match column value / donor fields) ---
+// --- Build row data (one array per donation; keys match column value / donor fields).
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $list_rows = array();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 foreach ( $posts as $donation ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$is_anonymous   = ( 'yes' === ( $donation['is_anonymous'] ?? '' ) );
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$donor_name     = $donation['donor_meta']['name'] ?? '';
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$donor_email    = $donation['donor_meta']['email'] ?? '';
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$date_gmt       = $donation['date_gmt'] ?? '';
 
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$time_ago = '';
 	if ( $date_gmt ) {
 		if ( function_exists( 'giftflow_render_time_ago' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$time_ago = giftflow_render_time_ago( $date_gmt );
 		} else {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$time_ago = date_i18n( get_option( 'date_format' ) . ', ' . get_option( 'time_format' ), strtotime( $date_gmt ) );
 		}
 	}
 
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$donor_secondary = '';
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	if ( ! $is_anonymous ) {
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$city    = $donation['donor_meta']['city'] ?? '';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$country = $donation['donor_meta']['country'] ?? '';
 		if ( $city && $country ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$donor_secondary = $city . ', ' . $country;
 		} else {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$donor_secondary = '—';
 		}
 	}
 
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	if ( $is_anonymous || empty( $donor_email ) ) {
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$initial     = $is_anonymous ? '?' : ( $donor_name ? mb_substr( $donor_name, 0, 1 ) : '?' );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$avatar_html = '<span class="gfw-donation-list__avatar-placeholder" aria-hidden="true">' . esc_html( $initial ) . '</span>';
 	} else {
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$avatar_html = get_avatar( $donor_email, 40, '', $donor_name, array( 'class' => 'gfw-donation-list__avatar-img' ) );
 	}
 
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$list_row = array(
 		'id'              => $donation['id'] ?? '',
 		'donor_name'      => $donor_name,
@@ -95,7 +120,9 @@ foreach ( $posts as $donation ) {
 		'date_gmt'        => $date_gmt,
 	);
 
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$list_row = apply_filters( 'giftflow_donation_list_row', $list_row, $donation );
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$list_rows[] = $list_row;
 }
 ?>
@@ -116,17 +143,22 @@ foreach ( $posts as $donation ) {
 
 	<?php if ( ! empty( $list_rows ) ) : ?>
 		<div class="gfw-donation-list">
-			<!-- <div class="gfw-donation-list__head" role="presentation">
-				<?php foreach ( $list_columns as $col ) : ?>
-					<span class="gfw-donation-list__head-cell <?php echo esc_attr( $col['head_cell_class'] ?? '' ); ?>"><?php echo esc_html( $col['label'] ); ?></span>
-				<?php endforeach; ?>
-			</div> -->
-			<?php foreach ( $list_rows as $row ) : ?>
+			
+			<?php
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+			foreach ( $list_rows as $row ) :
+				?>
 				<div class="gfw-donation-list__row gfw-donation-list__row--<?php echo esc_attr( $row['id'] ?? '' ); ?>">
-					<?php foreach ( $list_columns as $col ) : ?>
+					<?php
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+					foreach ( $list_columns as $col ) :
+						?>
 						<?php
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$key   = $col['value'] ?? '';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$format = $col['format'] ?? 'text';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$cell_class = 'gfw-donation-list__cell ' . ( $col['cell_class'] ?? '' );
 						?>
 						<div class="<?php echo esc_attr( trim( $cell_class ) ); ?>">

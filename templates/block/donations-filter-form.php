@@ -10,20 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $form_action = giftflow_donor_account_page_url( 'donations' );
 
 // use giftflow_sanitize_array.
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $filters_raw = giftflow_sanitize_array( $_GET ?? array() );
 
 // Current filter values from GET (param names used in form).
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $filter_date_from = $filters_raw['_filter_date_from'] ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $filter_date_to   = $filters_raw['_filter_date_to'] ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $filter_status    = $filters_raw['_filter_status'] ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $filter_payment   = $filters_raw['_filter_payment_method'] ?? '';
 
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $status_options   = giftflow_get_donation_status_options();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $payment_options  = giftflow_get_payment_methods_options();
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $has_active_filter = '' !== $filter_date_from || '' !== $filter_date_to || '' !== $filter_status || '' !== $filter_payment;
 ?>
 
@@ -45,7 +53,10 @@ $has_active_filter = '' !== $filter_date_from || '' !== $filter_date_to || '' !=
 			<label for="gfw-filter-status" class="gfw-donations-filter-form__label"><?php esc_html_e( 'Status', 'giftflow' ); ?></label>
 			<select id="gfw-filter-status" name="_filter_status" class="gfw-donations-filter-form__select">
 				<option value=""><?php esc_html_e( 'All statuses', 'giftflow' ); ?></option>
-				<?php foreach ( $status_options as $key => $label ) : ?>
+				<?php
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+				foreach ( $status_options as $key => $label ) :
+					?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $filter_status, $key ); ?>><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
@@ -55,7 +66,10 @@ $has_active_filter = '' !== $filter_date_from || '' !== $filter_date_to || '' !=
 			<label for="gfw-filter-payment" class="gfw-donations-filter-form__label"><?php esc_html_e( 'Payment method', 'giftflow' ); ?></label>
 			<select id="gfw-filter-payment" name="_filter_payment_method" class="gfw-donations-filter-form__select">
 				<option value=""><?php esc_html_e( 'All methods', 'giftflow' ); ?></option>
-				<?php foreach ( $payment_options as $key => $label ) : ?>
+				<?php
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+				foreach ( $payment_options as $key => $label ) :
+					?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $filter_payment, $key ); ?>><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
@@ -64,7 +78,6 @@ $has_active_filter = '' !== $filter_date_from || '' !== $filter_date_to || '' !=
 
 	<div class="gfw-donations-filter-form__actions">
 		<button type="submit" class="gfw-donations-filter-form__submit">
-		<?php echo wp_kses( giftflow_svg_icon( 'filter' ), giftflow_allowed_svg_tags() ); ?>
 		<?php esc_html_e( 'Filter Donations', 'giftflow' ); ?>
 	</button>
 		<?php if ( $has_active_filter ) : ?>

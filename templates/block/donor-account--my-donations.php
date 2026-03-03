@@ -25,17 +25,25 @@ $donations_data = array();
 if ( $donations instanceof WP_Query && $donations->have_posts() ) {
 	while ( $donations->have_posts() ) {
 		$donations->the_post();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$donation_id = get_the_ID();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$d           = giftflow_get_donation_data_by_id( $donation_id );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		if ( ! $d ) {
 			continue;
 		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$campaign_id = get_post_meta( $donation_id, '_campaign_id', true );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		if ( ! isset( $cache_process_bar[ $campaign_id ] ) && $campaign_id ) {
 			ob_start();
 			giftflow_process_bar_of_campaign_donations( $campaign_id );
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$cache_process_bar[ $campaign_id ] = ob_get_clean();
 		}
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$donations_data[] = array(
 			'donation_id'       => $donation_id,
 			'campaign_id'       => $campaign_id,
@@ -58,6 +66,8 @@ if ( $donations instanceof WP_Query && $donations->have_posts() ) {
 	}
 	wp_reset_postdata();
 }
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donations_data = apply_filters( 'giftflow_my_donations_table_data', $donations_data, $page );
 ?>
 <div class="gfw-my-donations-header">
@@ -117,6 +127,8 @@ $table_columns = array(
 		'format' => 'detail',
 	),
 );
+
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $table_columns = apply_filters( 'giftflow_my_donations_table_columns', $table_columns );
 
 if ( ! empty( $donations_data ) ) :
@@ -130,15 +142,19 @@ if ( ! empty( $donations_data ) ) :
 		<table class="giftflow-table gfw-my-donations-table" style="width: 100%;">
 			<thead>
 				<tr>
-					<?php foreach ( $table_columns as $col ) : ?>
-						<?php
+					<?php
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+					foreach ( $table_columns as $col ) :
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$th_attrs = $col['th_attrs'] ?? array();
 						if ( ! empty( $col['width'] ) ) {
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$th_attrs['width'] = $col['width'];
 						}
 						?>
 					<th 
 						<?php
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						foreach ( $th_attrs as $attr => $val ) {
 							echo esc_attr( $attr ) . '="' . esc_attr( $val ) . '" ';
 						}
@@ -148,14 +164,25 @@ if ( ! empty( $donations_data ) ) :
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ( $donations_data as $row ) : ?>
+				<?php
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+				foreach ( $donations_data as $row ) :
+					?>
 				<tr class="gfw-my-donations-row">
-					<?php foreach ( $table_columns as $col ) : ?>
+					<?php
+
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+					foreach ( $table_columns as $col ) :
+						?>
 					<td>
 						<?php
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$key    = $col['value'] ?? $col['key'] ?? '';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$format = $col['format'] ?? $col['cell'] ?? 'text';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$val    = isset( $row[ $key ] ) ? $row[ $key ] : '';
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						switch ( $format ) {
 							case 'id':
 								echo '<span style="font-family: monospace;">#' . esc_html( (string) $val ) . '</span>';
@@ -192,9 +219,12 @@ if ( ! empty( $donations_data ) ) :
 				</tr>
 					<?php
 					// Sub-donations: toggle show/hide via <details>.
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 					$sub_donations = $row['sub_donations'] ?? array();
 					if ( ! empty( $sub_donations ) && is_array( $sub_donations ) ) :
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$col_count = count( $table_columns );
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 						$sub_count = count( $sub_donations );
 						?>
 				<tr class="gfw-my-donations-sub-row">
@@ -204,14 +234,20 @@ if ( ! empty( $donations_data ) ) :
 								<span class="gfw-my-donations-sub-summary-text"><?php esc_html_e( 'Recurring payments', 'giftflow' ); ?></span>
 							</summary>
 							<ul class="gfw-my-donations-sub-list">
-								<?php foreach ( $sub_donations as $sub_post ) : ?>
-									<?php
+								<?php
+								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+								foreach ( $sub_donations as $sub_post ) :
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									$sub_id = $sub_post->ID;
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									$sub_d  = giftflow_get_donation_data_by_id( $sub_id );
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									if ( ! $sub_d ) {
 										continue;
 									}
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									$sub_detail_url = giftflow_donor_account_page_url( 'donations?_id=' . $sub_id );
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 									$sub_date_ago = '<span class="gfw-donation-date-ago" title="' . esc_attr( $sub_d->__date_gmt ) . '">' . giftflow_render_time_ago( $sub_d->__date_gmt ) . '</span>';
 									?>
 									<li class="gfw-my-donations-sub-item">

@@ -775,24 +775,21 @@ function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) 
 		return;
 	}
 
-	// create new user, update first name, last name, and set role is subscriber.
+	// create new user with wp_insert_user and role giftflow_donor to avoid default role risks.
 	$password = wp_generate_password();
-	$user_id = wp_create_user( $donor_data->email, $password, $donor_data->email );
+	$user_id = wp_insert_user(
+		array(
+			'user_login'   => $donor_data->email,
+			'user_pass'    => $password,
+			'user_email'   => $donor_data->email,
+			'first_name'   => $donor_data->first_name,
+			'last_name'    => $donor_data->last_name,
+			'role'         => 'giftflow_donor',
+		)
+	);
 	if ( is_wp_error( $user_id ) ) {
 		return;
 	}
-
-	// update user data.
-	wp_update_user(
-		array(
-			'ID' => $user_id,
-			'first_name' => $donor_data->first_name,
-			'last_name' => $donor_data->last_name,
-		)
-	);
-
-	// assign donor role.
-	giftflow_assign_donor_role( $user_id );
 
 	// add hook after create new user.
 	do_action( 'giftflow_new_user_on_first_time_donation', $user_id, $payment_result );

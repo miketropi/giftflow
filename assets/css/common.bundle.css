@@ -2825,10 +2825,20 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 }
 
 .gfw-donations-filter-form__submit {
+  padding: 0.45rem 1rem;
+  font-size: 0.9375rem;
+  color: #fff;
+  background: #0f172a;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  padding: 1rem 1.5rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .gfw-donations-filter-form__submit svg {
   width: 1em;
