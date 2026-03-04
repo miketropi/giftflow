@@ -56,7 +56,7 @@ class Campaign extends Base_Post_Type {
 			'query_var'          => true,
 			'rewrite'            => array( 'slug' => 'campaign' ),
 			'capability_type'    => 'post',
-			'has_archive'        => true,
+			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => null,
 			'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments' ),

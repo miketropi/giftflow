@@ -30,7 +30,7 @@ $field = new GiftFlow_Field(
 );
 
 // Render the field
-echo $field->render();
+$field->render();
 ```
 
 ## Field Types
@@ -121,7 +121,7 @@ $text_field = new GiftFlow_Field(
         'required' => true,
     )
 );
-echo $text_field->render();
+$text_field->render();
 ```
 
 ### Select Field
@@ -141,7 +141,7 @@ $select_field = new GiftFlow_Field(
         'default' => 'option1',
     )
 );
-echo $select_field->render();
+$select_field->render();
 ```
 
 ### Currency Field
@@ -160,7 +160,7 @@ $currency_field = new GiftFlow_Field(
         'step' => 0.01,
     )
 );
-echo $currency_field->render();
+$currency_field->render();
 ```
 
 ### Multiple Select Field
@@ -180,7 +180,7 @@ $multiple_select_field = new GiftFlow_Field(
         'default' => array('option1', 'option2'),
     )
 );
-echo $multiple_select_field->render();
+$multiple_select_field->render();
 ```
 
 ### Textarea Field
@@ -197,7 +197,7 @@ $textarea_field = new GiftFlow_Field(
         'cols' => 50,
     )
 );
-echo $textarea_field->render();
+$textarea_field->render();
 ```
 
 ### Checkbox Field
@@ -213,7 +213,7 @@ $checkbox_field = new GiftFlow_Field(
         'default' => true,
     )
 );
-echo $checkbox_field->render();
+$checkbox_field->render();
 ```
 
 ### Switch Field
@@ -229,7 +229,7 @@ $switch_field = new GiftFlow_Field(
         'default' => false,
     )
 );
-echo $switch_field->render();
+$switch_field->render();
 ```
 
 ### Datetime Field
@@ -246,7 +246,7 @@ $datetime_field = new GiftFlow_Field(
         'time_format' => 'H:i',
     )
 );
-echo $datetime_field->render();
+$datetime_field->render();
 ```
 
 ### Color Field
@@ -262,7 +262,7 @@ $color_field = new GiftFlow_Field(
         'default' => '#000000',
     )
 );
-echo $color_field->render();
+$color_field->render();
 ```
 
 ### Gallery Field
@@ -283,7 +283,7 @@ $gallery_field = new GiftFlow_Field(
         ),
     )
 );
-echo $gallery_field->render();
+$gallery_field->render();
 ```
 
 ### Google Maps Field
@@ -305,7 +305,7 @@ $googlemap_field = new GiftFlow_Field(
         ),
     )
 );
-echo $googlemap_field->render();
+$googlemap_field->render();
 ```
 
 ## Integration with Meta Boxes
@@ -362,8 +362,8 @@ function render_custom_meta_box($post) {
     );
     
     // Render fields
-    echo $text_field->render();
-    echo $select_field->render();
+    $text_field->render();
+    $select_field->render();
 }
 
 // Save meta box data

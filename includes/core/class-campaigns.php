@@ -69,12 +69,14 @@ class Campaigns extends Base {
 		// Get all campaign meta.
 		$meta = get_post_meta( $campaign_id );
 
+		$excerpt_length = apply_filters( 'giftflow_campaign_excerpt_length', 20, $campaign_id );
+
 		// Build campaign data array.
 		$campaign_data = array(
 			'id' => $campaign_id,
 			'title' => $campaign->post_title,
 			'content' => $campaign->post_content,
-			'excerpt' => get_the_excerpt( $campaign_id ),
+			'excerpt' => wp_trim_words( $campaign->post_content, $excerpt_length, '...' ),
 			'post_status' => $campaign->post_status,
 			'date' => $campaign->post_date,
 			'date_gmt' => $campaign->post_date_gmt,
@@ -162,26 +164,24 @@ class Campaigns extends Base {
 
 		// Allow filtering of query args.
 		$args = apply_filters( 'giftflow_campaigns_query_args', $args );
-
-		$query = new \WP_Query( $args );
-
+		$__query = new \WP_Query( $args );
 		$campaigns = array();
-		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
+		if ( $__query->have_posts() ) {
+			while ( $__query->have_posts() ) {
+				$__query->the_post();
 				$campaign_data = $this->get( get_the_ID() );
 				if ( $campaign_data ) {
 					$campaigns[] = $campaign_data;
 				}
 			}
-			wp_reset_postdata();
 		}
+		wp_reset_postdata();
 
 		// Return campaigns with pagination info.
 		return array(
 			'campaigns' => apply_filters( 'giftflow_campaigns_data', $campaigns, $args ),
-			'total' => $query->found_posts,
-			'pages' => $query->max_num_pages,
+			'total' => $__query->found_posts,
+			'pages' => $__query->max_num_pages,
 			'current_page' => isset( $args['paged'] ) ? intval( $args['paged'] ) : 1,
 		);
 	}

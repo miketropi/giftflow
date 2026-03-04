@@ -5,3 +5,5 @@ node_modules
 .env.local
 .env.development.local
 .env.test.local
+/vendor/
+!vendor-prefixed/

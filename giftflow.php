@@ -3,7 +3,7 @@
  * Plugin Name: GiftFlow
  * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
- * Version: 1.0.1
+ * Version: 1.0.3
  * Author: Beplus
  * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
@@ -22,21 +22,21 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin constants.
-define( 'GIFTFLOW_VERSION', '1.0.1' );
+define( 'GIFTFLOW_VERSION', '1.0.3' );
 define( 'GIFTFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include Composer autoloader.
-if ( file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
-	require_once GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php';
+if ( file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php' ) ) {
+	require_once GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php';
 } else {
 	add_action(
 		'admin_notices',
 		function () {
 			?>
 		<div class="notice notice-error">
-			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install" in the plugin directory.', 'giftflow' ); ?></p>
+			<p><?php esc_html_e( 'GiftFlow requires Composer dependencies to be installed. Please run "composer run build" in the plugin directory.', 'giftflow' ); ?></p>
 		</div>
 			<?php
 		}
@@ -60,6 +60,8 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-donations.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-campaigns.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-block-template.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-logger.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-donation-event-history.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/core/class-wp-block-custom-hooks.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'blocks/index.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/common.php';
@@ -140,10 +142,10 @@ function giftflow_activate() {
 	}
 
 	// Check if Composer dependencies are installed.
-	if ( ! file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+	if ( ! file_exists( GIFTFLOW_PLUGIN_DIR . 'vendor-prefixed/autoload.php' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'GiftFlow requires Composer dependencies to be installed. Please run "composer install" in the plugin directory.', 'giftflow' ),
+			esc_html__( 'GiftFlow requires Composer dependencies to be installed. Please run "composer run build" in the plugin directory.', 'giftflow' ),
 			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);
@@ -281,15 +283,11 @@ function giftflow_add_first_activation_notice() {
 				class="notice notice-info is-dismissible giftflow-first-activation-notice"
 				data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_dismiss_notice' ) ); ?>">
 				<p>
-					<strong><?php esc_html_e( 'Welcome to GiftFlow!', 'giftflow' ); ?></strong>
 					<?php esc_html_e( 'It looks like you\'re using GiftFlow for the first time. We highly recommend visiting the documentation page to quickly get started and make the most out of your donation campaigns.', 'giftflow' ); ?>
-				</p>
-				<p>
 					<a 
 						href="<?php echo esc_url( $docs_url ); ?>" 
-						class="button button-primary" 
 						target="_blank" >
-						<?php esc_html_e( 'View Documentation', 'giftflow' ); ?>
+						<?php esc_html_e( 'View documentation here.', 'giftflow' ); ?>
 					</a>
 				</p>
 			</div>

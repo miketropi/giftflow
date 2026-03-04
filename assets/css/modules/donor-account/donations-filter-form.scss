@@ -1,0 +1,123 @@
+// Donations filter form (date, status, payment method)
+// Aligned with donor-account / donation-detail variables
+
+$gfw-filter-border: 1px solid #e5e7eb;
+$gfw-filter-radius: 6px;
+$gfw-filter-bg: #f8fafc;
+$gfw-filter-text: #1e293b;
+$gfw-filter-text-muted: #64748b;
+$gfw-filter-input-bg: #ffffff;
+$gfw-filter-primary: #0f172a;
+$gfw-filter-primary-hover: #334155;
+
+.gfw-donations-filter-form {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: $gfw-filter-bg;
+  border: $gfw-filter-border;
+  border-radius: $gfw-filter-radius;
+  font-size: 0.9375rem;
+}
+
+.gfw-donations-filter-form__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.gfw-donations-filter-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.gfw-donations-filter-form__label {
+  font-weight: 500;
+  color: $gfw-filter-text-muted;
+  font-size: 0.8125rem;
+}
+
+.gfw-donations-filter-form__input,
+.gfw-donations-filter-form__select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: $gfw-filter-text;
+  background: $gfw-filter-input-bg;
+  border: $gfw-filter-border;
+  border-radius: 4px;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+  margin-bottom: 0;
+
+  &:focus {
+    outline: none;
+    border-color: $gfw-filter-primary;
+  }
+}
+
+.gfw-donations-filter-form__select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.gfw-donations-filter-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gfw-donations-filter-form__submit {
+  padding: 0.45rem 1rem;
+  font-size: 0.9375rem;
+  color: #fff;
+  background: $gfw-filter-primary;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  letter-spacing: 0;
+  text-transform: none;
+
+  svg {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  &:hover {
+    background: $gfw-filter-primary-hover;
+  }
+}
+
+.gfw-donations-filter-form__clear {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: $gfw-filter-text-muted;
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: $gfw-filter-text;
+  }
+}
+
+@media (max-width: 600px) {
+  .gfw-donations-filter-form {
+    padding: 0.875rem 1rem;
+  }
+
+  .gfw-donations-filter-form__fields {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

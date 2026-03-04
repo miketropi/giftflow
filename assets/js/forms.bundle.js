@@ -315,6 +315,7 @@ var AsyncEventHub = /*#__PURE__*/function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySlideEffect: () => (/* binding */ applySlideEffect),
+/* harmony export */   createElementFromTemplate: () => (/* binding */ createElementFromTemplate),
 /* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector),
 /* harmony export */   validateValue: () => (/* binding */ validateValue)
 /* harmony export */ });
@@ -511,6 +512,11 @@ function validateValue(type, value) {
     _iterator.f();
   }
   return overallValid;
+}
+function createElementFromTemplate(template) {
+  var div = document.createElement('div');
+  div.innerHTML = template;
+  return div.children[0] || null;
 }
 
 /***/ }),
@@ -1015,7 +1021,12 @@ function _regeneratorDefine2(e, r, n, t) {
                 if (methodSelected) {
                   methodSelected.checked = true;
                 }
-                this.setInitFields(_donationForm2);
+                this.setInitFields(_donationForm2, function (fields) {
+                  // update output value.
+                  Object.keys(fields).forEach(function (field_name) {
+                    _this.onUpdateOutputField(field_name, fields[field_name]);
+                  });
+                });
                 this.onListenerFormFieldUpdate();
 
                 // create event trigger on load form to document.
@@ -1305,6 +1316,7 @@ function _regeneratorDefine2(e, r, n, t) {
               key: "setInitFields",
               value: function setInitFields(_donationForm3) {
                 var _this2 = this;
+                var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
                 var self = this;
                 var fields = _donationForm3.querySelectorAll('input[name]');
                 if (!fields || fields.length === 0) {
@@ -1330,6 +1342,9 @@ function _regeneratorDefine2(e, r, n, t) {
                   }
                   _this2.fields[(_field$name2 = field === null || field === void 0 ? void 0 : field.name) !== null && _field$name2 !== void 0 ? _field$name2 : ''] = value;
                 });
+                if (callback) {
+                  callback(self.fields);
+                }
               }
             }, {
               key: "onListenerFormFieldUpdate",
@@ -1377,9 +1392,83 @@ function _regeneratorDefine2(e, r, n, t) {
                 }());
               }
             }, {
+              key: "onValidateUiPaymentGatewaySupport",
+              value: function onValidateUiPaymentGatewaySupport(donation_type) {
+                if (donation_type === 'recurring') {
+                  this.form.querySelectorAll('.donation-form__payment-method-item:not(.recurring-support)').forEach(function (paymentMethodDescription) {
+                    // add class disabled
+                    paymentMethodDescription.classList.add('gfw-disabled-payment-gateway');
+                  });
+                } else {
+                  this.form.querySelectorAll('.donation-form__payment-method-item:not(.recurring-support)').forEach(function (paymentMethodDescription) {
+                    // remove class disabled
+                    paymentMethodDescription.classList.remove('gfw-disabled-payment-gateway');
+                  });
+                }
+              }
+            }, {
+              key: "onAutoFindGatewaySupportRecurring",
+              value: function onAutoFindGatewaySupportRecurring() {
+                var self = this;
+                var gatewaySupportRecurringActive = self.form.querySelector('.donation-form__payment-method-item.recurring-support');
+                if (gatewaySupportRecurringActive) {
+                  return gatewaySupportRecurringActive.dataset.gateway;
+                }
+                return null;
+              }
+            }, {
               key: "onChangePaymentMethod",
               value: function onChangePaymentMethod(methodId) {
+                // validate UI payment gateway support.
+                this.onValidateUiPaymentGatewaySupport(this.fields.donation_type);
                 var paymentMethodDescription = this.form.querySelector(".donation-form__payment-method-item.payment-method-".concat(methodId));
+                if (!paymentMethodDescription) {
+                  return;
+                }
+
+                // remove error message template if exists.
+                var errorMessageTemplate = this.form.querySelector('.__recurring-support-not-found');
+                if (errorMessageTemplate) {
+                  errorMessageTemplate.remove();
+                }
+                if (this.fields.donation_type == 'recurring') {
+                  // check is current paymentMethodDescription has class recurring-support.
+                  var isRecurringSupport = paymentMethodDescription.classList.contains('recurring-support');
+                  if (isRecurringSupport == false) {
+                    // auto find gateway support recurring.
+                    var gatewaySupportRecurring = this.onAutoFindGatewaySupportRecurring();
+                    if (gatewaySupportRecurring) {
+                      // console.log('onChangePaymentMethod', 'auto find gateway support recurring', gatewaySupportRecurring);
+
+                      // payment method input selected.
+                      var paymentMethodInput = this.form.querySelector("input[name=\"payment_method\"][value=\"".concat(gatewaySupportRecurring, "\"]"));
+                      if (paymentMethodInput) {
+                        paymentMethodInput.checked = true;
+                        // trigger change event.
+                        paymentMethodInput.dispatchEvent(new Event('change', {
+                          bubbles: true
+                        }));
+                      }
+
+                      // set field payment_method to gatewaySupportRecurring.
+                      this.fields.payment_method = gatewaySupportRecurring;
+                      // update UI by field.
+                      this.onUpdateUIByField('payment_method', gatewaySupportRecurring);
+                      // update payment method.
+                      this.onChangePaymentMethod(gatewaySupportRecurring);
+
+                      // enable button submit - remove class disabled.
+                      this.form.querySelector('.donation-form__button--submit').classList.remove('disabled');
+                    } else {
+                      // add an error message template to prepend .donation-form__payment-methods for donor not payment method support recurring.
+                      var _errorMessageTemplate = "\n\t\t\t\t\t\t\t<div class=\"donation-form__payment-notification donation-form__payment-notification--warning __recurring-support-not-found\">\n\t\t\t\t\t\t\t\t<span class=\"notification-icon\">\n\t\t\t\t\t\t\t\t\t<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-info-icon lucide-info\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg>\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t<div class=\"notification-message-entry\">\n\t\t\t\t\t\t\t\t\t<p>\n\t\t\t\t\t\t\t\t\t\tNo payment methods are currently compatible with recurring donations for this campaign. Please contact the site administrator or try again later.\n\t\t\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t";
+                      this.form.querySelector('.donation-form__payment-methods').prepend((0,_util_helpers__WEBPACK_IMPORTED_MODULE_4__.createElementFromTemplate)(_errorMessageTemplate));
+
+                      // disble button submit - add class disabled.
+                      this.form.querySelector('.donation-form__button--submit').classList.add('disabled');
+                    }
+                  }
+                }
                 this.form.querySelectorAll(".donation-form__payment-method-item:not(.payment-method-".concat(methodId, ")")).forEach(function (paymentMethodDescription) {
                   // remove class is-active.
                   paymentMethodDescription.classList.remove('is-active');
@@ -1436,7 +1525,7 @@ function _regeneratorDefine2(e, r, n, t) {
                 }
 
                 // if outputField is array, loop through it.
-                if (outputField.length > 1) {
+                if (outputField.length) {
                   outputField.forEach(function (output) {
                     var formatTemplate = output.dataset.formatTemplate;
                     var __v = value;
@@ -1447,7 +1536,7 @@ function _regeneratorDefine2(e, r, n, t) {
                     // update output value.
                     _this4.updateOutputValue(output, __v);
                   });
-                  return;
+                  // return;
                 }
               }
             }, {
@@ -1459,7 +1548,7 @@ function _regeneratorDefine2(e, r, n, t) {
                   output.setAttribute('value', value);
                 } else {
                   // if output is not input or textarea, set text content.
-                  output.textContent = value;
+                  output.innerHTML = value;
                 }
               }
 

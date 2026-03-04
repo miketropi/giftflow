@@ -82,20 +82,25 @@ class Shortcodes extends Base {
 		// Get currency format template.
 		$currency_format_template = giftflow_get_currency_js_format_template();
 
-		// array of donation types.
+		// array of donation types (driven by campaign meta: one_time, recurring).
 		$donation_types = array();
 
-		// get one-time donation.
+		// One-time: add when campaign has one-time enabled.
 		$one_time_donation = get_post_meta( $campaign_id, '_one_time', true );
-
-		// if one-time donation is on, add it to the array.
 		if ( $one_time_donation ) {
 			$donation_types[] = array(
 				'name'        => 'one-time',
 				'icon'        => '',
 				'label'       => __( 'One-time Donation', 'giftflow' ),
-				'description' => __( 'Make a single donation', 'giftflow' ),
+				'description' => __( 'Start with a single, one-time contribution — quick, simple, and secure. Thank you for making a difference!', 'giftflow' ),
 			);
+		}
+
+		// Recurring options from campaign (for form display and submission).
+		$recurring_interval       = get_post_meta( $campaign_id, '_recurring_interval', true );
+		$recurring_number_of_times = absint( get_post_meta( $campaign_id, '_recurring_number_of_times', true ) );
+		if ( ! $recurring_interval ) {
+			$recurring_interval = 'monthly';
 		}
 
 		$user_fullname      = '';
@@ -131,10 +136,11 @@ class Shortcodes extends Base {
 		$atts['goal_amount']              = $goal_amount;
 		$atts['default_amount']           = $default_amount;
 		$atts['campaign_title']           = $campaign_title;
-		$atts['currency_symbol']          = $currency_symbol;
-		$atts['currency_format_template'] = $currency_format_template;
-		$atts['recurring_interval']       = $recurring_interval;
-		$atts['location']                 = $location;
+		$atts['currency_symbol']             = $currency_symbol;
+		$atts['currency_format_template']    = $currency_format_template;
+		$atts['recurring_interval']           = $recurring_interval;
+		$atts['recurring_number_of_times']    = $recurring_number_of_times;
+		$atts['location']                     = $location;
 		$atts['gallery']                  = $gallery;
 
 		/**
@@ -207,6 +213,16 @@ class Shortcodes extends Base {
 		if ( ! empty( $atts['search'] ) ) {
 			$query_args['search'] = $atts['search'];
 		}
+
+		/**
+		 * Filter the campaign grid query arguments.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $query_args The query arguments for the campaign grid.
+		 * @param array $atts       The shortcode attributes.
+		 */
+		$query_args = apply_filters( 'giftflow_campaign_grid_query_args', $query_args, $atts );
 
 		$campaigns_result = $campaigns_class->get_campaigns( $query_args );
 

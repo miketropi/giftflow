@@ -1,4 +1,4 @@
-import { applySlideEffect, validateValue } from './util/helpers';
+import { applySlideEffect, validateValue, createElementFromTemplate } from './util/helpers';
 import { AsyncEventHub } from './util/async-event-hub';
 
 /**
@@ -39,7 +39,12 @@ import { AsyncEventHub } from './util/async-event-hub';
 				methodSelected.checked = true;
 			}
 
-			this.setInitFields(donationForm);
+			this.setInitFields(donationForm, (fields) => {
+				// update output value.
+				Object.keys(fields).forEach((field_name) => {
+					this.onUpdateOutputField(field_name, fields[field_name]);
+				});
+			});
 			this.onListenerFormFieldUpdate();
 
 			// create event trigger on load form to document.
@@ -271,7 +276,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 			self.form.querySelector('.donation-form__step-panel.step-' + self.currentStep).classList.add('is-active');
 		}
 
-		setInitFields(donationForm) {
+		setInitFields(donationForm, callback = null) {
 			const self = this;
 			const fields = donationForm.querySelectorAll('input[name]');
 
@@ -298,6 +303,10 @@ import { AsyncEventHub } from './util/async-event-hub';
 
 				this.fields[field?.name ?? ''] = value;
 			});
+
+			if (callback) {
+				callback(self.fields);
+			}
 		}
 
 		onListenerFormFieldUpdate() {
@@ -329,8 +338,94 @@ import { AsyncEventHub } from './util/async-event-hub';
 			});
 		}
 
+		onValidateUiPaymentGatewaySupport( donation_type ) {
+			if(donation_type === 'recurring') {
+				this.form.querySelectorAll('.donation-form__payment-method-item:not(.recurring-support)').forEach((paymentMethodDescription) => {
+					// add class disabled
+					paymentMethodDescription.classList.add('gfw-disabled-payment-gateway');
+				});
+			} else {
+				this.form.querySelectorAll('.donation-form__payment-method-item:not(.recurring-support)').forEach((paymentMethodDescription) => {
+					// remove class disabled
+					paymentMethodDescription.classList.remove('gfw-disabled-payment-gateway');
+				});
+			}
+		}
+
+		onAutoFindGatewaySupportRecurring() {
+			const self = this;
+			const gatewaySupportRecurringActive = self.form.querySelector('.donation-form__payment-method-item.recurring-support');
+			if(gatewaySupportRecurringActive) {
+				return gatewaySupportRecurringActive.dataset.gateway;
+			}
+
+			return null;
+		}
+
 		onChangePaymentMethod(methodId) {
+			// validate UI payment gateway support.
+			this.onValidateUiPaymentGatewaySupport(this.fields.donation_type);
+
 			const paymentMethodDescription = this.form.querySelector(`.donation-form__payment-method-item.payment-method-${methodId}`);
+
+			if(!paymentMethodDescription) {
+				return;
+			}
+
+			// remove error message template if exists.
+			const errorMessageTemplate = this.form.querySelector('.__recurring-support-not-found');
+			if(errorMessageTemplate) {
+				errorMessageTemplate.remove();
+			}
+			
+			if(this.fields.donation_type == 'recurring') {
+				// check is current paymentMethodDescription has class recurring-support.
+				const isRecurringSupport = paymentMethodDescription.classList.contains('recurring-support');
+				if(isRecurringSupport == false) {
+					// auto find gateway support recurring.
+					const gatewaySupportRecurring = this.onAutoFindGatewaySupportRecurring();
+					if(gatewaySupportRecurring) {
+						// console.log('onChangePaymentMethod', 'auto find gateway support recurring', gatewaySupportRecurring);
+
+						// payment method input selected.
+						const paymentMethodInput = this.form.querySelector(`input[name="payment_method"][value="${gatewaySupportRecurring}"]`);
+						if(paymentMethodInput) {
+							paymentMethodInput.checked = true;
+							// trigger change event.
+							paymentMethodInput.dispatchEvent(new Event('change', { bubbles: true }));
+						}
+
+						// set field payment_method to gatewaySupportRecurring.
+						this.fields.payment_method = gatewaySupportRecurring;
+						// update UI by field.
+						this.onUpdateUIByField('payment_method', gatewaySupportRecurring);
+						// update payment method.
+						this.onChangePaymentMethod(gatewaySupportRecurring);
+
+						// enable button submit - remove class disabled.
+						this.form.querySelector('.donation-form__button--submit').classList.remove('disabled');
+					} else {
+						// add an error message template to prepend .donation-form__payment-methods for donor not payment method support recurring.
+						const errorMessageTemplate = `
+							<div class="donation-form__payment-notification donation-form__payment-notification--warning __recurring-support-not-found">
+								<span class="notification-icon">
+									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info-icon lucide-info"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+								</span>
+								<div class="notification-message-entry">
+									<p>
+										No payment methods are currently compatible with recurring donations for this campaign. Please contact the site administrator or try again later.
+									</p>
+								</div>
+							</div>
+						`;
+						this.form.querySelector('.donation-form__payment-methods').prepend(createElementFromTemplate(errorMessageTemplate));
+
+						// disble button submit - add class disabled.
+						this.form.querySelector('.donation-form__button--submit').classList.add('disabled');
+					}
+				}
+			}
+			
 			this.form.querySelectorAll(`.donation-form__payment-method-item:not(.payment-method-${methodId})`).forEach((paymentMethodDescription) => {
 				// remove class is-active.
 				paymentMethodDescription.classList.remove('is-active')
@@ -390,7 +485,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 			}
 
 			// if outputField is array, loop through it.
-			if (outputField.length > 1) {
+			if (outputField.length) {
 				outputField.forEach((output) => {
 					const formatTemplate = output.dataset.formatTemplate;
 					let __v = value;
@@ -401,7 +496,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 					// update output value.
 					this.updateOutputValue(output, __v);
 				});
-				return;
+				// return;
 			}
 		}
 
@@ -412,7 +507,7 @@ import { AsyncEventHub } from './util/async-event-hub';
 				output.setAttribute('value', value);
 			} else {
 				// if output is not input or textarea, set text content.
-				output.textContent = value;
+				output.innerHTML = value;
 			}
 		}
 

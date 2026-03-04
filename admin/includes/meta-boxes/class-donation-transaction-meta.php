@@ -8,6 +8,8 @@
 
 namespace GiftFlow\Admin\MetaBoxes;
 
+use GiftFlow\Core\Donation_Event_History;
+
 /**
  * Donation Transaction Meta Box Class
  */
@@ -43,12 +45,7 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			'status'               => array(
 				'label'       => __( 'Status', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'pending'   => __( 'Pending', 'giftflow' ),
-					'completed' => __( 'Completed', 'giftflow' ),
-					'failed'    => __( 'Failed', 'giftflow' ),
-					'refunded'  => __( 'Refunded', 'giftflow' ),
-				),
+				'options'     => giftflow_get_donation_status_options(),
 				'description' => __( 'Select the status of the donation', 'giftflow' ),
 			),
 
@@ -81,23 +78,23 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			'donation_type'        => array(
 				'label'       => __( 'Donation Type', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'one-time'  => __( 'One-Time', 'giftflow' ),
-					'recurring' => __( 'Recurring', 'giftflow' ),
+				'options'     => apply_filters(
+					'giftflow_donation_type_options',
+					array(
+						'one-time'  => __( 'One-Time', 'giftflow' ),
+					)
 				),
 				'description' => __( 'Select the type of donation', 'giftflow' ),
 			),
 			'recurring_interval'   => array(
 				'label'       => __( 'Recurring Interval', 'giftflow' ),
 				'type'        => 'select',
-				'options'     => array(
-					'daily'     => __( 'Daily', 'giftflow' ),
-					'weekly'    => __( 'Weekly', 'giftflow' ),
-					'monthly'   => __( 'Monthly', 'giftflow' ),
-					'quarterly' => __( 'Quarterly', 'giftflow' ),
-					'yearly'    => __( 'Yearly', 'giftflow' ),
+				'options'     => apply_filters(
+					'giftflow_recurring_interval_options',
+					array()
 				),
 				'description' => __( 'Select the recurring interval of the donation', 'giftflow' ),
+				'pro_only'    => true,
 			),
 			'transaction_id'       => array(
 				'label'       => __( 'Transaction ID', 'giftflow' ),
@@ -143,14 +140,77 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 				)
 			);
 
-			/**
-			 * Filter the donation transaction meta field render output.
-			 *
-			 * @param string         $render The rendered field HTML.
-			 * @param GiftFlow_Field $field_instance The field instance.
-			 */
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo apply_filters( 'giftflow_donation_transaction_meta_field_render', $field_instance->render(), $field_instance );
+			// render field.
+			$field_instance->render();
+		}
+
+		// Stripe recurring: show subscription details and cancel button when this is a subscription parent.
+		$is_subscription_parent = get_post_meta( $post->ID, '_is_subscription_parent', true );
+		$subscription_id       = get_post_meta( $post->ID, '_stripe_subscription_id', true );
+		if ( $is_subscription_parent && ! empty( $subscription_id ) ) {
+			$recurring_status   = get_post_meta( $post->ID, '_recurring_status', true );
+			$next_payment       = get_post_meta( $post->ID, '_recurring_next_payment_date', true );
+			$recurring_interval = get_post_meta( $post->ID, '_recurring_interval', true );
+			$stripe_dashboard   = 'https://dashboard.stripe.com/subscriptions/' . esc_attr( $subscription_id );
+			?>
+			<div class="giftflow-recurring-details" style="margin-top:1em;padding:1em;background:#f0f0f1;border-left:4px solid #2271b1;">
+				<p><strong><?php esc_html_e( 'Recurring (Stripe)', 'giftflow' ); ?></strong></p>
+				<p>
+					<?php esc_html_e( 'Subscription ID:', 'giftflow' ); ?>
+					<a href="<?php echo esc_url( $stripe_dashboard ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $subscription_id ); ?></a>
+				</p>
+				<p><?php esc_html_e( 'Status:', 'giftflow' ); ?> <?php echo esc_html( $recurring_status ?? '—' ); ?></p>
+				<p><?php esc_html_e( 'Interval:', 'giftflow' ); ?> <?php echo esc_html( $recurring_interval ?? '—' ); ?></p>
+				<?php if ( $next_payment ) : ?>
+					<p><?php esc_html_e( 'Next payment:', 'giftflow' ); ?> <?php echo esc_html( gmdate( get_option( 'date_format' ), strtotime( $next_payment ) ) ); ?></p>
+				<?php endif; ?>
+				<?php if ( $recurring_status && 'cancelled' !== $recurring_status ) : ?>
+					<p>
+						<button type="button" class="button giftflow-cancel-subscription" data-donation-id="<?php echo esc_attr( (string) $post->ID ); ?>">
+							<?php esc_html_e( 'Cancel subscription', 'giftflow' ); ?>
+						</button>
+						<span class="giftflow-cancel-result" style="margin-left:8px;"></span>
+					</p>
+					<script>
+					jQuery( function( $ ) {
+						$( '.giftflow-cancel-subscription' ).on( 'click', function() {
+							var btn = $( this ), id = btn.data( 'donation-id' ), result = btn.siblings( '.giftflow-cancel-result' );
+							btn.prop( 'disabled', true );
+							result.text( '<?php echo esc_js( __( 'Cancelling…', 'giftflow' ) ); ?>' );
+							$.post( ajaxurl, {
+								action: 'giftflow_stripe_cancel_subscription',
+								nonce: '<?php echo esc_js( wp_create_nonce( 'giftflow_stripe_nonce' ) ); ?>',
+								donation_id: id
+							} ).done( function( r ) {
+								if ( r.success ) {
+									result.text( r.data && r.data.message ? r.data.message : '<?php echo esc_js( __( 'Cancelled.', 'giftflow' ) ); ?>' );
+									location.reload();
+								} else {
+									result.text( r.data && r.data.message ? r.data.message : '<?php echo esc_js( __( 'Error.', 'giftflow' ) ); ?>' );
+									btn.prop( 'disabled', false );
+								}
+							} ).fail( function() {
+								result.text( '<?php echo esc_js( __( 'Request failed.', 'giftflow' ) ); ?>' );
+								btn.prop( 'disabled', false );
+							} );
+						} );
+					} );
+					</script>
+				<?php endif; ?>
+			</div>
+			<?php
+		}
+
+		// When this is a renewal, link to parent.
+		$parent_id = get_post_meta( $post->ID, '_parent_donation_id', true );
+		if ( ! empty( $parent_id ) && get_post_meta( $post->ID, '_is_subscription_renewal', true ) ) {
+			$parent_edit = admin_url( 'post.php?post=' . (int) $parent_id . '&action=edit' );
+			?>
+			<p style="margin-top:1em;">
+				<?php esc_html_e( 'Recurring renewal of:', 'giftflow' ); ?>
+				<a href="<?php echo esc_url( $parent_edit ); ?>">#<?php echo esc_html( (string) $parent_id ); ?></a>
+			</p>
+			<?php
 		}
 	}
 
@@ -177,7 +237,25 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ $field_id ] ) ) {
 				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				update_post_meta( $post_id, '_' . $field_id, sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) ) );
+				$new_value = sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) );
+				if ( 'status' === $field_id ) {
+					$old_status = get_post_meta( $post_id, '_status', true );
+					if ( $old_status !== $new_value ) {
+						update_post_meta( $post_id, '_' . $field_id, $new_value );
+						Donation_Event_History::add(
+							$post_id,
+							'admin_status_updated',
+							$new_value,
+							__( 'Status changed by admin', 'giftflow' ),
+							array(
+								'previous_status' => $old_status,
+								'source'          => 'admin',
+							)
+						);
+						continue;
+					}
+				}
+				update_post_meta( $post_id, '_' . $field_id, $new_value );
 			}
 		}
 	}

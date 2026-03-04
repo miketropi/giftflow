@@ -18,16 +18,16 @@ registerBlockType(
 			const blockProps                    = useBlockProps();
 
 			return (
-			< >
-				< div {...blockProps} >
-					< Disabled >
-						< ServerSideRender
+			<>
+				<div {...blockProps} >
+					<Disabled>
+						<ServerSideRender
 							block      = "giftflow/donor-account"
 							attributes = { attributes }
-						/ >
-					< / Disabled >
-				< / div >
-			< / >
+						/>
+					</ Disabled>
+				</ div>
+			</>
 		);
 		},
 	}

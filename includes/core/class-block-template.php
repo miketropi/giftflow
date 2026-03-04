@@ -28,6 +28,12 @@ class Block_Template {
 
 		// Register templates for pages.
 		$templates = array(
+			'campaigns-page'        => array(
+				'title'       => esc_html__( 'Campaigns Page', 'giftflow' ),
+				'description' => esc_html__( 'A template for the campaigns.', 'giftflow' ),
+				'post_types'  => array( 'page' ),
+				'template'    => 'campaigns-page',
+			),
 			'archive-campaign'      => array(
 				'title'       => esc_html__( 'Campaign Archive', 'giftflow' ),
 				'description' => esc_html__( 'A template for the campaign archive page.', 'giftflow' ),

@@ -14,6 +14,8 @@
 namespace GiftFlow\Gateways;
 
 use GiftFlow\Core\Donations;
+use GiftFlow\Core\Logger as Giftflow_Logger;
+use GiftFlow\Core\Donation_Event_History;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -308,7 +310,7 @@ class PayPal_Gateway extends Gateway_Base {
 	public function template_html() {
 
 		giftflow_load_template(
-			'payment-gateway/paypal.php',
+			'payment-gateway/paypal-template.php',
 			array(
 				'id' => $this->id,
 				'title' => $this->title,
@@ -435,6 +437,16 @@ class PayPal_Gateway extends Gateway_Base {
 		$donations_class = new Donations();
 		$donations_class->update_status( $donation_id, 'completed' );
 
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_succeeded',
+			'completed',
+			'',
+			array(
+				'transaction_id' => $transaction_id,
+				'gateway' => 'paypal',
+			)
+		);
 		$this->log_success( $transaction_id, $donation_id );
 
 		do_action( 'giftflow_paypal_payment_completed', $donation_id, $transaction_id, $all_data );
@@ -477,6 +489,16 @@ class PayPal_Gateway extends Gateway_Base {
 		$error_code = method_exists( $response, 'getCode' ) ? $response->getCode() : '';
 
 		$this->log_error( 'payment_failed', $error_message, $donation_id, $error_code );
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_failed',
+			'failed',
+			$error_message,
+			array(
+				'error_code' => $error_code,
+				'gateway' => 'paypal',
+			)
+		);
 
 		update_post_meta( $donation_id, '_payment_status', 'failed' );
 		update_post_meta( $donation_id, '_payment_error', $error_message );
@@ -492,6 +514,9 @@ class PayPal_Gateway extends Gateway_Base {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$data = $_POST;
+
+		// sanitize data if it is an array, else sanitize the data.
+		$data = is_array( $data ) ? giftflow_sanitize_array( $data ) : sanitize_text_field( $data );
 
 		/**
 		 * Hooks do_action before process donation.
@@ -534,6 +559,15 @@ class PayPal_Gateway extends Gateway_Base {
 
 		try {
 			$order_id = $this->create_paypal_order( $donation_data );
+			Giftflow_Logger::info(
+				'paypal.order.created',
+				array(
+					'order_id' => $order_id,
+					'amount'   => $amount,
+					'gateway'  => 'paypal',
+				),
+				'paypal'
+			);
 			wp_send_json_success(
 				array(
 					'orderID' => $order_id,
@@ -556,7 +590,19 @@ class PayPal_Gateway extends Gateway_Base {
 		check_ajax_referer( 'giftflow_paypal_nonce', 'nonce' );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data = $_POST;
+		$raw_post_data = $_POST;
+		$data = $raw_post_data;
+
+		// if data not an array, return error.
+		if ( ! is_array( $data ) ) {
+			$this->log_error( 'capture_order_error', 'Invalid data', 0, 'Invalid data' );
+			wp_send_json_error(
+				array(
+					'message' => __( 'Invalid data', 'giftflow' ),
+				)
+			);
+		}
+
 		$order_id = isset( $data['orderID'] ) ? sanitize_text_field( $data['orderID'] ) : '';
 
 		if ( empty( $order_id ) ) {
@@ -854,6 +900,17 @@ class PayPal_Gateway extends Gateway_Base {
 		// Clean up transient.
 		delete_transient( $transient_key );
 
+		Donation_Event_History::add(
+			$donation_id,
+			'payment_succeeded',
+			'completed',
+			'',
+			array(
+				'transaction_id' => $transaction_id,
+				'order_id' => $order_id,
+				'gateway' => 'paypal',
+			)
+		);
 		$this->log_success( $transaction_id, $donation_id );
 
 		do_action( 'giftflow_paypal_payment_completed', $donation_id, $transaction_id, $response_body );
@@ -924,8 +981,8 @@ class PayPal_Gateway extends Gateway_Base {
 		check_ajax_referer( 'giftflow_donation_nonce', 'nonce' );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data = $_POST;
-		$donation_id = intval( $data['donation_id'] );
+		$data = giftflow_sanitize_array( $_POST );
+		$donation_id = isset( $data['donation_id'] ) ? intval( $data['donation_id'] ) : null;
 
 		$result = $this->process_payment( $data, $donation_id );
 
@@ -939,7 +996,6 @@ class PayPal_Gateway extends Gateway_Base {
 			wp_send_json_success( $result );
 		}
 	}
-
 
 	/**
 	 * Handle webhook notifications
@@ -976,8 +1032,10 @@ class PayPal_Gateway extends Gateway_Base {
 				exit;
 			}
 		} else {
-			// Log warning if webhook ID is not configured.
+			// Log warning & exit if webhook ID is not configured.
 			$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped', 0 );
+			status_header( 400 );
+			exit;
 		}
 
 		try {
@@ -1195,6 +1253,27 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_succeeded',
+				'completed',
+				__( 'Webhook: payment completed', 'giftflow' ),
+				array(
+					'transaction_id' => $transaction_id,
+					'gateway' => 'paypal',
+					'source' => 'webhook',
+				)
+			);
+			Giftflow_Logger::info(
+				'paypal.webhook.payment.completed',
+				array(
+					'donation_id'    => $donation_id,
+					'transaction_id' => $transaction_id,
+					'gateway'        => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'completed' );
@@ -1227,15 +1306,38 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			$error_message = __( 'Payment was denied', 'giftflow' );
+			if ( isset( $_resource['status_details']['reason'] ) ) {
+				$error_message .= ': ' . sanitize_text_field( $_resource['status_details']['reason'] );
+			}
+
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_failed',
+				'failed',
+				$error_message,
+				array(
+					'transaction_id' => $transaction_id,
+					'gateway' => 'paypal',
+					'source' => 'webhook',
+				)
+			);
+			Giftflow_Logger::error(
+				'paypal.webhook.payment.denied',
+				array(
+					'donation_id'    => $donation_id,
+					'transaction_id' => $transaction_id,
+					'error_message'  => $error_message,
+					'gateway'        => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'failed' );
 
 			// Store error details.
-			$error_message = __( 'Payment was denied', 'giftflow' );
-			if ( isset( $_resource['status_details']['reason'] ) ) {
-				$error_message .= ': ' . sanitize_text_field( $_resource['status_details']['reason'] );
-			}
 			update_post_meta( $donation_id, '_payment_error', $error_message );
 			update_post_meta( $donation_id, '_webhook_denied_data', wp_json_encode( $_resource ) );
 
@@ -1279,6 +1381,28 @@ class PayPal_Gateway extends Gateway_Base {
 		$donation_id = $this->find_donation_by_transaction_id( $transaction_id );
 
 		if ( $donation_id ) {
+			$refund_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_refunded',
+				'refunded',
+				__( 'Webhook: payment refunded', 'giftflow' ),
+				array(
+					'refund_id' => $refund_id,
+					'gateway' => 'paypal',
+					'source' => 'webhook',
+				)
+			);
+			Giftflow_Logger::info(
+				'paypal.webhook.payment.refunded',
+				array(
+					'donation_id' => $donation_id,
+					'refund_id'   => $refund_id,
+					'gateway'     => 'paypal',
+				),
+				'paypal'
+			);
+
 			// Use centralized Donations class to update status.
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'refunded' );
@@ -1325,19 +1449,15 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param int    $donation_id Donation ID.
 	 */
 	private function log_success( $transaction_id, $donation_id ) {
-		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-			return;
-		}
-
-		$log_data = array(
-			'action' => 'paypal_payment_success',
-			'donation_id' => $donation_id,
-			'transaction_id' => $transaction_id,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::info(
+			'paypal.payment.succeeded',
+			array(
+				'donation_id'    => $donation_id,
+				'transaction_id' => $transaction_id,
+				'gateway'        => 'paypal',
+			),
+			'paypal'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow PayPal Success] ' . wp_json_encode( $log_data ) );
 	}
 
 	/**
@@ -1349,17 +1469,17 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param string $code Code of error.
 	 */
 	private function log_error( $type, $message, $donation_id, $code = '' ) {
-		$log_data = array(
-			'action' => 'paypal_payment_error',
-			'type' => $type,
-			'donation_id' => $donation_id,
-			'error_message' => $message,
-			'error_code' => $code,
-			'timestamp' => current_time( 'mysql' ),
+		Giftflow_Logger::error(
+			'paypal.payment.failed',
+			array(
+				'type'          => $type,
+				'donation_id'   => $donation_id,
+				'error_message' => $message,
+				'error_code'    => $code,
+				'gateway'       => 'paypal',
+			),
+			'paypal'
 		);
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( '[GiftFlow PayPal Error] ' . wp_json_encode( $log_data ) );
 	}
 }
 

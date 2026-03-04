@@ -103,6 +103,7 @@ class Loader extends Base {
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'enqueue_block_assets', array( $this, 'enqueue_blocks' ) );
 		add_filter( 'block_categories_all', array( $this, 'register_block_category' ) );
+		add_action( 'giftflow_cleanup_logs', array( $this, 'run_logs_cleanup' ) );
 	}
 
 	/**
@@ -129,12 +130,132 @@ class Loader extends Base {
 		new \GiftFlow\Admin\MetaBoxes\Donation_Transaction_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Donor_Contact_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Campaign_Details_Meta();
+		\GiftFlow\Core\Donation_Event_History::register_meta_box();
 
 		// Initialize frontend components.
 		new \GiftFlow\Frontend\Shortcodes();
 		new \GiftFlow\Frontend\Forms();
 
 		\GiftFlow\Gateways\Gateway_Base::init_gateways();
+
+		add_filter( 'display_post_states', array( $this, 'display_post_states' ), 10, 2 );
+
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			// Block Theme.
+			$this->is_block_theme_init();
+		} else {
+			// Classic Theme.
+			$this->is_classic_theme_init();
+		}
+	}
+
+	/**
+	 * Display post states
+	 *
+	 * @param array $states The post states.
+	 * @param WP_Post $post The post object.
+	 * @return array The post states.
+	 */
+	public function display_post_states( $states, $post ) {
+		$campaigns_page = get_page_by_path( 'campaigns' );
+		if ( $campaigns_page && $post->ID === $campaigns_page->ID ) {
+			$states[] = __( 'Campaigns Page', 'giftflow' );
+		}
+
+		$donation_privacy_policy_page = get_page_by_path( 'donation-privacy-policy' );
+		if ( $donation_privacy_policy_page && $post->ID === $donation_privacy_policy_page->ID ) {
+			$states[] = __( 'Donation Privacy Policy', 'giftflow' );
+		}
+
+		$donation_terms_conditions_page = get_page_by_path( 'donation-terms-conditions' );
+		if ( $donation_terms_conditions_page && $post->ID === $donation_terms_conditions_page->ID ) {
+			$states[] = __( 'Donation Terms & Conditions', 'giftflow' );
+		}
+
+		return $states;
+	}
+
+	/**
+	 * Initialize block theme.
+	 */
+	public function is_block_theme_init() {
+	}
+
+	/**
+	 * Initialize classic theme.
+	 */
+	public function is_classic_theme_init() {
+
+		// override template of campaign details page.
+		add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
+
+		// override template of campaign taxonomy archive page.
+		add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
+
+		// override template of my donor account page.
+		add_action( 'template_include', array( $this, 'override_donor_account_page_template' ), 10, 1 );
+	}
+
+	/**
+	 * Override the content of campaign details page
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_campaign_details_page_template( $template ) {
+		// check is current page is campaign details page.
+		if ( is_singular( 'campaign' ) ) {
+
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/single-campaign.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Override the template of campaign taxonomy archive page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_campaign_taxonomy_archive_page_template( $template ) {
+		// check is current page is campaign taxonomy archive page.
+		if ( is_tax( 'campaign-tax' ) ) {
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/taxonomy-campaign-archive.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Override the template of my donor account page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_donor_account_page_template( $template ) {
+		// check is current page is my donor account page.
+		if ( is_page( giftflow_get_donor_account_page() ) ) {
+
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/donor-account.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+		}
+
+		return $template;
 	}
 
 	/**
@@ -142,6 +263,9 @@ class Loader extends Base {
 	 */
 	public function activate() {
 		$this->create_pages_init();
+		\GiftFlow\Core\Logger::create_table();
+		\GiftFlow\Core\Donation_Event_History::create_table();
+		$this->schedule_logs_cleanup();
 
 		// reset permalinks.
 		flush_rewrite_rules();
@@ -151,6 +275,53 @@ class Loader extends Base {
 	 * Create 2 pages donor-account and thank-donor & set template for there.
 	 */
 	public function create_pages_init() {
+
+		// create page campaigns.
+		$campaigns_page = get_page_by_path( 'campaigns' );
+		if ( ! $campaigns_page ) {
+
+			$campaigns_page_block_content = '<!-- wp:group {"tagName":"main","align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:query {"queryId":22,"query":{"perPage":9,"pages":0,"offset":0,"postType":"campaign","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false,"parents":[],"format":[]},"metadata":{"categories":["posts"],"patternName":"core/query-grid-posts","name":"Grid"},"align":"wide"} -->
+<div class="wp-block-query alignwide"><!-- wp:post-template {"style":{"spacing":{"blockGap":"var:preset|spacing|40"}},"layout":{"type":"grid","columnCount":3,"minimumColumnWidth":null}} -->
+<!-- wp:group {"style":{"spacing":{"padding":{"top":"20px","right":"20px","bottom":"20px","left":"20px"}},"border":{"color":"#e0e0e0","width":"1px","radius":"1px"}},"backgroundColor":"base","layout":{"type":"default"}} -->
+<div class="wp-block-group has-border-color has-base-background-color has-background" style="border-color:#e0e0e0;border-width:1px;border-radius:1px;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px"><!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->
+
+<!-- wp:post-terms {"term":"campaign-tax","prefix":"in ","fontSize":"small"} /-->
+
+<!-- wp:post-title {"level":4,"isLink":true,"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"medium"} /-->
+
+<!-- wp:post-excerpt {"excerptLength":15,"fontSize":"medium"} /-->
+
+<!-- wp:giftflow/campaign-status-bar {"__editorPostId":150} /--></div>
+<!-- /wp:group -->
+<!-- /wp:post-template -->
+
+<!-- wp:query-pagination {"paginationArrow":"arrow","layout":{"type":"flex","justifyContent":"center","orientation":"horizontal","flexWrap":"wrap"}} -->
+<!-- wp:query-pagination-previous /-->
+
+<!-- wp:query-pagination-numbers /-->
+
+<!-- wp:query-pagination-next /-->
+<!-- /wp:query-pagination --></div>
+<!-- /wp:query --></main>
+<!-- /wp:group -->';
+
+			$campaigns_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
+					'post_content' => apply_filters( 'giftflow_campaigns_page_content_on_create', $campaigns_page_block_content ),
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
+			);
+
+			update_post_meta(
+				$campaigns_page,
+				'_wp_page_template',
+				'campaigns-page'
+			);
+		}
+
 		// create 2 pages donor-account and thank-donor & set template for there.
 		$donor_account_page = get_page_by_path( 'donor-account' );
 		if ( ! $donor_account_page ) {
@@ -189,15 +360,68 @@ class Loader extends Base {
 				'thank-donor'
 			);
 		}
+
+		// create donation Privacy Policy page.
+		$donation_privacy_policy_page = get_page_by_path( 'donation-privacy-policy' );
+		if ( ! $donation_privacy_policy_page ) {
+			$donation_privacy_policy_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Donation Privacy Policy', 'giftflow' ),
+					'post_content' => giftflow_get_file_content( GIFTFLOW_PLUGIN_DIR . 'block-templates/page-content/donation-privacy-policy.html' ),
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
+			);
+		}
+
+		// create donation Terms & Conditions page.
+		$donation_terms_conditions_page = get_page_by_path( 'donation-terms-conditions' );
+		if ( ! $donation_terms_conditions_page ) {
+			$donation_terms_conditions_page = wp_insert_post(
+				array(
+					'post_title'   => esc_html__( 'Donation Terms & Conditions', 'giftflow' ),
+					'post_content' => giftflow_get_file_content( GIFTFLOW_PLUGIN_DIR . 'block-templates/page-content/donation-terms-conditions.html' ),
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				)
+			);
+		}
 	}
 
 	/**
 	 * Deactivate the plugin
 	 */
 	public function deactivate() {
+		$this->unschedule_logs_cleanup();
 		// Clean up roles and capabilities.
 		$role_manager = \GiftFlow\Core\Role::get_instance();
 		$role_manager->remove_roles();
 		$role_manager->remove_capabilities();
+	}
+
+	/**
+	 * Schedule daily logs cleanup cron.
+	 */
+	private function schedule_logs_cleanup() {
+		if ( ! wp_next_scheduled( 'giftflow_cleanup_logs' ) ) {
+			wp_schedule_event( time(), 'daily', 'giftflow_cleanup_logs' );
+		}
+	}
+
+	/**
+	 * Unschedule logs cleanup cron.
+	 */
+	private function unschedule_logs_cleanup() {
+		$timestamp = wp_next_scheduled( 'giftflow_cleanup_logs' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'giftflow_cleanup_logs' );
+		}
+	}
+
+	/**
+	 * Run logs cleanup (called by cron). Deletes old entries by retention rules.
+	 */
+	public function run_logs_cleanup() {
+		\GiftFlow\Core\Logger::cleanup();
 	}
 }

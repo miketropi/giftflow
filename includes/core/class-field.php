@@ -346,83 +346,81 @@ class GiftFlow_Field {
 	/**
 	 * Render field.
 	 *
-	 * @return string
+	 * Outputs the field HTML directly.
+	 *
+	 * @return void
 	 */
 	public function render() {
-		$output = '';
-
 		// Start field wrapper.
-		$output .= $this->get_field_wrapper_start();
+		echo $this->get_field_wrapper_start(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		// Render field label.
-		$output .= $this->get_field_label();
+		echo $this->get_field_label(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		// Add pro only indicator.
 		$classes = array( 'giftflow-field-wrapper' );
 
-		$output .= '<div class="' . esc_attr( implode( ' ', $classes ) ) . '">';
+		echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '">';
 
 		// Render field based on type.
 		switch ( $this->type ) {
 			case 'textfield':
-				$output .= $this->render_textfield();
+				echo $this->render_textfield(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'number':
-				$output .= $this->render_number();
+				echo $this->render_number(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'currency':
-				$output .= $this->render_currency();
+				echo $this->render_currency(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'select':
-				$output .= $this->render_select();
+				echo $this->render_select(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'multiple_select':
-				$output .= $this->render_multiple_select();
+				echo $this->render_multiple_select(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'textarea':
-				$output .= $this->render_textarea();
+				echo $this->render_textarea(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'checkbox':
-				$output .= $this->render_checkbox();
+				echo $this->render_checkbox(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'switch':
-				$output .= $this->render_switch();
+				echo $this->render_switch(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'datetime':
-				$output .= $this->render_datetime();
+				echo $this->render_datetime(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'color':
-				$output .= $this->render_color();
+				echo $this->render_color(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'gallery':
-				$output .= $this->render_gallery();
+				echo $this->render_gallery(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'googlemap':
-				$output .= $this->render_googlemap();
+				echo $this->render_googlemap(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'repeater':
-				$output .= $this->render_repeater();
+				echo $this->render_repeater(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'accordion':
-				$output .= $this->render_accordion();
+				echo $this->render_accordion(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			case 'html':
-				$output .= $this->render_html();
+				echo $this->render_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 			default:
-				$output .= $this->render_textfield();
+				echo $this->render_textfield(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				break;
 		}
 
 		// Render field description.
-		$output .= $this->get_field_description();
+		echo $this->get_field_description(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-		$output .= '</div>';
+		echo '</div>';
 
 		// End field wrapper.
-		$output .= $this->get_field_wrapper_end();
-
-		return $output;
+		echo $this->get_field_wrapper_end(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -494,46 +492,50 @@ class GiftFlow_Field {
 	}
 
 	/**
-	 * Get field attributes
+	 * Get field attributes as key => value array.
 	 *
-	 * @return string
+	 * @param array $extra Optional. Extra attributes to merge (e.g. min, max, multiple).
+	 * @return array Associative array of attribute => value.
 	 */
-	private function get_field_attributes() {
-		$attributes = array();
-
-		// Add ID.
-		$attributes[] = 'id="' . esc_attr( $this->id ) . '"';
-
-		// Add name.
-		$attributes[] = 'name="' . esc_attr( $this->name ) . '"';
-
-		// Add placeholder.
-		if ( ! empty( $this->placeholder ) ) {
-			$attributes[] = 'placeholder="' . esc_attr( $this->placeholder ) . '"';
-		}
-
-		// Add required.
-		if ( $this->required ) {
-			$attributes[] = 'required';
-		}
-
-		// Add disabled.
-		if ( $this->disabled ) {
-			$attributes[] = 'disabled';
-		}
-
-		// Add classes.
+	private function get_field_attributes( $extra = array() ) {
 		$classes      = array_merge( array( 'giftflow-field-input' ), $this->classes );
 		$classes      = array_filter( $classes );
 		$class        = implode( ' ', $classes );
-		$attributes[] = 'class="' . esc_attr( $class ) . '"';
 
-		// Add custom attributes.
-		foreach ( $this->attributes as $key => $value ) {
-			$attributes[] = esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+		$attributes = array(
+			'id'    => $this->id,
+			'name'  => $this->name,
+			'class' => $class,
+		);
+
+		if ( ! empty( $this->placeholder ) ) {
+			$attributes['placeholder'] = $this->placeholder;
 		}
 
-		return implode( ' ', $attributes );
+		if ( $this->required ) {
+			$attributes['required'] = true;
+		}
+
+		if ( $this->disabled ) {
+			$attributes['disabled'] = true;
+		}
+
+		$attributes = array_merge( $attributes, $this->attributes, $extra );
+
+		return $attributes;
+	}
+
+	/**
+	 * Load a field template and return its output.
+	 *
+	 * @param string $template_name Template file name (e.g. 'textfield.php').
+	 * @param array  $args Template arguments.
+	 * @return string
+	 */
+	private function load_field_template( $template_name, $args = array() ) {
+		ob_start();
+		giftflow_load_template( 'admin/fields/' . $template_name, $args );
+		return ob_get_clean();
 	}
 
 	/**
@@ -542,7 +544,7 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_html() {
-		return '<div class="giftflow-html-field">' . $this->html . '</div>';
+		return $this->load_field_template( 'html.php', array( 'html' => $this->html ) );
 	}
 
 	/**
@@ -551,8 +553,15 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_textfield() {
-		$attributes = $this->get_field_attributes();
-		return '<input type="text" ' . $attributes . ' value="' . esc_attr( $this->value ) . '" />';
+		return $this->load_field_template(
+			'textfield.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(),
+			)
+		);
 	}
 
 	/**
@@ -561,24 +570,25 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_number() {
-		$attributes = $this->get_field_attributes();
-
-		// Add min.
+		$extra = array();
 		if ( null !== $this->min ) {
-			$attributes .= ' min="' . esc_attr( $this->min ) . '"';
+			$extra['min'] = $this->min;
 		}
-
-		// Add max.
 		if ( null !== $this->max ) {
-			$attributes .= ' max="' . esc_attr( $this->max ) . '"';
+			$extra['max'] = $this->max;
 		}
-
-		// Add step.
 		if ( null !== $this->step ) {
-			$attributes .= ' step="' . esc_attr( $this->step ) . '"';
+			$extra['step'] = $this->step;
 		}
-
-		return '<input type="number" ' . $attributes . ' value="' . esc_attr( $this->value ) . '" />';
+		return $this->load_field_template(
+			'number.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes( $extra ),
+			)
+		);
 	}
 
 	/**
@@ -587,38 +597,27 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_currency() {
-		$attributes = $this->get_field_attributes();
-
-		// Add min.
+		$extra = array();
 		if ( null !== $this->min ) {
-			$attributes .= ' min="' . esc_attr( $this->min ) . '"';
+			$extra['min'] = $this->min;
 		}
-
-		// Add max.
 		if ( null !== $this->max ) {
-			$attributes .= ' max="' . esc_attr( $this->max ) . '"';
+			$extra['max'] = $this->max;
 		}
-
-		// Add step.
 		if ( null !== $this->step ) {
-			$attributes .= ' step="' . esc_attr( $this->step ) . '"';
+			$extra['step'] = $this->step;
 		}
-
-		$output = '<div class="giftflow-currency-field">';
-
-		if ( 'before' === $this->currency_position ) {
-			$output .= '<span class="giftflow-currency-symbol">' . esc_html( $this->currency_symbol ) . '</span>';
-		}
-
-		$output .= '<input type="number" ' . $attributes . ' value="' . esc_attr( $this->value ) . '" />';
-
-		if ( 'after' === $this->currency_position ) {
-			$output .= '<span class="giftflow-currency-symbol">' . esc_html( $this->currency_symbol ) . '</span>';
-		}
-
-		$output .= '</div>';
-
-		return $output;
+		return $this->load_field_template(
+			'currency.php',
+			array(
+				'id'                => $this->id,
+				'name'              => $this->name,
+				'value'             => $this->value,
+				'attributes'        => $this->get_field_attributes( $extra ),
+				'currency_symbol'   => $this->currency_symbol,
+				'currency_position' => $this->currency_position,
+			)
+		);
 	}
 
 	/**
@@ -627,23 +626,16 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_select() {
-		$attributes = $this->get_field_attributes();
-		$output     = '<select ' . $attributes . '>';
-
-		// Add empty option if no value is selected.
-		if ( empty( $this->value ) ) {
-			$output .= '<option value="">' . esc_html__( 'Select an option', 'giftflow' ) . '</option>';
-		}
-
-		// Add options.
-		foreach ( $this->options as $option_value => $option_label ) {
-			$selected = selected( $this->value, $option_value, false );
-			$output  .= '<option value="' . esc_attr( $option_value ) . '" ' . $selected . '>' . esc_html( $option_label ) . '</option>';
-		}
-
-		$output .= '</select>';
-
-		return $output;
+		return $this->load_field_template(
+			'select.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(),
+				'options'    => $this->options,
+			)
+		);
 	}
 
 	/**
@@ -652,23 +644,18 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_multiple_select() {
-		$attributes  = $this->get_field_attributes();
-		$attributes .= ' multiple';
-
-		// Convert value to array if it's not already.
 		$values = is_array( $this->value ) ? $this->value : array( $this->value );
 
-		$output = '<select ' . $attributes . '>';
-
-		// Add options.
-		foreach ( $this->options as $option_value => $option_label ) {
-			$selected = in_array( $option_value, $values, true ) ? ' selected' : '';
-			$output  .= '<option value="' . esc_attr( $option_value ) . '"' . $selected . '>' . esc_html( $option_label ) . '</option>';
-		}
-
-		$output .= '</select>';
-
-		return $output;
+		return $this->load_field_template(
+			'multiple-select.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'values'     => $values,
+				'attributes' => $this->get_field_attributes( array( 'multiple' => true ) ),
+				'options'    => $this->options,
+			)
+		);
 	}
 
 	/**
@@ -677,11 +664,20 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_textarea() {
-		$attributes  = $this->get_field_attributes();
-		$attributes .= ' rows="' . esc_attr( $this->rows ) . '"';
-		$attributes .= ' cols="' . esc_attr( $this->cols ) . '"';
-
-		return '<textarea ' . $attributes . '>' . esc_textarea( $this->value ) . '</textarea>';
+		return $this->load_field_template(
+			'textarea.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(
+					array(
+						'rows' => $this->rows,
+						'cols' => $this->cols,
+					)
+				),
+			)
+		);
 	}
 
 	/**
@@ -690,10 +686,16 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_checkbox() {
-		$attributes = $this->get_field_attributes();
-		$checked    = checked( $this->value, true, false );
-
-		return '<input type="checkbox" ' . $attributes . ' ' . $checked . ' />';
+		return $this->load_field_template(
+			'checkbox.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(),
+				'checked'    => checked( $this->value, true, false ),
+			)
+		);
 	}
 
 	/**
@@ -702,15 +704,16 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_switch() {
-		$attributes = $this->get_field_attributes();
-		$checked    = checked( $this->value, true, false );
-
-		$output  = '<div class="giftflow-switch">';
-		$output .= '<input type="checkbox" ' . $attributes . ' ' . $checked . ' value="1" />';
-		$output .= '<span class="giftflow-switch-slider"></span>';
-		$output .= '</div>';
-
-		return $output;
+		return $this->load_field_template(
+			'switch.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(),
+				'checked'    => checked( $this->value, true, false ),
+			)
+		);
 	}
 
 	/**
@@ -719,10 +722,17 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_datetime() {
-		$attributes = $this->get_field_attributes();
-		$value      = ! empty( $this->value ) ? gmdate( $this->date_format, strtotime( $this->value ) ) : '';
+		$value = ! empty( $this->value ) ? gmdate( $this->date_format, strtotime( $this->value ) ) : '';
 
-		return '<input type="datetime-local" ' . $attributes . ' value="' . esc_attr( $value ) . '" onfocus="this.showPicker()" />';
+		return $this->load_field_template(
+			'datetime.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'     => $value,
+				'attributes' => $this->get_field_attributes(),
+			)
+		);
 	}
 
 	/**
@@ -731,14 +741,15 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_color() {
-		$attributes = $this->get_field_attributes();
-
-		$output  = '<div class="giftflow-color-field">';
-		$output .= '<input type="color" ' . $attributes . ' value="' . esc_attr( $this->value ) . '" />';
-		$output .= '<input type="text" class="giftflow-color-text" value="' . esc_attr( $this->value ) . '" />';
-		$output .= '</div>';
-
-		return $output;
+		return $this->load_field_template(
+			'color.php',
+			array(
+				'id'         => $this->id,
+				'name'       => $this->name,
+				'value'      => $this->value,
+				'attributes' => $this->get_field_attributes(),
+			)
+		);
 	}
 
 	/**
@@ -747,59 +758,18 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_gallery() {
-		// Start output buffering.
-		ob_start();
-
-		// Ensure value is an array.
 		$image_ids = $this->value ? explode( ',', $this->value ) : array();
 
-		// Generate a unique ID for the gallery.
-		$gallery_id = 'giftflow-gallery-' . $this->id;
-		?>
-		<div 
-			class="giftflow-gallery-field" 
-			id="<?php echo esc_attr( $gallery_id ); ?>"
-			data-max-images="<?php echo esc_attr( $this->gallery_settings['max_images'] ); ?>"
-			data-image-size="<?php echo esc_attr( $this->gallery_settings['image_size'] ); ?>"
-			data-button-text="<?php echo esc_attr( $this->gallery_settings['button_text'] ); ?>"
-			data-remove-text="<?php echo esc_attr( $this->gallery_settings['remove_text'] ); ?>"
-			data-nonce="<?php echo esc_attr( wp_create_nonce( 'giftflow_gallery_nonce' ) ); ?>">
-			<!-- Hidden input to store image IDs -->
-			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( implode( ',', $image_ids ) ); ?>" />
-			
-			<!-- Gallery preview container -->
-			<div class="giftflow-gallery-preview">
-				<?php
-				// Display selected images.
-				if ( ! empty( $image_ids ) ) {
-					foreach ( $image_ids as $image_id ) {
-						$image_url = wp_get_attachment_image_url( $image_id, $this->gallery_settings['image_size'] );
-						if ( $image_url ) {
-							?>
-							<div class="giftflow-gallery-image" data-id="<?php echo esc_attr( $image_id ); ?>">
-								<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( get_post_meta( $image_id, '_wp_attachment_image_alt', true ) ); ?>" />
-								<span class="giftflow-gallery-remove" title="<?php esc_attr_e( 'Remove Image', 'giftflow' ); ?>">&times;</span>
-							</div>
-							<?php
-						}
-					}
-				}
-				?>
-			</div><!-- End gallery preview -->
-			
-			<!-- Gallery controls -->
-			<div class="giftflow-gallery-controls">
-				<button type="button" class="button giftflow-gallery-add"><?php echo esc_html( $this->gallery_settings['button_text'] ); ?></button>
-				
-				<?php if ( ! empty( $image_ids ) ) : ?>
-					<button type="button" class="button giftflow-gallery-remove-all"><?php echo esc_html( $this->gallery_settings['remove_text'] ); ?></button>
-				<?php endif; ?>
-			</div><!-- End gallery controls -->
-		</div><!-- End gallery field -->
-		<?php
-
-		// Return the buffered content.
-		return ob_get_clean();
+		return $this->load_field_template(
+			'gallery.php',
+			array(
+				'id'               => $this->id,
+				'name'             => $this->name,
+				'gallery_id'        => 'giftflow-gallery-' . $this->id,
+				'image_ids'        => $image_ids,
+				'gallery_settings'  => $this->gallery_settings,
+			)
+		);
 	}
 
 	/**
@@ -808,19 +778,11 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_googlemap() {
-		// Start output buffering.
-		ob_start();
-
-		// Generate a unique ID for the map.
-		$map_id = 'giftflow-map-' . $this->id;
-
-		// Get the current value.
 		$value   = $this->value;
 		$address = '';
 		$lat     = '';
 		$lng     = '';
 
-		// Parse the value if it exists.
 		if ( ! empty( $value ) ) {
 			$value_data = json_decode( $value, true );
 			if ( is_array( $value_data ) ) {
@@ -830,39 +792,21 @@ class GiftFlow_Field {
 			}
 		}
 
-		// Get Google Maps API key from settings or use a default.
 		$api_key = defined( 'GIFTFLOW_GOOGLE_MAPS_API_KEY' ) ? GIFTFLOW_GOOGLE_MAPS_API_KEY : '';
-		?>
-		<div 
-			class="giftflow-googlemap-field" 
-			id="<?php echo esc_attr( $map_id ); ?>" 
-			data-api-key="<?php echo esc_attr( $api_key ); ?>"
-			data-lat="<?php echo esc_attr( $lat ); ?>"
-			data-lng="<?php echo esc_attr( $lng ); ?>">
-			<!-- Hidden input to store location data -->
-			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( $value ); ?>" />
-			
-			<!-- Address input field -->
-			<div class="giftflow-googlemap-address">
-				<input type="text" class="giftflow-googlemap-address-input" placeholder="<?php esc_attr_e( 'Enter an address', 'giftflow' ); ?>" value="<?php echo esc_attr( $address ); ?>" />
-				<button type="button" class="button giftflow-googlemap-search"><?php esc_html_e( 'Search', 'giftflow' ); ?></button>
-			</div>
-			
-			<!-- Map container -->
-			<div class="giftflow-googlemap-container" style="height: 300px; margin-top: 10px;"></div>
-			
-			<!-- Coordinates display -->
-			<div class="giftflow-googlemap-coordinates">
-				<p>
-					<strong><?php esc_html_e( 'Latitude:', 'giftflow' ); ?></strong> <span class="giftflow-googlemap-lat"><?php echo esc_html( $lat ); ?></span>
-					<strong><?php esc_html_e( 'Longitude:', 'giftflow' ); ?></strong> <span class="giftflow-googlemap-lng"><?php echo esc_html( $lng ); ?></span>
-				</p>
-			</div>
-		</div><!-- End Google Maps field -->
-		<?php
 
-		// Return the buffered content.
-		return ob_get_clean();
+		return $this->load_field_template(
+			'googlemap.php',
+			array(
+				'id'      => $this->id,
+				'name'    => $this->name,
+				'map_id'  => 'giftflow-map-' . $this->id,
+				'value'   => $value,
+				'address' => $address,
+				'lat'     => $lat,
+				'lng'     => $lng,
+				'api_key' => $api_key,
+			)
+		);
 	}
 
 	/**
@@ -871,10 +815,6 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_repeater() {
-		// Start output buffering.
-		ob_start();
-
-		// Get the repeater settings.
 		$repeater_settings = $this->repeater_settings;
 		$fields            = $repeater_settings['fields'];
 		$button_text       = $repeater_settings['button_text'];
@@ -883,91 +823,27 @@ class GiftFlow_Field {
 		$max_rows          = $repeater_settings['max_rows'];
 		$row_label         = $repeater_settings['row_label'];
 
-		// Ensure value is an array.
 		$values = is_array( $this->value ) ? $this->value : array();
 		if ( empty( $values ) && $min_rows > 0 ) {
-			// Initialize with empty rows if minimum rows required.
 			$values = array_fill( 0, $min_rows, array() );
 		}
 
-		// Generate a unique ID for the repeater.
-		$repeater_id = 'giftflow-repeater-' . $this->id;
-		?>
-		<div 
-			class="giftflow-repeater-field"
-			id="<?php echo esc_attr( $repeater_id ); ?>"
-			data-id="<?php echo esc_attr( $repeater_id ); ?>"
-			data-row-label="<?php echo esc_attr( $row_label ); ?>"
-			data-max-rows="<?php echo esc_attr( $max_rows ); ?>"
-			data-min-rows="<?php echo esc_attr( $min_rows ); ?>"
-			data-button-text="<?php echo esc_attr( $button_text ); ?>"
-			data-remove-text="<?php echo esc_attr( $remove_text ); ?>">
-			<div class="giftflow-repeater-row-template" style="display: none;">
-				<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_repeater_row_template( $fields );
-				?>
-			</div>
-
-			<!-- Hidden input to store all values -->
-			<input type="hidden" name="<?php echo esc_attr( $this->name ); ?>" id="<?php echo esc_attr( $this->id ); ?>" value="<?php echo esc_attr( wp_json_encode( $values ) ); ?>" />
-			
-			<!-- Repeater rows container -->
-			<div class="giftflow-repeater-rows">
-				<?php foreach ( $values as $row_index => $row_values ) : ?>
-					<div class="giftflow-repeater-row" data-index="<?php echo esc_attr( $row_index ); ?>">
-						<div class="giftflow-repeater-row-header">
-							<span class="giftflow-repeater-row-title"><?php echo esc_html( $row_label . ' ' . ( $row_index + 1 ) ); ?></span>
-							<button type="button" class="button giftflow-repeater-remove-row"><?php echo esc_html( $remove_text ); ?></button>
-						</div>
-						<div class="giftflow-repeater-row-content">
-							<?php
-							foreach ( $fields as $field_id => $field_args ) :
-								$field_value = isset( $row_values[ $field_id ] ) ? $row_values[ $field_id ] : '';
-								$field_name  = $this->name . '[' . $row_index . '][' . $field_id . ']';
-								$field_id    = $this->id . '_' . $row_index . '_' . $field_id;
-
-								// Create field instance.
-								$field = new GiftFlow_Field(
-									$field_id,
-									$field_name,
-									$field_args['type'],
-									array_merge(
-										$field_args,
-										array(
-											'value' => $field_value,
-											'wrapper_classes' => array( 'giftflow-repeater-field' ),
-										)
-									)
-								);
-
-								/**
-								 * Filter the repeater field output.
-								 *
-								 * @param string         $output The rendered field HTML.
-								 * @param GiftFlow_Field $field  The field instance.
-								 * @param array          $field_args Field arguments array.
-								 */
-								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo apply_filters( 'giftflow_repeater_field_output', $field->render(), $field, $field_args );
-							endforeach;
-							?>
-						</div>
-					</div>
-				<?php endforeach; ?>
-			</div>
-			
-			<!-- Add row button -->
-			<button type="button" class="button giftflow-repeater-add-row" <?php echo ( $max_rows > 0 && count( $values ) >= $max_rows ) ? 'disabled' : ''; ?>>
-				<?php echo esc_html( $button_text ); ?>
-			</button>
-			
-			
-		</div>
-		<?php
-
-		// Return the buffered content.
-		return ob_get_clean();
+		return $this->load_field_template(
+			'repeater.php',
+			array(
+				'id'           => $this->id,
+				'name'         => $this->name,
+				'repeater_id'  => 'giftflow-repeater-' . $this->id,
+				'values'       => $values,
+				'fields'       => $fields,
+				'button_text'  => $button_text,
+				'remove_text'  => $remove_text,
+				'min_rows'     => $min_rows,
+				'max_rows'     => $max_rows,
+				'row_label'    => $row_label,
+				'row_template' => $this->get_repeater_row_template( $fields ),
+			)
+		);
 	}
 
 	/**
@@ -1006,15 +882,8 @@ class GiftFlow_Field {
 						)
 					);
 
-					/**
-					 * Filter the repeater field render output.
-					 *
-					 * @param string         $output The rendered field HTML.
-					 * @param GiftFlow_Field $field  The field instance.
-					 * @param array          $field_args Field arguments array.
-					 */
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo apply_filters( 'giftflow_repeater_row_template', $field->render(), $field, $field_args );
+					// render field.
+					$field->render();
 				endforeach;
 				?>
 			</div>
@@ -1029,86 +898,23 @@ class GiftFlow_Field {
 	 * @return string
 	 */
 	private function render_accordion() {
-		// Start output buffering.
-		ob_start();
+		$settings = $this->accordion_settings;
+		$content_callback = null;
+		if ( isset( $this->content ) && is_callable( $this->content ) ) {
+			$content_callback = $this->content;
+		}
 
-		// Get accordion settings.
-		$settings      = $this->accordion_settings;
-		$is_open       = $settings['is_open'] ? 'open' : '';
-		$icon          = $settings['icon'];
-		$icon_position = $settings['icon_position'];
-		$label         = $settings['label'];
-
-		// Generate unique ID for the accordion.
-		$accordion_id = 'giftflow-accordion-' . $this->id;
-		?>
-		<div class="giftflow-accordion-section <?php echo esc_attr( $is_open ); ?>" id="<?php echo esc_attr( $accordion_id ); ?>">
-			<!-- Accordion header -->
-			<div class="giftflow-accordion-header">
-				<?php if ( 'left' === $icon_position ) : ?>
-					<span class="dashicons <?php echo esc_attr( $icon ); ?>"></span>
-				<?php endif; ?>
-				
-				<h3><?php echo esc_html( $label ); ?></h3>
-				
-				<?php if ( 'right' === $icon_position ) : ?>
-					<span class="dashicons <?php echo esc_attr( $icon ); ?>"></span>
-				<?php endif; ?>
-			</div>
-			
-			<!-- Accordion content -->
-			<div class="giftflow-accordion-content">
-				<?php if ( ! empty( $this->description ) ) : ?>
-					<p class="description"><?php echo esc_html( $this->description ); ?></p>
-				<?php endif; ?>
-				
-				<?php if ( ! empty( $settings['fields'] ) ) : ?>
-					<div class="giftflow-accordion-fields">
-						<?php
-						foreach ( $settings['fields'] as $field_id => $field_args ) :
-							$field_value = isset( $field_args['value'] ) ? $field_args['value'] : '';
-							$field_name  = $this->name . '[' . $field_id . ']';
-							$field_id    = $this->id . '_' . $field_id;
-
-							// Create field instance.
-							$field = new GiftFlow_Field(
-								$field_id,
-								$field_name,
-								$field_args['type'],
-								array_merge(
-									$field_args,
-									array(
-										'value'           => $field_value,
-										'wrapper_classes' => array( 'giftflow-accordion-field' ),
-									)
-								)
-							);
-
-							/**
-							 * Filter the accordion field output.
-							 *
-							 * @param string         $output The rendered field HTML.
-							 * @param GiftFlow_Field $field  The field instance.
-							 * @param array          $field_args Field arguments array.
-							 */
-							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							echo apply_filters( 'giftflow_accordion_field_output', $field->render(), $field, $field_args );
-						endforeach;
-						?>
-					</div>
-				<?php endif; ?>
-				
-				<?php
-				if ( isset( $this->content ) && is_callable( $this->content ) ) :
-					call_user_func( $this->content );
-				endif;
-				?>
-			</div>
-		</div>
-		<?php
-
-		// Return the buffered content.
-		return ob_get_clean();
+		return $this->load_field_template(
+			'accordion.php',
+			array(
+				'id'               => $this->id,
+				'name'             => $this->name,
+				'accordion_id'     => 'giftflow-accordion-' . $this->id,
+				'description'     => $this->description,
+				'settings'        => $settings,
+				'content_callback' => $content_callback,
+			)
+		);
 	}
 
 	/**

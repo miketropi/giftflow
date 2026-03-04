@@ -1,3 +1,0 @@
-ÿþ<?php
-
-echo 'This file has a UTF-16 LE byte order mark';

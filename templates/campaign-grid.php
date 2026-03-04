@@ -117,8 +117,21 @@ if ( empty( $campaigns ) ) {
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							foreach ( array_slice( $categories, 0, 2 ) as $category ) :
+								if ( ! isset( $category->name ) ) {
+									continue;
+								}
+								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+								$term_link = get_term_link( $category );
+								if ( is_wp_error( $term_link ) ) {
+									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+									$term_link = '';
+								}
 								?>
-								<?php if ( isset( $category->name ) ) : ?>
+								<?php if ( ! empty( $term_link ) ) : ?>
+									<a href="<?php echo esc_url( $term_link ); ?>" class="giftflow-campaign-grid__category">
+										<?php echo esc_html( $category->name ); ?>
+									</a>
+								<?php else : ?>
 									<span class="giftflow-campaign-grid__category">
 										<?php echo esc_html( $category->name ); ?>
 									</span>
@@ -158,19 +171,6 @@ if ( empty( $campaigns ) ) {
 							<span><?php echo esc_html( $location ); ?></span>
 						</div>
 					<?php endif; ?>
-
-					<div class="giftflow-campaign-grid__footer">
-						<a href="<?php echo esc_url( $permalink ); ?>" class="giftflow-campaign-grid__button">
-							<span class="giftflow-campaign-grid__button-text">
-								<?php esc_html_e( 'View Campaign', 'giftflow' ); ?>
-							</span>
-							<span class="giftflow-campaign-grid__button-icon">
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M12 5L19 12M19 12L12 19M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-								</svg>
-							</span>
-						</a>
-					</div>
 				</div>
 				<?php do_action( 'giftflow_campaign_grid_after_item_content', $campaign, $campaign_id ); ?>
 			</article>
@@ -193,8 +193,8 @@ if ( empty( $campaigns ) ) {
 				'format'    => '',
 				'current'   => $current_page,
 				'total'     => $pages,
-				'prev_text' => esc_html__( 'Previous', 'giftflow' ),
-				'next_text' => esc_html__( 'Next', 'giftflow' ),
+				'prev_text' => esc_html__( '← Previous', 'giftflow' ),
+				'next_text' => esc_html__( 'Next →', 'giftflow' ),
 			),
 			$current_page,
 			$pages

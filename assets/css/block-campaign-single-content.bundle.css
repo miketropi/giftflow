@@ -38,10 +38,6 @@
 .giftflow-campaign-single-content .giftflow-tab-widget-tabs .giftflow-tab-widget-tab-item-label {
   font-size: 0.95rem;
 }
-.giftflow-campaign-single-content .giftflow-tab-widget-content {
-  background-color: #fff;
-  border-radius: 0.375rem;
-}
 .giftflow-campaign-single-content .giftflow-tab-widget-content-item {
   display: none;
   padding: 1rem 0;

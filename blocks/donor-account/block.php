@@ -251,14 +251,24 @@ function giftflow_donor_account_my_donations_callback() {
 		return;
 	}
 
-  // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$page = isset( $_GET['_page'] ) ? intval( $_GET['_page'] ) : 1;
-	if ( $page < 1 ) {
-		$page = 1;
-	}
+	// use giftflow_sanitize_array.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$filters_raw = giftflow_sanitize_array( $_GET ?? array() );
 
-	// query donations by donor id.
-	$donations = giftflow_get_donations_by_user( $current_user->ID, $page, 20 );
+	// page number.
+	$page = $filters_raw['_page'] ?? 1;
+	$page = max( 1, absint( $page ) );
+
+	// Filter params from GET (donations filter form).
+	$filters = array(
+		'date_from'       => $filters_raw['_filter_date_from'] ?? '',
+		'date_to'         => $filters_raw['_filter_date_to'] ?? '',
+		'status'          => $filters_raw['_filter_status'] ?? '',
+		'payment_method'  => $filters_raw['_filter_payment_method'] ?? '',
+	);
+
+	// Query donations by donor id (with optional filters).
+	$donations = giftflow_get_donations_by_user( $current_user->ID, $page, 20, $filters );
 
 	// load template donor-account--my-donations.
 	giftflow_load_template(
@@ -280,6 +290,9 @@ function giftflow_donor_account_my_account_callback() {
 	// get current user.
 	$current_user = wp_get_current_user();
 
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$post_data = isset( $_POST ) ? giftflow_sanitize_array( $_POST ) : array();
+
 	// =============================================================================
 	// FORM PROCESSING.
 	// =============================================================================
@@ -289,27 +302,27 @@ function giftflow_donor_account_my_account_callback() {
 
 	// Process account form.
 	if (
-	isset( $_POST['giftflow_update_account'], $_POST['giftflow_account_nonce'] ) &&
+	isset( $post_data['giftflow_update_account'], $post_data['giftflow_account_nonce'] ) &&
 	wp_verify_nonce(
 		sanitize_text_field(
-			wp_unslash( $_POST['giftflow_account_nonce'] )
+			wp_unslash( $post_data['giftflow_account_nonce'] )
 		),
 		'giftflow_update_account'
 	)
 	) {
-		$account_result = giftflow_process_account_form( $current_user->ID, $_POST );
+		$account_result = giftflow_process_account_form( $current_user->ID, $post_data );
 	}
 
 	// Process password form.
-	if ( isset( $_POST['giftflow_update_password'], $_POST['giftflow_password_nonce'] ) &&
+	if ( isset( $post_data['giftflow_update_password'], $post_data['giftflow_password_nonce'] ) &&
 	wp_verify_nonce(
 		sanitize_text_field(
-			wp_unslash( $_POST['giftflow_password_nonce'] )
+			wp_unslash( $post_data['giftflow_password_nonce'] )
 		),
 		'giftflow_update_password'
 	)
 	) {
-		$password_result = giftflow_process_password_form( $current_user, $_POST );
+		$password_result = giftflow_process_password_form( $current_user, $post_data );
 	}
 
 	// =============================================================================

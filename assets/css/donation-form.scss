@@ -27,6 +27,7 @@ $mobile: 480px;
   transition: $transition;
   box-sizing: border-box;
   font-size: 1rem;
+  margin-bottom: 0;
   
   &:focus {
     outline: none;
@@ -284,27 +285,149 @@ $mobile: 480px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    
+
     @include tablet {
       grid-template-columns: 1fr;
     }
 
+    // Donation type: select-style, one option per line
     &--donation-type {
-      input[type="radio"] {
-        display: none;
-
-        // is checked
-        &:checked + .donation-form__radio-label {
-          border-color: $primary-color;
-          // box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
-          background-color: $primary-color;
-          color: white;
-        }
-      }
-      
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid $border-color;
+      border-radius: $border-radius;
+      overflow: hidden;
+      background: white;
     }
   }
 
+  // Single-row radio option (donation type): select-one pattern with checked icon + standard active state
+  &__radio-option {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+    transition: $transition;
+    border-bottom: 1px solid $border-color;
+    position: relative;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    input[type="radio"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+
+      &:focus-visible + .donation-form__radio-option-content {
+        outline: 2px solid $primary-color;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__radio-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    padding: 1rem 1.25rem;
+    min-width: 0;
+    border-left: 3px solid transparent;
+    transition: $transition;
+
+    @include mobile {
+      padding: 0.875rem 1rem;
+    }
+
+    .donation-form__radio-option:hover & {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    // Standard active state: subtle background, accent border; selection conveyed by checked icon
+    .donation-form__radio-option input[type="radio"]:checked + & {
+      background-color: rgba(0, 0, 0, 0.04);
+      border-left-color: $primary-color;
+
+      .donation-form__radio-option-title {
+        
+        &:after {
+          content: "Selected";
+          display: inline-block;
+          padding: .2em 0.65em;
+          margin-left: 0.25em;
+          font-size: 0.75em;
+          border-radius: 1em;
+          background-color: var(--giftflow-primary-color);
+          color: #fff;
+          font-weight: 600;
+          height: auto;
+          line-height: 1.5;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+
+  // Checked icon: visible only when this option is selected
+  &__radio-option-check {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    margin-right: 1rem;
+    color: $primary-color;
+    opacity: 0;
+    transition: $transition;
+    position: absolute;
+    right: 1rem;
+
+    .donation-form__radio-option input[type="radio"]:checked ~ & {
+      opacity: 1;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  &__radio-option-title {
+    font-weight: 500;
+    color: $text-color;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__radio-option-description {
+    font-size: 0.875rem;
+    color: $text-light;
+    line-height: 1.4;
+    max-width: 85%;
+    text-transform: none;
+    letter-spacing: 0;
+
+    @include mobile {
+      font-size: 0.8125rem;
+    }
+  }
+
+  // Legacy radio label/content (e.g. other radio groups)
   &__radio-label {
     position: relative;
     display: block;
@@ -315,9 +438,9 @@ $mobile: 480px;
     border-radius: $border-radius;
 
     &:hover {
-      transform: translateY(-1px);
+      border-color: $primary-color;
     }
-    
+
     @include mobile {
       padding: 1rem;
     }
@@ -325,14 +448,10 @@ $mobile: 480px;
     input[type="radio"] {
       position: absolute;
       opacity: 0;
-      
+
       &:checked + .donation-form__radio-content {
         color: $primary-color;
       }
-    }
-
-    &:hover {
-      border-color: $primary-color;
     }
   }
 
@@ -358,7 +477,7 @@ $mobile: 480px;
   &__radio-description {
     font-size: 0.875rem;
     color: $text-light;
-    
+
     @include mobile {
       font-size: 0.75rem;
     }
@@ -385,6 +504,7 @@ $mobile: 480px;
         text-align: center;
         padding-left: 2.5rem;
         font-family: $font-family-monospace;
+        margin-bottom: 0;
         
         @include mobile {
           font-size: 1rem;
@@ -421,6 +541,8 @@ $mobile: 480px;
       transition: $transition;
       border-radius: $border-radius;
       font-family: $font-family-monospace;
+      letter-spacing: 0;
+      font-size: .9rem;
 
       > * {
         pointer-events: none;
@@ -503,8 +625,8 @@ $mobile: 480px;
   }
 
   &__checkbox-label {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     gap: 0.5rem;
     cursor: pointer;
 
@@ -513,6 +635,7 @@ $mobile: 480px;
       width: 16px;
       height: 16px;
       vertical-align: middle;
+      opacity: 1;
     }
   }
 
@@ -526,6 +649,22 @@ $mobile: 480px;
     background-color: #f9f9f9;
     border-radius: $border-radius;
     border: 1px solid $border-color;
+
+    &.gfw-disabled-payment-gateway {
+      opacity: 0.3;
+      pointer-events: none;
+      cursor: not-allowed;
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+    }
 
     &:not(.is-active) {
       
@@ -559,6 +698,7 @@ $mobile: 480px;
 
     input[type="radio"] {
       margin: 0;
+      opacity: 1;
     }
 
     &-content {
@@ -636,6 +776,10 @@ $mobile: 480px;
         margin: 0;
         font-weight: 500;
         color: $text-color;
+        white-space: nowrap;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
@@ -670,6 +814,7 @@ $mobile: 480px;
     justify-content: center;
     flex: 1;
     gap: 0.5rem;
+    letter-spacing: 0;
 
     > * {
       pointer-events: none;
@@ -690,6 +835,7 @@ $mobile: 480px;
         background: #f0f0f0;
         color: #b0b0b0;
         cursor: not-allowed;
+        pointer-events: none;
       }
 
       &:hover {

@@ -239,13 +239,121 @@
     grid-template-columns: 1fr;
   }
 }
-.donation-form__radio-group--donation-type input[type=radio] {
-  display: none;
+.donation-form__radio-group--donation-type {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--giftflow-border-color);
+  border-radius: var(--giftflow-border-radius);
+  overflow: hidden;
+  background: white;
 }
-.donation-form__radio-group--donation-type input[type=radio]:checked + .donation-form__radio-label {
-  border-color: var(--giftflow-primary-color);
+.donation-form__radio-option {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  cursor: pointer;
+  transition: var(--giftflow-transition);
+  border-bottom: 1px solid var(--giftflow-border-color);
+  position: relative;
+}
+.donation-form__radio-option:last-child {
+  border-bottom: none;
+}
+.donation-form__radio-option input[type=radio] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.donation-form__radio-option input[type=radio]:focus-visible + .donation-form__radio-option-content {
+  outline: 2px solid var(--giftflow-primary-color);
+  outline-offset: 2px;
+}
+.donation-form__radio-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  padding: 1rem 1.25rem;
+  min-width: 0;
+  border-left: 3px solid transparent;
+  transition: var(--giftflow-transition);
+}
+@media (max-width: 480px) {
+  .donation-form__radio-option-content {
+    padding: 0.875rem 1rem;
+  }
+}
+.donation-form__radio-option:hover .donation-form__radio-option-content {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+.donation-form__radio-option input[type=radio]:checked + .donation-form__radio-option-content {
+  background-color: rgba(0, 0, 0, 0.04);
+  border-left-color: var(--giftflow-primary-color);
+}
+.donation-form__radio-option input[type=radio]:checked + .donation-form__radio-option-content .donation-form__radio-option-title:after {
+  content: "Selected";
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  margin-left: 0.25em;
+  font-size: 0.75em;
+  border-radius: 1em;
   background-color: var(--giftflow-primary-color);
-  color: white;
+  color: #fff;
+  font-weight: 600;
+  height: auto;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+.donation-form__radio-option-check {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 1rem;
+  color: var(--giftflow-primary-color);
+  opacity: 0;
+  transition: var(--giftflow-transition);
+  position: absolute;
+  right: 1rem;
+}
+.donation-form__radio-option input[type=radio]:checked ~ .donation-form__radio-option-check {
+  opacity: 1;
+}
+.donation-form__radio-option-check svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.donation-form__radio-option-title {
+  font-weight: 500;
+  color: var(--giftflow-text-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.donation-form__radio-option-title svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.donation-form__radio-option-description {
+  font-size: 0.875rem;
+  color: var(--giftflow-text-light);
+  line-height: 1.4;
+  max-width: 85%;
+  text-transform: none;
+  letter-spacing: 0;
+}
+@media (max-width: 480px) {
+  .donation-form__radio-option-description {
+    font-size: 0.8125rem;
+  }
 }
 .donation-form__radio-label {
   position: relative;
@@ -257,7 +365,7 @@
   border-radius: var(--giftflow-border-radius);
 }
 .donation-form__radio-label:hover {
-  transform: translateY(-1px);
+  border-color: var(--giftflow-primary-color);
 }
 @media (max-width: 480px) {
   .donation-form__radio-label {
@@ -270,9 +378,6 @@
 }
 .donation-form__radio-label input[type=radio]:checked + .donation-form__radio-content {
   color: var(--giftflow-primary-color);
-}
-.donation-form__radio-label:hover {
-  border-color: var(--giftflow-primary-color);
 }
 .donation-form__radio-content {
   display: flex;
@@ -319,11 +424,13 @@
   transition: var(--giftflow-transition);
   box-sizing: border-box;
   font-size: 1rem;
+  margin-bottom: 0;
   font-size: 1.25rem;
   font-weight: 600;
   text-align: center;
   padding-left: 2.5rem;
   font-family: var(--giftflow-font-family-monospace);
+  margin-bottom: 0;
 }
 .donation-form__amount-input input:focus {
   outline: none;
@@ -364,6 +471,8 @@
   transition: var(--giftflow-transition);
   border-radius: var(--giftflow-border-radius);
   font-family: var(--giftflow-font-family-monospace);
+  letter-spacing: 0;
+  font-size: 0.9rem;
 }
 .donation-form__preset-amounts button > * {
   pointer-events: none;
@@ -402,6 +511,7 @@
   transition: var(--giftflow-transition);
   box-sizing: border-box;
   font-size: 1rem;
+  margin-bottom: 0;
 }
 .donation-form__field input[type=text]:focus, .donation-form__field input[type=email]:focus, .donation-form__field input[type=tel]:focus, .donation-form__field textarea:focus {
   outline: none;
@@ -439,8 +549,8 @@
   }
 }
 .donation-form__checkbox-label {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
   gap: 0.5rem;
   cursor: pointer;
 }
@@ -449,6 +559,7 @@
   width: 16px;
   height: 16px;
   vertical-align: middle;
+  opacity: 1;
 }
 .donation-form__payment-methods {
   display: grid;
@@ -458,6 +569,20 @@
   background-color: #f9f9f9;
   border-radius: var(--giftflow-border-radius);
   border: 1px solid var(--giftflow-border-color);
+}
+.donation-form__payment-method-item.gfw-disabled-payment-gateway {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+.donation-form__payment-method-item.gfw-disabled-payment-gateway:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 .donation-form__payment-method-item:not(.is-active) label.donation-form__payment-method {
   border-bottom-color: transparent;
@@ -478,6 +603,7 @@
 }
 .donation-form__payment-method input[type=radio] {
   margin: 0;
+  opacity: 1;
 }
 .donation-form__payment-method-content {
   display: flex;
@@ -549,6 +675,10 @@
   margin: 0;
   font-weight: 500;
   color: var(--giftflow-text-color);
+  white-space: nowrap;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .donation-form__step-actions {
   display: flex;
@@ -580,6 +710,7 @@
   justify-content: center;
   flex: 1;
   gap: 0.5rem;
+  letter-spacing: 0;
 }
 .donation-form__button > * {
   pointer-events: none;
@@ -599,6 +730,7 @@
   background: #f0f0f0;
   color: #b0b0b0;
   cursor: not-allowed;
+  pointer-events: none;
 }
 .donation-form__button--next:hover, .donation-form__button--submit:hover {
   filter: brightness(0.9);

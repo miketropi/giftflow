@@ -1,161 +1,269 @@
-// Donation List Styles
+// Donation list – clean list (image reference style)
+$dl-border: $border-color;
+$dl-text: $text-color;
+$dl-muted: $text-light;
+$dl-bg: $background-color;
+$dl-radius: $border-radius;
+
+$dl-header-bg: #f5f5f5;
+$dl-row-border: #eee;
+
+$dl-tablet: 768px;
+$dl-mobile: 480px;
+
 .gfw-donation-list-container {
-  // border: 1px solid #e5e7eb;
-  border-radius: 1px;
-  
-  .gfw-donation-list-header {
-    padding: 15px 0;
-    border-bottom: 1px solid #e5e7eb;
-    // background: #fafafa;
-    
-    .gfw-donation-count {
-      font-size: 13px;
-      font-weight: 500;
+  // border: 1px solid $dl-border;
+  // border-radius: 10px;
+  // background: #fff;
+  // overflow: hidden;
+  // box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.gfw-donation-list-header {
+  padding: 1rem 0;
+  border-bottom: 1px solid $dl-row-border;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $dl-text;
+
+  .gfw-donation-count {
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+  }
+}
+
+.gfw-donation-list {
+  display: flex;
+  flex-direction: column;
+}
+
+// Header row (column labels)
+.gfw-donation-list__head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem 1.5rem;
+  padding: 0.75rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $dl-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  // background: $dl-header-bg;
+  border-bottom: 1px solid $dl-row-border;
+
+  @media (max-width: $dl-mobile) {
+    grid-template-columns: 1fr auto;
+    padding: 0.65rem 1rem;
+    gap: 0.75rem 1rem;
+
+    .gfw-donation-list__head-cell--date {
+      display: none;
     }
   }
-  
-  .gfw-donation-list {
-    .gfw-donation-item {
-      border-bottom: 1px solid #f0f0f0;
-      
-      &:last-child {
-        border-bottom: none;
-      }
-      
-      .gfw-donation-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 18px 0;
-        
-        .gfw-donation-left {
-          flex: 1;
-          
-          .gfw-donor-info {
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            
-            .gfw-location {
-              font-weight: normal;
-              opacity: 0.7;
-              margin-left: 5px;
-            }
-          }
-          
-          .gfw-donation-message {
-            font-size: 13px;
-            font-style: italic;
-            opacity: 0.8;
-            margin-bottom: 8px;
-            line-height: 1.4;
-          }
-          
-          .gfw-donation-time {
-            font-size: 12px;
-            opacity: 0.6;
-          }
-        }
-        
-        .gfw-donation-right {
-          .gfw-donation-amount {
-            font-size: 13px;
-            font-weight: 600;
-            text-align: right;
-          }
-        }
-      }
+}
+
+.gfw-donation-list__head-cell {
+  &--amount,
+  &--date {
+    text-align: right;
+  }
+}
+
+// Data rows
+.gfw-donation-list__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem 1.5rem;
+  align-items: start;
+  padding: 1rem 0;
+  background: #fff;
+  border-bottom: 1px solid $dl-row-border;
+  min-height: 4rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: $dl-mobile) {
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
+    min-height: 3.5rem;
+
+    .gfw-donation-list__cell--date {
+      display: none;
     }
   }
-  
-  .gfw-donation-pagination {
-    padding: 15px 0;
-    border-top: 1px solid #e5e7eb;
-    // background: #fafafa;
-    text-align: center;
-    font-size: 12px;
+}
+
+.gfw-donation-list__cell {
+  min-width: 0;
+
+  &--donor {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+  }
+
+  &--amount {
+    text-align: right;
+    font-size: 0.87rem;
+  }
+
+  &--date {
+    text-align: right;
+    font-size: 0.8125rem;
+    color: $dl-muted;
+    white-space: nowrap;
+
+    time {
+      font-size: inherit;
+      color: inherit;
+    }
+  }
+}
+
+// Avatar
+.gfw-donation-list__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: $dl-header-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .gfw-donation-list__avatar-img,
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .gfw-donation-list__avatar-placeholder {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $dl-muted;
+    text-transform: uppercase;
+  }
+}
+
+// Donor block: name (bold) + secondary line (smaller, muted)
+.gfw-donation-list__donor-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.gfw-donation-list__donor-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: $dl-text;
+  line-height: 1.3;
+}
+
+.gfw-donation-list__donor-secondary {
+  font-size: 0.8125rem;
+  color: $dl-muted;
+  line-height: 1.3;
+}
+
+.gfw-donation-list__date-mobile {
+  display: none;
+  font-size: 0.75rem;
+  color: $dl-muted;
+  margin-top: 0.1rem;
+
+  time {
+    font-size: inherit;
+    color: inherit;
+  }
+}
+
+.gfw-donation-list__message {
+  // color: black;
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  padding: 1em;
+  border-radius: 0 1.5em 1.5em 1.5em;
+  border: solid 1px #eee;
+  font-family: serif;
+}
+
+// Amount as pill/badge
+.gfw-donation-list__amount-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: $dl-text;
+  background: $dl-header-bg;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+// Mobile: show date under donor
+@media (max-width: $dl-mobile) {
+  .gfw-donation-list__date-mobile {
+    display: block;
+  }
+}
+
+// Pagination
+.gfw-donation-list-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid $dl-row-border;
+  background: #fff;
+  font-size: 0.8125rem;
+  color: $dl-muted;
+}
+
+.gfw-donation-list-pagination__buttons {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.gfw-donation-list-pagination__btn {
+  padding: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--giftflow-text-color);
+  background: #fff;
+  cursor: pointer;
+  opacity: 1;
+  border: none;
+
+  &:hover {
     opacity: 0.7;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .gfw-donation-empty {
-    padding: 40px 20px;
-    text-align: center;
-    
-    p {
-      font-size: 13px;
-      opacity: 0.6;
-      margin: 0;
-    }
+    background: none;
   }
 
-  .gfw-pagination-buttons {
-    display: flex;
-    gap: 1em;
-    
-    button {
-      border: none;
-      background: none;
-      padding: 0;
-      margin: 0;
-      cursor: pointer;
-      opacity: .6;
-
-      &:hover {
-        text-decoration: underline;
-        opacity: 1;
-      }
-    }
+  &:focus {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
-  .gfw-donation-list-container {
-    .gfw-donation-list-header {
-      padding: 12px 15px;
-    }
-    
-    .gfw-donation-list {
-      .gfw-donation-item {
-        .gfw-donation-row {
-          padding: 15px;
-          flex-direction: column;
-          align-items: flex-start;
-          
-          .gfw-donation-left {
-            margin-bottom: 10px;
-            
-            .gfw-donor-info {
-              margin-bottom: 6px;
-            }
-            
-            .gfw-donation-message {
-              margin-bottom: 6px;
-            }
-          }
-          
-          .gfw-donation-right {
-            align-self: flex-end;
-            
-            .gfw-donation-amount {
-              text-align: left;
-            }
-          }
-        }
-      }
-    }
-    
-    .gfw-donation-pagination {
-      padding: 12px 15px;
-    }
-    
-    .gfw-donation-empty {
-      padding: 30px 15px;
-    }
+// Empty state
+.gfw-donation-list-empty {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: $dl-muted;
+  background: #fff;
+
+  p {
+    margin: 0;
   }
 }
-

@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -192,7 +192,10 @@ This plugin uses the Stripe payment gateway to process credit and debit card don
 
 = PayPal (paypal.com) =
 
-This plugin uses PayPal to process donations through PayPal accounts and PayPal Smart Payment Buttons.
+This plugin uses PayPal to process donations through PayPal accounts and PayPal Smart Payment Buttons. The plugin communicates with PayPal's REST API using the following base URLs:
+
+* **Production:** [https://api.paypal.com](https://api.paypal.com)
+* **Sandbox (testing):** [https://api.sandbox.paypal.com](https://api.sandbox.paypal.com)
 
 **Service Provider:** PayPal Holdings, Inc.
 **Service URL:** [https://www.paypal.com](https://www.paypal.com)
@@ -240,6 +243,24 @@ This plugin optionally uses Google reCAPTCHA to protect donation forms from spam
 * Terms of Service: [https://policies.google.com/terms](https://policies.google.com/terms)
 * Privacy Policy: [https://policies.google.com/privacy](https://policies.google.com/privacy)
 
+= Social sharing (Share block) =
+
+The GiftFlow Share block allows visitors to share campaign or page content to social networks. When share buttons are used, the browser may open or redirect to the following third-party URLs. No data is sent from your server to these services; the user's browser loads the share URL with the page title and URL that the user chooses to share.
+
+**Services and URLs used:**
+
+* **Facebook** – [https://www.facebook.com/sharer/sharer.php](https://www.facebook.com/sharer/sharer.php) (with `u` = shared URL)
+* **X (Twitter)** – [https://twitter.com/intent/tweet](https://twitter.com/intent/tweet) (with `url` and `text`)
+* **LinkedIn** – [https://www.linkedin.com/sharing/share-offsite/](https://www.linkedin.com/sharing/share-offsite/) (with `url`)
+* **WhatsApp** – [https://api.whatsapp.com/send](https://api.whatsapp.com/send) (with `text` containing title and URL)
+* **Pinterest** – [https://pinterest.com/pin/create/button/](https://pinterest.com/pin/create/button/) (with `url` and `description`)
+* **Reddit** – [https://reddit.com/submit](https://reddit.com/submit) (with `url` and `title`)
+* **Telegram** – [https://t.me/share/url](https://t.me/share/url) (with `url` and `text`)
+
+**Data transmitted:** Only the page URL and title (or description) that the user is sharing, passed as query parameters in the share link. No data is sent to these services until the user clicks a share button.
+
+**When data is sent:** When a visitor clicks a social share button in the Share block.
+
 = Google Maps Platform (developers.google.com/maps) =
 
 This plugin optionally uses Google Maps to display campaign locations and geographic information.
@@ -272,6 +293,14 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.3 =
+* Added support for Classic (non-block) WordPress themes
+* Fixed several security issues for improved safety and compliance
+
+= 1.0.2 =
+* Upgraded payment gateway integration for improved reliability
+* Added support for common shortcodes (for embedding donation forms and campaign features)
 
 = 1.0.1 =
 * Initial public release

@@ -36,7 +36,7 @@ class Donations extends Base {
 		'completed',
 		'failed',
 		'refunded',
-		// 'cancelled',
+		'cancelled',
 	);
 
 	/**
@@ -275,6 +275,13 @@ class Donations extends Base {
 			'paypal_order_id' => isset( $meta['_paypal_order_id'][0] ) ? $meta['_paypal_order_id'][0] : '',
 			'payment_status' => isset( $meta['_payment_status'][0] ) ? $meta['_payment_status'][0] : '',
 			'payment_error' => isset( $meta['_payment_error'][0] ) ? $meta['_payment_error'][0] : '',
+			'stripe_customer_id' => isset( $meta['_stripe_customer_id'][0] ) ? $meta['_stripe_customer_id'][0] : '',
+			'stripe_subscription_id' => isset( $meta['_stripe_subscription_id'][0] ) ? $meta['_stripe_subscription_id'][0] : '',
+			'recurring_status' => isset( $meta['_recurring_status'][0] ) ? $meta['_recurring_status'][0] : '',
+			'recurring_next_payment' => isset( $meta['_recurring_next_payment_date'][0] ) ? $meta['_recurring_next_payment_date'][0] : '',
+			'is_subscription_parent' => isset( $meta['_is_subscription_parent'][0] ) ? (bool) $meta['_is_subscription_parent'][0] : false,
+			'parent_donation_id' => isset( $meta['_parent_donation_id'][0] ) ? intval( $meta['_parent_donation_id'][0] ) : 0,
+			'recurring_number_of_times' => isset( $meta['_recurring_number_of_times'][0] ) ? intval( $meta['_recurring_number_of_times'][0] ) : 0,
 		);
 
 		// Allow filtering of donation data.
@@ -535,6 +542,39 @@ class Donations extends Base {
 			} else {
 				delete_post_meta( $donation_id, '_payment_error' );
 			}
+		}
+
+		// Stripe Customer ID.
+		if ( isset( $data['stripe_customer_id'] ) ) {
+			if ( ! empty( $data['stripe_customer_id'] ) ) {
+				update_post_meta( $donation_id, '_stripe_customer_id', sanitize_text_field( $data['stripe_customer_id'] ) );
+			} else {
+				delete_post_meta( $donation_id, '_stripe_customer_id' );
+			}
+		}
+
+		// Stripe Subscription ID.
+		if ( isset( $data['stripe_subscription_id'] ) ) {
+			if ( ! empty( $data['stripe_subscription_id'] ) ) {
+				update_post_meta( $donation_id, '_stripe_subscription_id', sanitize_text_field( $data['stripe_subscription_id'] ) );
+			} else {
+				delete_post_meta( $donation_id, '_stripe_subscription_id' );
+			}
+		}
+
+		// Recurring status.
+		if ( isset( $data['recurring_status'] ) ) {
+			if ( ! empty( $data['recurring_status'] ) ) {
+				update_post_meta( $donation_id, '_recurring_status', sanitize_text_field( $data['recurring_status'] ) );
+			} else {
+				delete_post_meta( $donation_id, '_recurring_status' );
+			}
+		}
+
+		// Recurring number of times (campaign setting at subscription creation).
+		if ( isset( $data['recurring_number_of_times'] ) ) {
+			$num = absint( $data['recurring_number_of_times'] );
+			update_post_meta( $donation_id, '_recurring_number_of_times', $num );
 		}
 
 		/**
