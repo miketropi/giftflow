@@ -294,6 +294,14 @@ Site administrators are responsible for ensuring compliance with applicable priv
 
 == Changelog ==
 
+= 1.0.3 =
+* Added support for Classic (non-block) WordPress themes
+* Fixed several security issues for improved safety and compliance
+
+= 1.0.2 =
+* Upgraded payment gateway integration for improved reliability
+* Added support for common shortcodes (for embedding donation forms and campaign features)
+
 = 1.0.1 =
 * Initial public release
 * Core donation management features

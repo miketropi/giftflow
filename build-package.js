@@ -8,7 +8,6 @@ const zipFileName = `${pluginSlug}.zip`;
 
 /**
  * Blacklist root files / folders
- * (so khớp theo prefix path)
  */
 const blacklistRoots = [
   "node_modules",
@@ -25,7 +24,7 @@ const blacklistRoots = [
   ".husky",
   "package-lock.json",
   "phpcs.xml.dist",
-  "vendor",          // ❗ KHÔNG bundle vendor gốc
+  "vendor",          
   "giftflow.zip",
 ];
 
@@ -37,8 +36,7 @@ const blacklistExtensions = [
 ];
 
 /**
- * Blacklist bên trong vendor-prefixed
- * (runtime-safe, chỉ loại file dev)
+ * Blacklist inside vendor-prefixed
  */
 const vendorPrefixedBlacklist = [
   /\/tests?\//i,
