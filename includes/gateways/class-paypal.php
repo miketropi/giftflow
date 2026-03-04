@@ -591,9 +591,7 @@ class PayPal_Gateway extends Gateway_Base {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$raw_post_data = $_POST;
-
-		// sanitize data if it is an array, else sanitize the data.
-		$data = is_array( $raw_post_data ) ? giftflow_sanitize_array( $raw_post_data ) : sanitize_text_field( $raw_post_data );
+		$data = $raw_post_data;
 
 		// if data not an array, return error.
 		if ( ! is_array( $data ) ) {
@@ -983,8 +981,8 @@ class PayPal_Gateway extends Gateway_Base {
 		check_ajax_referer( 'giftflow_donation_nonce', 'nonce' );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data = $_POST;
-		$donation_id = intval( $data['donation_id'] );
+		$data = giftflow_sanitize_array( $_POST );
+		$donation_id = isset( $data['donation_id'] ) ? intval( $data['donation_id'] ) : null;
 
 		$result = $this->process_payment( $data, $donation_id );
 
@@ -998,7 +996,6 @@ class PayPal_Gateway extends Gateway_Base {
 			wp_send_json_success( $result );
 		}
 	}
-
 
 	/**
 	 * Handle webhook notifications
