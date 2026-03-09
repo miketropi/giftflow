@@ -277,7 +277,7 @@ function giftflow_add_first_activation_notice() {
 				}
 
 				// Prepare URL to documentation. You may want to change this as needed.
-				$docs_url = esc_url( admin_url( 'admin.php?page=giftflow-dashboard&tab=help' ) ); // Update to your actual docs page if needed.
+				$docs_url = esc_url( admin_url( 'admin.php?page=giftflow-dashboard&tab=help' ) );
 				?>
 			<div
 				class="notice notice-info is-dismissible giftflow-first-activation-notice"

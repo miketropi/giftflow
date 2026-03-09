@@ -441,7 +441,7 @@ class Stripe_Gateway extends Gateway_Base {
 		if ( ! $this->get_setting( 'stripe_recurring_enabled', false ) ) {
 			return false;
 		}
-		$donation_type = isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : 'once';
+		$donation_type = isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : 'one-time';
 		$interval      = isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : '';
 		return ( 'recurring' === $donation_type && ! empty( $interval ) );
 	}

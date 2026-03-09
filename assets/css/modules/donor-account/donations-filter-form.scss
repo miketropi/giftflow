@@ -42,7 +42,7 @@ $gfw-filter-primary-hover: #334155;
 .gfw-donations-filter-form__select {
   width: 100%;
   min-width: 0;
-  padding: 0.4rem 0.6rem;
+  padding: 0.8rem;
   font-size: 0.9375rem;
   font-family: inherit;
   color: $gfw-filter-text;
@@ -86,6 +86,7 @@ $gfw-filter-primary-hover: #334155;
   padding: 1rem 1.5rem;
   letter-spacing: 0;
   text-transform: none;
+  border-radius: 4px;
 
   svg {
     width: 1em;

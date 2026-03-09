@@ -279,13 +279,13 @@ $no_payment_methods = count( $gateways ) === 0;
 										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 										$supports = $method->get_supports();
 
-										// recurring.
+										// supports class.
 										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-										$recurring_class = in_array( 'recurring', $supports, true ) ? 'recurring-support' : '';
+										$supports_class = apply_filters( 'giftflow_donation_form_payment_method_supports_class', '', $supports, $method );
 
 										// class.
 										// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-										$classes = 'donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . ' ' . esc_attr( $recurring_class );
+										$classes = 'donation-form__payment-method-item payment-method-' . esc_attr( $method->get_id() ) . ' ' . esc_attr( $supports_class );
 
 										echo '<div class="' . esc_attr( $classes ) . '" data-gateway="' . esc_attr( $method->get_id() ) . '">';
 										$method->template_html();
