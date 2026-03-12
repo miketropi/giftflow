@@ -51,9 +51,13 @@ class PayPal_Gateway extends Gateway_Base {
 		$this->icon = giftflow_svg_icon( 'paypal' );
 
 		$this->order = 15;
-		$this->supports = array(
-			'webhooks',
-			'refunds',
+		$this->supports = apply_filters(
+			'giftflow_paypal_gateway_supports',
+			array(
+				'webhooks',
+				'refunds',
+			),
+			$this
 		);
 	}
 
@@ -196,15 +200,18 @@ class PayPal_Gateway extends Gateway_Base {
 	 */
 	private function get_script_data() {
 		return array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'client_id' => $this->get_client_id(),
-			'mode' => $this->get_setting( 'paypal_mode', 'sandbox' ),
-			'currency' => $this->get_currency(),
-			'nonce' => wp_create_nonce( 'giftflow_paypal_nonce' ),
-			'messages' => array(
-				'processing' => __( 'Processing payment...', 'giftflow' ),
-				'error' => __( 'Payment failed. Please try again.', 'giftflow' ),
-				'canceled' => __( 'Payment was canceled.', 'giftflow' ),
+			'ajaxurl'           => admin_url( 'admin-ajax.php' ),
+			'client_id'         => $this->get_client_id(),
+			'mode'              => $this->get_setting( 'paypal_mode', 'sandbox' ),
+			'currency'          => $this->get_currency(),
+			'nonce'             => wp_create_nonce( 'giftflow_paypal_nonce' ),
+			'recurring_enabled' => (bool) $this->get_setting( 'paypal_recurring_enabled', false ),
+			'messages'          => array(
+				'processing'         => __( 'Processing payment...', 'giftflow' ),
+				'error'              => __( 'Payment failed. Please try again.', 'giftflow' ),
+				'canceled'           => __( 'Payment was canceled.', 'giftflow' ),
+				'subscribe_paypal'   => __( 'Subscribe with PayPal', 'giftflow' ),
+				'subscribing'        => __( 'Creating subscription...', 'giftflow' ),
 			),
 		);
 	}
@@ -284,7 +291,7 @@ class PayPal_Gateway extends Gateway_Base {
 							esc_html__( 'Enable webhooks for payment status updates.', 'giftflow' ) . '<br>' .
 							esc_html__( 'Webhook URL:', 'giftflow' ) . ' <code>' . admin_url( 'admin-ajax.php?action=giftflow_paypal_webhook' ) . '</code><br>' .
 							__(
-								'Recommended PayPal events: <strong>Checkout order approved</strong>, <strong>Checkout order completed</strong>, <strong>Payment capture completed</strong>, <strong>Payment capture denied</strong>, <strong>Payment capture refunded</strong>.',
+								'Recommended PayPal events: <strong>Checkout order approved</strong>, <strong>Checkout order completed</strong>, <strong>Payment capture completed</strong>, <strong>Payment capture denied</strong>, <strong>Payment capture refunded</strong>, <strong>Billing subscription created</strong>, <strong>Billing subscription activated</strong>, <strong>Billing subscription cancelled</strong>, <strong>Payment sale completed</strong>, <strong>Payment sale denied</strong>.',
 								'giftflow'
 							),
 					),
@@ -294,6 +301,14 @@ class PayPal_Gateway extends Gateway_Base {
 						'label' => __( 'Webhook ID', 'giftflow' ),
 						'value' => isset( $payment_options['paypal']['paypal_webhook_id'] ) ? $payment_options['paypal']['paypal_webhook_id'] : '',
 						'description' => __( 'Enter the Webhook ID from your PayPal Developer Dashboard. Required for webhook signature verification.', 'giftflow' ),
+					),
+					'paypal_recurring_enabled' => array(
+						'id' => 'giftflow_paypal_recurring_enabled',
+						'type' => 'switch',
+						'label' => __( 'Enable Recurring Donations', 'giftflow' ),
+						'value' => isset( $payment_options['paypal']['paypal_recurring_enabled'] ) ? $payment_options['paypal']['paypal_recurring_enabled'] : false,
+						'description' => __( 'Allow donors to set up recurring donations via PayPal Subscriptions. Per-campaign recurring options are in Campaign Details.', 'giftflow' ),
+						'pro_only' => true,
 					),
 				),
 			),
@@ -338,6 +353,20 @@ class PayPal_Gateway extends Gateway_Base {
 		// Webhook handler.
 		add_action( 'wp_ajax_giftflow_paypal_webhook', array( $this, 'handle_webhook' ) );
 		add_action( 'wp_ajax_nopriv_giftflow_paypal_webhook', array( $this, 'handle_webhook' ) );
+
+		// Recurring: subscription AJAX handler.
+		add_action( 'wp_ajax_giftflow_paypal_create_subscription', array( $this, 'ajax_create_subscription' ) );
+		add_action( 'wp_ajax_nopriv_giftflow_paypal_create_subscription', array( $this, 'ajax_create_subscription' ) );
+
+		// Recurring: admin product creation.
+		add_action( 'admin_notices', array( $this, 'maybe_show_product_notice' ) );
+		add_action( 'wp_ajax_giftflow_paypal_create_product', array( $this, 'ajax_create_product' ) );
+
+		// Recurring: admin subscription cancellation.
+		add_action( 'wp_ajax_giftflow_paypal_cancel_subscription', array( $this, 'ajax_cancel_subscription' ) );
+
+		// Recurring: handle return from PayPal after subscription approval.
+		add_action( 'template_redirect', array( $this, 'handle_subscription_return' ) );
 	}
 
 	/**
@@ -358,12 +387,18 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @return array
 	 */
 	private function prepare_payment_data( $data, $donation_id ) {
+		$campaign_id = isset( $data['campaign_id'] ) ? intval( $data['campaign_id'] ) : 0;
+		$base_return = $campaign_id ? get_permalink( $campaign_id ) : home_url();
+		if ( ! $base_return ) {
+			$base_return = home_url();
+		}
+
 		$return_url = add_query_arg(
 			array(
 				'giftflow_paypal_return' => '1',
 				'donation_id' => $donation_id,
 			),
-			home_url()
+			$base_return
 		);
 
 		$cancel_url = add_query_arg(
@@ -371,7 +406,7 @@ class PayPal_Gateway extends Gateway_Base {
 				'giftflow_paypal_cancel' => '1',
 				'donation_id' => $donation_id,
 			),
-			home_url()
+			$base_return
 		);
 
 		$paypal_data = array(
@@ -1032,10 +1067,16 @@ class PayPal_Gateway extends Gateway_Base {
 				exit;
 			}
 		} else {
-			// Log warning & exit if webhook ID is not configured.
-			$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped', 0 );
-			status_header( 400 );
-			exit;
+			// get mode.
+			$mode = $this->get_setting( 'paypal_mode', 'sandbox' );
+
+			// is live mode.
+			if ( 'live' === $mode ) {
+				// Log warning & exit if webhook ID is not configured.
+				$this->log_error( 'webhook_id_missing', 'Webhook ID not configured - signature verification skipped in live mode', 0 );
+				status_header( 400 );
+				exit;
+			}
 		}
 
 		try {
@@ -1043,13 +1084,21 @@ class PayPal_Gateway extends Gateway_Base {
 				// Payment completed events.
 				case 'PAYMENT.SALE.COMPLETED':
 				case 'PAYMENT.CAPTURE.COMPLETED':
-					$this->handle_payment_completed( $event['resource'] );
+					if ( $this->is_subscription_sale( $event['resource'] ) ) {
+						$this->handle_subscription_payment_completed( $event['resource'] );
+					} else {
+						$this->handle_payment_completed( $event['resource'] );
+					}
 					break;
 
 				// Payment denied/failed events.
 				case 'PAYMENT.SALE.DENIED':
 				case 'PAYMENT.CAPTURE.DENIED':
-					$this->handle_payment_denied( $event['resource'] );
+					if ( $this->is_subscription_sale( $event['resource'] ) ) {
+						$this->handle_subscription_payment_denied( $event['resource'] );
+					} else {
+						$this->handle_payment_denied( $event['resource'] );
+					}
 					break;
 
 				// Payment refunded events.
@@ -1058,8 +1107,28 @@ class PayPal_Gateway extends Gateway_Base {
 					$this->handle_payment_refunded( $event['resource'] );
 					break;
 
+				// Subscription lifecycle events.
+				case 'BILLING.SUBSCRIPTION.CREATED':
+					$this->handle_subscription_created_webhook( $event['resource'] );
+					break;
+
+				case 'BILLING.SUBSCRIPTION.ACTIVATED':
+					$this->handle_subscription_activated( $event['resource'] );
+					break;
+
+				case 'BILLING.SUBSCRIPTION.CANCELLED':
+					$this->handle_subscription_cancelled( $event['resource'] );
+					break;
+
+				case 'BILLING.SUBSCRIPTION.SUSPENDED':
+					$this->handle_subscription_suspended( $event['resource'] );
+					break;
+
+				case 'BILLING.SUBSCRIPTION.EXPIRED':
+					$this->handle_subscription_expired( $event['resource'] );
+					break;
+
 				default:
-					// Log unhandled event types for debugging.
 					$this->log_error( 'webhook_unhandled_event', 'Unhandled webhook event type: ' . $event['event_type'], 0 );
 					break;
 			}
@@ -1422,6 +1491,1328 @@ class PayPal_Gateway extends Gateway_Base {
 
 			do_action( 'giftflow_paypal_webhook_payment_refunded', $donation_id, $_resource );
 		}
+	}
+
+	// =========================================================================
+	// Recurring: Helpers
+	// =========================================================================
+
+	/**
+	 * Get PayPal API base URL based on mode.
+	 *
+	 * @return string
+	 */
+	private function get_paypal_base_url() {
+		$mode = $this->get_setting( 'paypal_mode', 'sandbox' );
+		return 'sandbox' === $mode
+			? 'https://api.sandbox.paypal.com'
+			: 'https://api.paypal.com';
+	}
+
+	/**
+	 * Determine if the current donation should be processed as recurring via PayPal.
+	 *
+	 * @param array $data Donation form data.
+	 * @return bool
+	 */
+	private function is_recurring_donation( $data ) {
+		$recurring_enabled = $this->get_setting( 'paypal_recurring_enabled', false );
+		if ( ! $recurring_enabled ) {
+			return false;
+		}
+
+		$donation_type = isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : 'once';
+		$interval      = isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : '';
+
+		return ( 'once' !== $donation_type && 'one-time' !== $donation_type && ! empty( $interval ) );
+	}
+
+	/**
+	 * Map plugin recurring interval to PayPal billing cycle parameters.
+	 *
+	 * @param string $interval Plugin interval (daily, weekly, monthly, quarterly, yearly).
+	 * @return array { interval_unit: string, interval_count: int }
+	 */
+	private function map_interval_to_paypal( $interval ) {
+		$map = array(
+			'daily'     => array(
+				'interval_unit' => 'DAY',
+				'interval_count' => 1,
+			),
+			'weekly'    => array(
+				'interval_unit' => 'WEEK',
+				'interval_count' => 1,
+			),
+			'monthly'   => array(
+				'interval_unit' => 'MONTH',
+				'interval_count' => 1,
+			),
+			'quarterly' => array(
+				'interval_unit' => 'MONTH',
+				'interval_count' => 3,
+			),
+			'yearly'    => array(
+				'interval_unit' => 'YEAR',
+				'interval_count' => 1,
+			),
+		);
+
+		return isset( $map[ $interval ] ) ? $map[ $interval ] : $map['monthly'];
+	}
+
+	/**
+	 * Check if a PAYMENT.SALE resource is related to a subscription.
+	 *
+	 * @param array $_resource Resource data from webhook.
+	 * @return bool
+	 */
+	private function is_subscription_sale( $_resource ) {
+		return ! empty( $_resource['billing_agreement_id'] );
+	}
+
+	/**
+	 * Find the parent donation post by PayPal subscription ID.
+	 *
+	 * @param string $subscription_id PayPal Subscription ID.
+	 * @return int|false Donation post ID or false.
+	 */
+	private function find_donation_by_subscription_id( $subscription_id ) {
+		if ( empty( $subscription_id ) ) {
+			return false;
+		}
+
+		$donations = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_key'       => '_paypal_subscription_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value'     => $subscription_id,
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+					array(
+						'key'   => '_is_subscription_parent',
+						'value' => '1',
+					),
+				),
+			)
+		);
+
+		return ! empty( $donations ) ? $donations[0] : false;
+	}
+
+	// =========================================================================
+	// Recurring: Product (admin notice + manual creation)
+	// =========================================================================
+
+	/**
+	 * Show an admin notice if the PayPal Donation Product has not been created yet.
+	 */
+	public function maybe_show_product_notice() {
+		if ( ! $this->enabled ) {
+			return;
+		}
+
+		$recurring_enabled = $this->get_setting( 'paypal_recurring_enabled', false );
+		if ( ! $recurring_enabled ) {
+			return;
+		}
+
+		$product_id = get_option( 'giftflow_paypal_product_id', '' );
+		if ( ! empty( $product_id ) ) {
+			return;
+		}
+
+		$nonce = wp_create_nonce( 'giftflow_paypal_create_product' );
+		?>
+		<div class="notice notice-warning is-dismissible giftflow-paypal-product-notice">
+			<p>
+				<strong><?php esc_html_e( 'GiftFlow — PayPal Recurring:', 'giftflow' ); ?></strong>
+				<?php esc_html_e( 'PayPal Donation Product has not been created yet. You must create the product before recurring donations can work.', 'giftflow' ); ?>
+			</p>
+			<p>
+				<button type="button" class="button button-primary giftflow-create-paypal-product">
+					<?php esc_html_e( 'Create PayPal Product', 'giftflow' ); ?>
+				</button>
+				<span class="giftflow-product-result" style="margin-left:8px;"></span>
+			</p>
+			<script>
+			jQuery( function( $ ) {
+				$( '.giftflow-create-paypal-product' ).on( 'click', function() {
+					var btn = $( this ), result = btn.siblings( '.giftflow-product-result' );
+					btn.prop( 'disabled', true );
+					result.text( '<?php echo esc_js( __( 'Creating product…', 'giftflow' ) ); ?>' );
+					$.post( ajaxurl, {
+						action: 'giftflow_paypal_create_product',
+						nonce: '<?php echo esc_js( $nonce ); ?>'
+					} ).done( function( r ) {
+						if ( r.success ) {
+							result.text( r.data.message || '<?php echo esc_js( __( 'Product created!', 'giftflow' ) ); ?>' );
+							setTimeout( function() { location.reload(); }, 1500 );
+						} else {
+							result.text( r.data.message || '<?php echo esc_js( __( 'Error creating product.', 'giftflow' ) ); ?>' );
+							btn.prop( 'disabled', false );
+						}
+					} ).fail( function() {
+						result.text( '<?php echo esc_js( __( 'Request failed.', 'giftflow' ) ); ?>' );
+						btn.prop( 'disabled', false );
+					} );
+				} );
+			} );
+			</script>
+		</div>
+		<?php
+	}
+
+	/**
+	 * AJAX handler: create the PayPal Donation Product.
+	 */
+	public function ajax_create_product() {
+		check_ajax_referer( 'giftflow_paypal_create_product', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'giftflow' ) ) );
+		}
+
+		$existing = get_option( 'giftflow_paypal_product_id', '' );
+		if ( ! empty( $existing ) ) {
+			wp_send_json_success(
+				array(
+					'message' => __( 'Product already exists.', 'giftflow' ),
+					'product_id' => $existing,
+				)
+			);
+		}
+
+		$base_url     = $this->get_paypal_base_url();
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to get PayPal access token. Check your API credentials.', 'giftflow' ) ) );
+		}
+
+		$product_data = array(
+			'name' => __( 'Giftflow Donation', 'giftflow' ),
+			'type' => 'SERVICE',
+		);
+
+		$response = wp_remote_post(
+			$base_url . '/v1/catalogs/products',
+			array(
+				'headers' => array(
+					'Content-Type'      => 'application/json',
+					'Authorization'     => 'Bearer ' . $access_token,
+					'PayPal-Request-Id' => 'product-' . wp_generate_uuid4(),
+				),
+				'body'    => wp_json_encode( $product_data ),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_error( 'product_creation_failed', $response->get_error_message(), 0 );
+			wp_send_json_error( array( 'message' => $response->get_error_message() ) );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 201 !== $code || ! isset( $body['id'] ) ) {
+			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Failed to create PayPal product', 'giftflow' );
+			$this->log_error( 'product_creation_failed', $error_msg, 0 );
+			wp_send_json_error( array( 'message' => $error_msg ) );
+		}
+
+		update_option( 'giftflow_paypal_product_id', $body['id'], false );
+
+		Giftflow_Logger::info(
+			'paypal.product.created',
+			array(
+				'product_id' => $body['id'],
+				'gateway'    => 'paypal',
+			),
+			'paypal'
+		);
+
+		wp_send_json_success(
+			array(
+				'message'    => __( 'PayPal Donation Product created successfully!', 'giftflow' ),
+				'product_id' => $body['id'],
+			)
+		);
+	}
+
+	/**
+	 * Get the stored PayPal Product ID.
+	 *
+	 * @return string|\WP_Error Product ID or WP_Error if not yet created.
+	 */
+	private function get_paypal_product_id() {
+		$product_id = get_option( 'giftflow_paypal_product_id', '' );
+
+		if ( empty( $product_id ) ) {
+			return new \WP_Error(
+				'paypal_product_missing',
+				__( 'PayPal Donation Product has not been created yet. Please create it from the WordPress admin.', 'giftflow' )
+			);
+		}
+
+		return $product_id;
+	}
+
+	// =========================================================================
+	// Recurring: Plan
+	// =========================================================================
+
+	/**
+	 * Generate a human-readable option key for a PayPal plan.
+	 *
+	 * @param string $amount   Donation amount (e.g. '10.00').
+	 * @param string $interval Plugin interval (daily, weekly, monthly, quarterly, yearly).
+	 * @return string Option key like 'giftflow_paypal_plan_10_month'.
+	 */
+	private function generate_plan_key( $amount, $interval ) {
+		$amount_key   = intval( $amount );
+		$interval_key = strtolower( sanitize_key( $interval ) );
+
+		return 'giftflow_paypal_plan_' . $amount_key . '_' . $interval_key;
+	}
+
+	/**
+	 * Get or create a PayPal billing plan for the given parameters.
+	 *
+	 * @param string $amount         Donation amount.
+	 * @param string $currency       Currency code.
+	 * @param string $interval       Plugin interval (daily, weekly, monthly, quarterly, yearly).
+	 * @param int    $number_of_times Number of billing cycles (0 = infinite).
+	 * @return string|\WP_Error PayPal Plan ID or WP_Error.
+	 */
+	private function get_or_create_paypal_plan( $amount, $currency, $interval, $number_of_times = 0 ) {
+		$paypal_interval = $this->map_interval_to_paypal( $interval );
+		$interval_unit   = $paypal_interval['interval_unit'];
+		$interval_count  = $paypal_interval['interval_count'];
+
+		$option_key = $this->generate_plan_key( $amount, $interval );
+
+		$cached_plan_id = get_option( $option_key, '' );
+
+		if ( ! empty( $cached_plan_id ) ) {
+			return $cached_plan_id;
+		}
+
+		$lock_key = 'giftflow_paypal_plan_lock_' . sanitize_key( $option_key );
+		$lock     = get_transient( $lock_key );
+
+		if ( false !== $lock ) {
+			sleep( 2 );
+			$cached_plan_id = get_option( $option_key, '' );
+			if ( ! empty( $cached_plan_id ) ) {
+				return $cached_plan_id;
+			}
+			return new \WP_Error( 'paypal_plan_locked', __( 'Plan creation in progress, please try again.', 'giftflow' ) );
+		}
+
+		set_transient( $lock_key, '1', 30 );
+
+		$product_id = $this->get_paypal_product_id();
+		if ( is_wp_error( $product_id ) ) {
+			delete_transient( $lock_key );
+			return $product_id;
+		}
+
+		$base_url     = $this->get_paypal_base_url();
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			delete_transient( $lock_key );
+			return new \WP_Error( 'paypal_token_error', __( 'Failed to get PayPal access token', 'giftflow' ) );
+		}
+
+		$billing_cycles = array(
+			array(
+				'frequency'      => array(
+					'interval_unit'  => $interval_unit,
+					'interval_count' => $interval_count,
+				),
+				'tenure_type'    => 'REGULAR',
+				'sequence'       => 1,
+				'total_cycles'   => ( $number_of_times > 0 ) ? $number_of_times : 0,
+				'pricing_scheme' => array(
+					'fixed_price' => array(
+						'value'         => number_format( (float) $amount, 2, '.', '' ),
+						'currency_code' => strtoupper( $currency ),
+					),
+				),
+			),
+		);
+
+		$plan_data = array(
+			'product_id'          => $product_id,
+			'name'                => sprintf(
+				/* translators: 1: amount, 2: currency, 3: interval */
+				__( 'Donation %1$s %2$s / %3$s', 'giftflow' ),
+				number_format( (float) $amount, 2, '.', '' ),
+				strtoupper( $currency ),
+				strtolower( $interval_unit )
+			),
+			'description'         => sprintf(
+				/* translators: 1: amount, 2: currency, 3: interval */
+				__( 'Recurring donation of %1$s %2$s every %3$s', 'giftflow' ),
+				number_format( (float) $amount, 2, '.', '' ),
+				strtoupper( $currency ),
+				strtolower( $interval )
+			),
+			'status'              => 'ACTIVE',
+			'billing_cycles'      => $billing_cycles,
+			'payment_preferences' => array(
+				'auto_bill_outstanding'     => true,
+				'payment_failure_threshold' => 3,
+			),
+		);
+
+		$response = wp_remote_post(
+			$base_url . '/v1/billing/plans',
+			array(
+				'headers' => array(
+					'Content-Type'      => 'application/json',
+					'Authorization'     => 'Bearer ' . $access_token,
+					'PayPal-Request-Id' => 'plan-' . wp_generate_uuid4(),
+				),
+				'body'    => wp_json_encode( $plan_data ),
+				'timeout' => 30,
+			)
+		);
+
+		delete_transient( $lock_key );
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_error( 'plan_creation_failed', $response->get_error_message(), 0 );
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 201 !== $code || ! isset( $body['id'] ) ) {
+			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Failed to create PayPal plan', 'giftflow' );
+			$this->log_error( 'plan_creation_failed', $error_msg, 0 );
+			return new \WP_Error( 'paypal_plan_error', $error_msg );
+		}
+
+		update_option( $option_key, $body['id'], false );
+
+		Giftflow_Logger::info(
+			'paypal.plan.created',
+			array(
+				'plan_id'    => $body['id'],
+				'product_id' => $product_id,
+				'option_key' => $option_key,
+				'amount'     => $amount,
+				'currency'   => $currency,
+				'interval'   => $interval,
+				'gateway'    => 'paypal',
+			),
+			'paypal'
+		);
+
+		return $body['id'];
+	}
+
+	// =========================================================================
+	// Recurring: Subscription
+	// =========================================================================
+
+	/**
+	 * Create a PayPal subscription for a donor.
+	 *
+	 * @param string $plan_id     PayPal Plan ID.
+	 * @param array  $data        Donation form data.
+	 * @param int    $donation_id Donation post ID.
+	 * @return array|\WP_Error Array with 'subscription_id' and 'approval_url', or WP_Error.
+	 */
+	private function create_paypal_subscription( $plan_id, $data, $donation_id ) {
+		$base_url     = $this->get_paypal_base_url();
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			return new \WP_Error( 'paypal_token_error', __( 'Failed to get PayPal access token', 'giftflow' ) );
+		}
+
+		$campaign_id = isset( $data['campaign_id'] ) ? intval( $data['campaign_id'] ) : 0;
+		$base_return = $campaign_id ? get_permalink( $campaign_id ) : home_url();
+		if ( ! $base_return ) {
+			$base_return = home_url();
+		}
+
+		$return_url = add_query_arg(
+			array(
+				'giftflow_paypal_subscription_return' => '1',
+				'donation_id' => $donation_id,
+			),
+			$base_return
+		);
+
+		$cancel_url = add_query_arg(
+			array(
+				'giftflow_paypal_subscription_cancel' => '1',
+				'donation_id' => $donation_id,
+			),
+			$base_return
+		);
+
+		$subscriber = array(
+			'name'          => array(
+				'given_name' => sanitize_text_field( $data['donor_name'] ),
+			),
+			'email_address' => sanitize_email( $data['donor_email'] ),
+		);
+
+		$subscription_data = array(
+			'plan_id'             => $plan_id,
+			'subscriber'          => $subscriber,
+			'application_context' => array(
+				'brand_name'          => get_bloginfo( 'name' ),
+				'locale'              => 'en-US',
+				'user_action'         => 'SUBSCRIBE_NOW',
+				'payment_method'      => array(
+					'payer_selected'  => 'PAYPAL',
+					'payee_preferred' => 'IMMEDIATE_PAYMENT_REQUIRED',
+				),
+				'return_url' => $return_url,
+				'cancel_url' => $cancel_url,
+			),
+			'custom_id' => (string) $donation_id,
+		);
+
+		$response = wp_remote_post(
+			$base_url . '/v1/billing/subscriptions',
+			array(
+				'headers' => array(
+					'Content-Type'      => 'application/json',
+					'Authorization'     => 'Bearer ' . $access_token,
+					'PayPal-Request-Id' => 'sub-' . wp_generate_uuid4(),
+				),
+				'body'    => wp_json_encode( $subscription_data ),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_error( 'subscription_creation_failed', $response->get_error_message(), $donation_id );
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 201 !== $code || ! isset( $body['id'] ) ) {
+			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Failed to create PayPal subscription', 'giftflow' );
+			$this->log_error( 'subscription_creation_failed', $error_msg, $donation_id );
+			return new \WP_Error( 'paypal_subscription_error', $error_msg );
+		}
+
+		$approval_url = '';
+		if ( isset( $body['links'] ) && is_array( $body['links'] ) ) {
+			foreach ( $body['links'] as $link ) {
+				if ( isset( $link['rel'] ) && 'approve' === $link['rel'] ) {
+					$approval_url = $link['href'];
+					break;
+				}
+			}
+		}
+
+		if ( empty( $approval_url ) ) {
+			$this->log_error( 'subscription_no_approval_url', 'No approval URL in subscription response', $donation_id );
+			return new \WP_Error( 'paypal_subscription_error', __( 'PayPal did not return an approval URL', 'giftflow' ) );
+		}
+
+		Giftflow_Logger::info(
+			'paypal.subscription.created',
+			array(
+				'subscription_id' => $body['id'],
+				'plan_id'         => $plan_id,
+				'donation_id'     => $donation_id,
+				'gateway'         => 'paypal',
+			),
+			'paypal'
+		);
+
+		return array(
+			'subscription_id' => $body['id'],
+			'approval_url'    => $approval_url,
+			'raw_response'    => $body,
+		);
+	}
+
+	/**
+	 * Get PayPal subscription details.
+	 *
+	 * @param string $subscription_id PayPal Subscription ID.
+	 * @return array|\WP_Error Subscription data or WP_Error.
+	 */
+	private function get_paypal_subscription( $subscription_id ) {
+		$base_url     = $this->get_paypal_base_url();
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			return new \WP_Error( 'paypal_token_error', __( 'Failed to get PayPal access token', 'giftflow' ) );
+		}
+
+		$response = wp_remote_get(
+			$base_url . '/v1/billing/subscriptions/' . $subscription_id,
+			array(
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $access_token,
+				),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 !== $code ) {
+			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Failed to retrieve subscription', 'giftflow' );
+			return new \WP_Error( 'paypal_subscription_error', $error_msg );
+		}
+
+		return $body;
+	}
+
+	// =========================================================================
+	// Recurring: AJAX handler — create subscription
+	// =========================================================================
+
+	/**
+	 * AJAX handler for creating a PayPal subscription.
+	 */
+	public function ajax_create_subscription() {
+		check_ajax_referer( 'giftflow_paypal_nonce', 'nonce' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$data = $_POST;
+		$data = is_array( $data ) ? giftflow_sanitize_array( $data ) : sanitize_text_field( $data );
+
+		do_action( 'giftflow_donation_form_before_process_donation', $data );
+
+		$amount = isset( $data['amount'] ) ? floatval( $data['amount'] ) : 0;
+		if ( ! $amount || $amount <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Donation amount is required', 'giftflow' ) ) );
+		}
+
+		$donation_data = array(
+			'donation_amount'    => $amount,
+			'donor_name'         => isset( $data['donor_name'] ) ? sanitize_text_field( $data['donor_name'] ) : '',
+			'donor_email'        => isset( $data['donor_email'] ) ? sanitize_email( $data['donor_email'] ) : '',
+			'campaign_id'        => isset( $data['campaign_id'] ) ? sanitize_text_field( $data['campaign_id'] ) : '',
+			'payment_method'     => 'paypal',
+			'donation_type'      => isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : '',
+			'recurring_interval' => isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : '',
+			'donor_message'      => isset( $data['donor_message'] ) ? sanitize_textarea_field( $data['donor_message'] ) : '',
+			'anonymous_donation' => isset( $data['anonymous_donation'] ) ? sanitize_text_field( $data['anonymous_donation'] ) : '',
+		);
+
+		if ( empty( $donation_data['donor_name'] ) || empty( $donation_data['donor_email'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Donor name and email are required', 'giftflow' ) ) );
+		}
+
+		if ( ! $this->is_recurring_donation( $donation_data ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid recurring donation data', 'giftflow' ) ) );
+		}
+
+		try {
+			$interval     = $donation_data['recurring_interval'];
+			$currency     = strtoupper( $this->get_currency() );
+			$campaign_id  = intval( $donation_data['campaign_id'] );
+			$num_of_times = 0;
+
+			if ( $campaign_id ) {
+				$num_of_times = absint( get_post_meta( $campaign_id, '_recurring_number_of_times', true ) );
+			}
+
+			$plan_id = $this->get_or_create_paypal_plan( $amount, $currency, $interval, $num_of_times );
+			if ( is_wp_error( $plan_id ) ) {
+				wp_send_json_error( array( 'message' => $plan_id->get_error_message() ) );
+			}
+
+			$donation_data['recurring_number_of_times'] = $num_of_times;
+			$donation_id = $this->create_donation_record( $donation_data );
+			if ( is_wp_error( $donation_id ) ) {
+				wp_send_json_error( array( 'message' => $donation_id->get_error_message() ) );
+			}
+
+			$result = $this->create_paypal_subscription( $plan_id, $donation_data, $donation_id );
+			if ( is_wp_error( $result ) ) {
+				wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+			}
+
+			update_post_meta( $donation_id, '_paypal_subscription_id', $result['subscription_id'] );
+			update_post_meta( $donation_id, '_paypal_plan_id', $plan_id );
+			update_post_meta( $donation_id, '_donation_type', 'recurring' );
+			update_post_meta( $donation_id, '_recurring_interval', $interval );
+			update_post_meta( $donation_id, '_recurring_status', 'pending' );
+			update_post_meta( $donation_id, '_is_subscription_parent', '1' );
+			update_post_meta( $donation_id, '_recurring_number_of_times', $num_of_times );
+			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $result['raw_response'] ) );
+
+			do_action( 'giftflow_paypal_subscription_created', $donation_id, $result['subscription_id'], $result['raw_response'] );
+
+			wp_send_json_success(
+				array(
+					'subscription_id' => $result['subscription_id'],
+					'approval_url'    => $result['approval_url'],
+					'donation_id'     => $donation_id,
+				)
+			);
+
+		} catch ( \Exception $e ) {
+			$this->log_error( 'subscription_exception', $e->getMessage(), 0 );
+			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+		}
+	}
+
+	// =========================================================================
+	// Recurring: Return URL handler (Phase 5)
+	// =========================================================================
+
+	/**
+	 * Handle PayPal subscription return URL after donor approval.
+	 */
+	public function handle_subscription_return() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['giftflow_paypal_subscription_cancel'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$donation_id = isset( $_GET['donation_id'] ) ? absint( $_GET['donation_id'] ) : 0;
+			if ( $donation_id ) {
+				$donations_class = new Donations();
+				$donations_class->update_status( $donation_id, 'failed' );
+				update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+
+				Donation_Event_History::add(
+					$donation_id,
+					'recurring_subscription_cancelled_by_donor',
+					'failed',
+					__( 'Donor cancelled PayPal subscription approval', 'giftflow' ),
+					array(
+						'gateway' => 'paypal',
+						'source' => 'cancel_url',
+					)
+				);
+			}
+			$campaign_id  = $donation_id ? absint( get_post_meta( $donation_id, '_campaign_id', true ) ) : 0;
+			$redirect_url = $campaign_id ? get_permalink( $campaign_id ) : home_url();
+			if ( ! $redirect_url ) {
+				$redirect_url = home_url();
+			}
+			wp_safe_redirect( $redirect_url );
+			exit;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['giftflow_paypal_subscription_return'] ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$donation_id     = isset( $_GET['donation_id'] ) ? absint( $_GET['donation_id'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$subscription_id = isset( $_GET['subscription_id'] ) ? sanitize_text_field( wp_unslash( $_GET['subscription_id'] ) ) : '';
+
+		if ( ! $donation_id ) {
+			return;
+		}
+
+		if ( empty( $subscription_id ) ) {
+			$subscription_id = get_post_meta( $donation_id, '_paypal_subscription_id', true );
+		}
+
+		if ( empty( $subscription_id ) ) {
+			$this->log_error( 'subscription_return_no_id', 'No subscription ID found on return', $donation_id );
+			return;
+		}
+
+		$subscription = $this->get_paypal_subscription( $subscription_id );
+
+		if ( is_wp_error( $subscription ) ) {
+			$this->log_error( 'subscription_return_verify_failed', $subscription->get_error_message(), $donation_id );
+			return;
+		}
+
+		$status = isset( $subscription['status'] ) ? $subscription['status'] : '';
+
+		$status_map = array(
+			'APPROVAL_PENDING' => 'pending',
+			'APPROVED'         => 'pending',
+			'ACTIVE'           => 'active',
+			'SUSPENDED'        => 'suspended',
+			'CANCELLED'        => 'cancelled',
+			'EXPIRED'          => 'expired',
+		);
+
+		$recurring_status = isset( $status_map[ $status ] ) ? $status_map[ $status ] : 'pending';
+		update_post_meta( $donation_id, '_recurring_status', $recurring_status );
+
+		// Do NOT mark donation as completed here. The PAYMENT.SALE.COMPLETED and
+		// BILLING.SUBSCRIPTION.ACTIVATED webhooks handle status transitions.
+		// Setting completed here would cause the first SALE webhook to think
+		// it is a renewal and create a duplicate child donation.
+		if ( isset( $subscription['billing_info']['next_billing_time'] ) ) {
+			update_post_meta(
+				$donation_id,
+				'_recurring_next_payment_date',
+				sanitize_text_field( $subscription['billing_info']['next_billing_time'] )
+			);
+		}
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_return',
+			$recurring_status,
+			sprintf(
+				/* translators: %s: PayPal subscription status */
+				__( 'Donor returned from PayPal (subscription status: %s)', 'giftflow' ),
+				$status
+			),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'return_url',
+			)
+		);
+
+		Giftflow_Logger::info(
+			'paypal.subscription.return',
+			array(
+				'donation_id'     => $donation_id,
+				'subscription_id' => $subscription_id,
+				'status'          => $status,
+				'gateway'         => 'paypal',
+			),
+			'paypal'
+		);
+
+		do_action( 'giftflow_paypal_subscription_return', $donation_id, $subscription_id, $subscription );
+
+		// thank donor page or home url.
+		$thank_donor_page = giftflow_get_thank_donor_page();
+		$base_return = $thank_donor_page ? get_permalink( $thank_donor_page ) : home_url();
+
+		$redirect_url = apply_filters(
+			'giftflow_paypal_subscription_return_url',
+			add_query_arg(
+				array(
+					'giftflow_donation_success' => '1',
+					'donation_id'               => $donation_id,
+				),
+				$base_return
+			),
+			$donation_id
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	// =========================================================================
+	// Recurring: Webhook handlers (Phase 6)
+	// =========================================================================
+
+	/**
+	 * Handle BILLING.SUBSCRIPTION.CREATED webhook.
+	 *
+	 * @param array $_resource Subscription resource from webhook.
+	 */
+	private function handle_subscription_created_webhook( $_resource ) {
+		$subscription_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$donation_id     = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $donation_id ) {
+			$donation_id = isset( $_resource['custom_id'] ) ? absint( $_resource['custom_id'] ) : 0;
+			if ( $donation_id ) {
+				update_post_meta( $donation_id, '_paypal_subscription_id', $subscription_id );
+			}
+		}
+
+		if ( ! $donation_id ) {
+			Giftflow_Logger::info(
+				'paypal.webhook.subscription_created.no_donation',
+				array(
+					'subscription_id' => $subscription_id,
+					'gateway'         => 'paypal',
+				),
+				'paypal'
+			);
+			return;
+		}
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_created_webhook',
+			'pending',
+			__( 'Webhook: BILLING.SUBSCRIPTION.CREATED — subscription awaiting donor approval', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+			)
+		);
+
+		do_action( 'giftflow_paypal_subscription_created_webhook', $donation_id, $subscription_id, $_resource );
+	}
+
+	/**
+	 * Handle BILLING.SUBSCRIPTION.ACTIVATED webhook.
+	 *
+	 * @param array $_resource Subscription resource from webhook.
+	 */
+	private function handle_subscription_activated( $_resource ) {
+		$subscription_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$donation_id     = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $donation_id ) {
+			$donation_id = isset( $_resource['custom_id'] ) ? absint( $_resource['custom_id'] ) : 0;
+			if ( $donation_id ) {
+				update_post_meta( $donation_id, '_paypal_subscription_id', $subscription_id );
+			}
+		}
+
+		if ( ! $donation_id ) {
+			$this->log_error( 'webhook_subscription_activated_no_donation', 'Parent donation not found for subscription ' . $subscription_id, 0 );
+			return;
+		}
+
+		update_post_meta( $donation_id, '_recurring_status', 'active' );
+
+		if ( isset( $_resource['billing_info']['next_billing_time'] ) ) {
+			update_post_meta(
+				$donation_id,
+				'_recurring_next_payment_date',
+				sanitize_text_field( $_resource['billing_info']['next_billing_time'] )
+			);
+		}
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_activated',
+			'completed',
+			__( 'Webhook: BILLING.SUBSCRIPTION.ACTIVATED', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'webhook',
+			)
+		);
+
+		Giftflow_Logger::info(
+			'paypal.webhook.subscription.activated',
+			array(
+				'donation_id'     => $donation_id,
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+			),
+			'paypal'
+		);
+
+		do_action( 'giftflow_paypal_subscription_activated', $donation_id, $subscription_id, $_resource );
+	}
+
+	/**
+	 * Handle BILLING.SUBSCRIPTION.CANCELLED webhook.
+	 *
+	 * @param array $_resource Subscription resource from webhook.
+	 */
+	private function handle_subscription_cancelled( $_resource ) {
+		$subscription_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$donation_id     = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $donation_id ) {
+			return;
+		}
+
+		update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_cancelled',
+			'cancelled',
+			__( 'Webhook: BILLING.SUBSCRIPTION.CANCELLED', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'webhook',
+			)
+		);
+
+		Giftflow_Logger::info(
+			'paypal.webhook.subscription.cancelled',
+			array(
+				'donation_id'     => $donation_id,
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+			),
+			'paypal'
+		);
+
+		do_action( 'giftflow_paypal_subscription_cancelled', $donation_id, $subscription_id, $_resource );
+	}
+
+	/**
+	 * Handle BILLING.SUBSCRIPTION.SUSPENDED webhook.
+	 *
+	 * @param array $_resource Subscription resource from webhook.
+	 */
+	private function handle_subscription_suspended( $_resource ) {
+		$subscription_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$donation_id     = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $donation_id ) {
+			return;
+		}
+
+		update_post_meta( $donation_id, '_recurring_status', 'suspended' );
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_suspended',
+			'suspended',
+			__( 'Webhook: BILLING.SUBSCRIPTION.SUSPENDED', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'webhook',
+			)
+		);
+
+		do_action( 'giftflow_paypal_subscription_suspended', $donation_id, $subscription_id, $_resource );
+	}
+
+	/**
+	 * Handle BILLING.SUBSCRIPTION.EXPIRED webhook.
+	 *
+	 * @param array $_resource Subscription resource from webhook.
+	 */
+	private function handle_subscription_expired( $_resource ) {
+		$subscription_id = isset( $_resource['id'] ) ? $_resource['id'] : '';
+		$donation_id     = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $donation_id ) {
+			return;
+		}
+
+		update_post_meta( $donation_id, '_recurring_status', 'expired' );
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_expired',
+			'expired',
+			__( 'Webhook: BILLING.SUBSCRIPTION.EXPIRED', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'webhook',
+			)
+		);
+
+		do_action( 'giftflow_paypal_subscription_expired', $donation_id, $subscription_id, $_resource );
+	}
+
+	/**
+	 * Handle PAYMENT.SALE.COMPLETED webhook for subscription payments.
+	 *
+	 * @param array $_resource Sale resource from webhook.
+	 */
+	private function handle_subscription_payment_completed( $_resource ) {
+		$subscription_id = isset( $_resource['billing_agreement_id'] ) ? $_resource['billing_agreement_id'] : '';
+		$sale_id         = isset( $_resource['id'] ) ? $_resource['id'] : '';
+
+		if ( empty( $subscription_id ) ) {
+			return;
+		}
+
+		$parent_donation_id = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $parent_donation_id ) {
+			$this->log_error( 'webhook_sale_no_parent', 'Parent donation not found for subscription ' . $subscription_id, 0 );
+			return;
+		}
+
+		// Idempotency: check if this sale already processed.
+		$existing = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'posts_per_page' => 1,
+				// phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_key'       => '_paypal_sale_id',
+				// phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value'     => $sale_id,
+			)
+		);
+
+		$parent_txn = get_post_meta( $parent_donation_id, '_transaction_id', true );
+
+		if ( ! empty( $existing ) || $parent_txn === $sale_id ) {
+			return;
+		}
+
+		// Detect first payment by checking if parent already has a sale recorded.
+		// Cannot rely on _status because the return URL handler or ACTIVATED webhook
+		// may have already set it to 'completed' before this webhook arrives.
+		$parent_sale_id   = get_post_meta( $parent_donation_id, '_paypal_sale_id', true );
+		$is_first_payment = empty( $parent_sale_id );
+
+		$amount   = isset( $_resource['amount']['total'] ) ? $_resource['amount']['total'] : '';
+		$currency = isset( $_resource['amount']['currency'] ) ? $_resource['amount']['currency'] : '';
+
+		if ( $is_first_payment ) {
+			update_post_meta( $parent_donation_id, '_transaction_id', $sale_id );
+			update_post_meta( $parent_donation_id, '_paypal_sale_id', $sale_id );
+			update_post_meta( $parent_donation_id, '_transaction_raw_data', wp_json_encode( $_resource ) );
+
+			$donations_class = new Donations();
+			$donations_class->update_status( $parent_donation_id, 'completed' );
+			update_post_meta( $parent_donation_id, '_recurring_status', 'active' );
+
+			Donation_Event_History::add(
+				$parent_donation_id,
+				'recurring_payment_first',
+				'completed',
+				__( 'Webhook: PAYMENT.SALE.COMPLETED (first charge)', 'giftflow' ),
+				array(
+					'sale_id'         => $sale_id,
+					'subscription_id' => $subscription_id,
+					'amount'          => $amount,
+					'gateway'         => 'paypal',
+					'source'          => 'webhook',
+				)
+			);
+
+			do_action( 'giftflow_donation_after_payment_processed', $parent_donation_id, true );
+
+		} else {
+			$meta = get_post_meta( $parent_donation_id );
+
+			$renewal_id = wp_insert_post(
+				array(
+					'post_title'  => sprintf(
+						/* translators: %s: parent donation ID */
+						__( 'Recurring Donation (renewal of #%s)', 'giftflow' ),
+						$parent_donation_id
+					),
+					'post_type'   => 'donation',
+					'post_status' => 'publish',
+				)
+			);
+
+			if ( is_wp_error( $renewal_id ) ) {
+				$this->log_error( 'webhook_renewal_creation_failed', 'Failed to create renewal for subscription ' . $subscription_id, $parent_donation_id );
+				return;
+			}
+
+			$copy_keys = array( '_amount', '_campaign_id', '_donor_id', '_payment_method', '_donation_type', '_recurring_interval' );
+			foreach ( $copy_keys as $key ) {
+				if ( isset( $meta[ $key ][0] ) ) {
+					update_post_meta( $renewal_id, $key, $meta[ $key ][0] );
+				}
+			}
+
+			if ( ! empty( $amount ) ) {
+				update_post_meta( $renewal_id, '_amount', floatval( $amount ) );
+			}
+
+			update_post_meta( $renewal_id, '_status', 'completed' );
+			update_post_meta( $renewal_id, '_parent_donation_id', $parent_donation_id );
+			update_post_meta( $renewal_id, '_paypal_sale_id', $sale_id );
+			update_post_meta( $renewal_id, '_paypal_subscription_id', $subscription_id );
+			update_post_meta( $renewal_id, '_transaction_id', $sale_id );
+			update_post_meta( $renewal_id, '_transaction_raw_data', wp_json_encode( $_resource ) );
+			update_post_meta( $renewal_id, '_is_subscription_renewal', '1' );
+
+			Donation_Event_History::add(
+				$renewal_id,
+				'recurring_payment_renewal',
+				'completed',
+				__( 'Webhook: PAYMENT.SALE.COMPLETED (renewal)', 'giftflow' ),
+				array(
+					'sale_id'            => $sale_id,
+					'subscription_id'    => $subscription_id,
+					'parent_donation_id' => $parent_donation_id,
+					'amount'             => $amount,
+					'gateway'            => 'paypal',
+					'source'             => 'webhook',
+				)
+			);
+
+			do_action( 'giftflow_paypal_recurring_renewal_created', $renewal_id, $parent_donation_id, $subscription_id, $_resource );
+		}
+
+		$subscription = $this->get_paypal_subscription( $subscription_id );
+		if ( ! is_wp_error( $subscription ) && isset( $subscription['billing_info']['next_billing_time'] ) ) {
+			update_post_meta(
+				$parent_donation_id,
+				'_recurring_next_payment_date',
+				sanitize_text_field( $subscription['billing_info']['next_billing_time'] )
+			);
+		}
+
+		Giftflow_Logger::info(
+			'paypal.webhook.sale.completed.subscription',
+			array(
+				'parent_donation_id' => $parent_donation_id,
+				'sale_id'            => $sale_id,
+				'subscription_id'    => $subscription_id,
+				'is_first'           => $is_first_payment,
+				'amount'             => $amount,
+				'gateway'            => 'paypal',
+			),
+			'paypal'
+		);
+	}
+
+	/**
+	 * Handle PAYMENT.SALE.DENIED for subscription payments.
+	 *
+	 * @param array $_resource Sale resource from webhook.
+	 */
+	private function handle_subscription_payment_denied( $_resource ) {
+		$subscription_id = isset( $_resource['billing_agreement_id'] ) ? $_resource['billing_agreement_id'] : '';
+		$sale_id         = isset( $_resource['id'] ) ? $_resource['id'] : '';
+
+		$parent_donation_id = $this->find_donation_by_subscription_id( $subscription_id );
+
+		if ( ! $parent_donation_id ) {
+			return;
+		}
+
+		update_post_meta( $parent_donation_id, '_recurring_status', 'suspended' );
+
+		Donation_Event_History::add(
+			$parent_donation_id,
+			'recurring_payment_failed',
+			'failed',
+			__( 'Webhook: PAYMENT.SALE.DENIED (subscription payment failed)', 'giftflow' ),
+			array(
+				'sale_id'         => $sale_id,
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'source'          => 'webhook',
+			)
+		);
+
+		Giftflow_Logger::error(
+			'paypal.webhook.sale.denied.subscription',
+			array(
+				'parent_donation_id' => $parent_donation_id,
+				'sale_id'            => $sale_id,
+				'subscription_id'    => $subscription_id,
+				'gateway'            => 'paypal',
+			),
+			'paypal'
+		);
+
+		do_action( 'giftflow_paypal_recurring_payment_denied', $parent_donation_id, $subscription_id, $_resource );
+	}
+
+	// =========================================================================
+	// Recurring: Admin cancellation (Phase 9)
+	// =========================================================================
+
+	/**
+	 * AJAX handler: cancel a PayPal subscription (admin or donation owner).
+	 */
+	public function ajax_cancel_subscription() {
+		check_ajax_referer( 'giftflow_paypal_nonce', 'nonce' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$donation_id     = isset( $_POST['donation_id'] ) ? absint( $_POST['donation_id'] ) : 0;
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$current_user = wp_get_current_user();
+			$donor_id     = $current_user && $current_user->user_email
+				? giftflow_get_donor_id_by_email( $current_user->user_email )
+				: 0;
+			$donation_donor_id = $donation_id ? absint( get_post_meta( $donation_id, '_donor_id', true ) ) : 0;
+
+			if ( ! $donor_id || ! $donation_donor_id || $donor_id !== $donation_donor_id ) {
+				wp_send_json_error( array( 'message' => __( 'Unauthorized', 'giftflow' ) ) );
+			}
+		}
+
+		$subscription_id = get_post_meta( $donation_id, '_paypal_subscription_id', true );
+
+		if ( empty( $subscription_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'No PayPal subscription found for this donation.', 'giftflow' ) ) );
+		}
+
+		$base_url     = $this->get_paypal_base_url();
+		$access_token = $this->get_paypal_access_token( $base_url );
+
+		if ( ! $access_token ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to authenticate with PayPal', 'giftflow' ) ) );
+		}
+
+		$response = wp_remote_post(
+			$base_url . '/v1/billing/subscriptions/' . $subscription_id . '/cancel',
+			array(
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $access_token,
+				),
+				'body'    => wp_json_encode(
+					array(
+						'reason' => __( 'Cancelled by admin via GiftFlow', 'giftflow' ),
+					)
+				),
+				'timeout' => 30,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array( 'message' => $response->get_error_message() ) );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( 204 !== $code ) {
+			$body      = json_decode( wp_remote_retrieve_body( $response ), true );
+			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Failed to cancel subscription', 'giftflow' );
+			wp_send_json_error( array( 'message' => $error_msg ) );
+		}
+
+		update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+
+		$cancelled_by = current_user_can( 'manage_options' ) ? 'admin' : 'donor';
+
+		Donation_Event_History::add(
+			$donation_id,
+			'recurring_subscription_cancelled',
+			'cancelled',
+			'admin' === $cancelled_by
+				? __( 'PayPal subscription cancelled by admin.', 'giftflow' )
+				: __( 'PayPal subscription cancelled by donor.', 'giftflow' ),
+			array(
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'cancelled_by'    => $cancelled_by,
+			)
+		);
+
+		Giftflow_Logger::info(
+			'paypal.subscription.cancelled_by_' . $cancelled_by,
+			array(
+				'donation_id'     => $donation_id,
+				'subscription_id' => $subscription_id,
+				'gateway'         => 'paypal',
+				'cancelled_by'    => $cancelled_by,
+			),
+			'paypal'
+		);
+
+		wp_send_json_success( array( 'message' => __( 'PayPal subscription cancelled successfully.', 'giftflow' ) ) );
 	}
 
 	/**

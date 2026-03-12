@@ -282,6 +282,8 @@ class Donations extends Base {
 			'is_subscription_parent' => isset( $meta['_is_subscription_parent'][0] ) ? (bool) $meta['_is_subscription_parent'][0] : false,
 			'parent_donation_id' => isset( $meta['_parent_donation_id'][0] ) ? intval( $meta['_parent_donation_id'][0] ) : 0,
 			'recurring_number_of_times' => isset( $meta['_recurring_number_of_times'][0] ) ? intval( $meta['_recurring_number_of_times'][0] ) : 0,
+			'paypal_subscription_id' => isset( $meta['_paypal_subscription_id'][0] ) ? $meta['_paypal_subscription_id'][0] : '',
+			'paypal_plan_id'         => isset( $meta['_paypal_plan_id'][0] ) ? $meta['_paypal_plan_id'][0] : '',
 		);
 
 		// Allow filtering of donation data.
@@ -575,6 +577,24 @@ class Donations extends Base {
 		if ( isset( $data['recurring_number_of_times'] ) ) {
 			$num = absint( $data['recurring_number_of_times'] );
 			update_post_meta( $donation_id, '_recurring_number_of_times', $num );
+		}
+
+		// PayPal Subscription ID.
+		if ( isset( $data['paypal_subscription_id'] ) ) {
+			if ( ! empty( $data['paypal_subscription_id'] ) ) {
+				update_post_meta( $donation_id, '_paypal_subscription_id', sanitize_text_field( $data['paypal_subscription_id'] ) );
+			} else {
+				delete_post_meta( $donation_id, '_paypal_subscription_id' );
+			}
+		}
+
+		// PayPal Plan ID.
+		if ( isset( $data['paypal_plan_id'] ) ) {
+			if ( ! empty( $data['paypal_plan_id'] ) ) {
+				update_post_meta( $donation_id, '_paypal_plan_id', sanitize_text_field( $data['paypal_plan_id'] ) );
+			} else {
+				delete_post_meta( $donation_id, '_paypal_plan_id' );
+			}
 		}
 
 		/**

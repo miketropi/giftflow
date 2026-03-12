@@ -25,3 +25,6 @@ add_action( 'wp_enqueue_scripts', 'giftflow_donation_form_enqueue_custom_scripts
 
 // hooks for my donations table.
 add_action( 'giftflow_my_donations_table_before', 'giftflow_my_donations_filter_form', 10, 3 );
+
+// hooks redirect gf-direct-to.
+add_action( 'template_redirect', 'giftflow_redirect_gf_direct_to', 10 );
