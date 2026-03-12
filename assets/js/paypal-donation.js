@@ -23,6 +23,7 @@
 			this.isInitialized = false;
 			
 			this.init();
+			this.initRecurringHandler();
 		}
 
 		/**
@@ -264,6 +265,110 @@
 			// console.error('PayPal error:', err);
 			this.formObject.onShowErrorSection(err.message || giftflowPayPalDonation.messages.error);
 			// this.showErrorMessage(err.message || giftflowPayPalDonation.messages.error);
+		}
+
+		/**
+		 * Initialize recurring donation handler.
+		 */
+		initRecurringHandler() {
+			const self = this;
+
+			const donationTypeInputs = this.form.querySelectorAll('input[name="donation_type"]');
+			donationTypeInputs.forEach((input) => {
+				input.addEventListener('change', () => {
+					self.toggleRecurringMode(input.value);
+				});
+			});
+
+			this.createRecurringButton();
+
+			// Set initial state based on currently selected donation type.
+			const checked = this.form.querySelector('input[name="donation_type"]:checked');
+			if (checked) {
+				this.toggleRecurringMode(checked.value);
+			}
+		}
+
+		/**
+		 * Toggle between one-time (Smart Buttons) and recurring (redirect) mode.
+		 *
+		 * @param {string} donationType
+		 */
+		toggleRecurringMode(donationType) {
+			const smartButtonContainer = this.form.querySelector('#giftflow-paypal-button-container');
+			const recurringButton = this.form.querySelector('.giftflow-paypal-recurring-button');
+
+			const isRecurring = donationType !== 'one-time' && donationType !== 'once';
+
+			if (smartButtonContainer) {
+				smartButtonContainer.style.display = isRecurring ? 'none' : 'block';
+			}
+			if (recurringButton) {
+				recurringButton.style.display = isRecurring ? 'block' : 'none';
+			}
+		}
+
+		/**
+		 * Create a styled button for recurring PayPal donations.
+		 */
+		createRecurringButton() {
+			const container = this.form.querySelector(
+				'.donation-form__payment-method-description--paypal .donation-form__field'
+			);
+			if (!container) return;
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'giftflow-paypal-recurring-button';
+			btn.textContent = giftflowPayPalDonation.messages?.subscribe_paypal || 'Subscribe with PayPal';
+			btn.style.cssText = 'display:none; width:100%; padding:12px 24px; background:#0070ba; color:#fff; border:none; border-radius:4px; font-size:16px; cursor:pointer; max-width:350px; margin:0 auto;';
+			btn.addEventListener('click', () => this.handleRecurringDonation());
+
+			container.appendChild(btn);
+		}
+
+		/**
+		 * Handle recurring donation: create subscription and redirect to PayPal approval.
+		 */
+		async handleRecurringDonation() {
+			const btn = this.form.querySelector('.giftflow-paypal-recurring-button');
+			if (btn) {
+				btn.disabled = true;
+				btn.textContent = giftflowPayPalDonation.messages?.subscribing || 'Creating subscription...';
+			}
+
+			try {
+				const fields = this.formObject.getFields() || {};
+
+				const requestData = {
+					...fields,
+					action: 'giftflow_paypal_create_subscription',
+					nonce: giftflowPayPalDonation.nonce,
+					amount: fields?.donation_amount || '0',
+				};
+
+				const response = await fetch(giftflowPayPalDonation.ajaxurl, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: new URLSearchParams(requestData),
+				});
+
+				const result = await response.json();
+
+				if (!result.success || !result.data?.approval_url) {
+					throw new Error(result.data?.message || 'Failed to create subscription');
+				}
+
+				window.location.href = result.data.approval_url;
+
+			} catch (error) {
+				console.error('PayPal subscription error:', error);
+				this.showErrorMessage(error.message || giftflowPayPalDonation.messages.error);
+				if (btn) {
+					btn.disabled = false;
+					btn.textContent = giftflowPayPalDonation.messages?.subscribe_paypal || 'Subscribe with PayPal';
+				}
+			}
 		}
 
 		/**

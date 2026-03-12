@@ -1586,3 +1586,20 @@ function giftflow_get_file_content( $file_path = '' ) {
 	// apply filters to the file content.
 	return apply_filters( 'giftflow_get_file_content_filter', $_content, $file_path );
 }
+
+/**
+ * Redirect to the given slug.
+ *
+ * @return void
+ */
+function giftflow_redirect_gf_direct_to() {
+	// $_GET gf-direct-to.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page_slug = isset( $_GET['gf-direct-to'] ) ? sanitize_text_field( wp_unslash( $_GET['gf-direct-to'] ) ) : '';
+
+	$page = get_page_by_path( $page_slug );
+	if ( $page && is_a( $page, 'WP_Post' ) ) {
+		wp_safe_redirect( get_permalink( $page->ID ) );
+		exit;
+	}
+}
