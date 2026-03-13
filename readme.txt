@@ -261,6 +261,11 @@ The GiftFlow Share block allows visitors to share campaign or page content to so
 
 **When data is sent:** When a visitor clicks a social share button in the Share block.
 
+**Legal (WhatsApp):**
+
+* Terms of Service: [https://www.whatsapp.com/legal/terms-of-service](https://www.whatsapp.com/legal/terms-of-service)
+* Privacy Policy: [https://www.whatsapp.com/legal/privacy-policy](https://www.whatsapp.com/legal/privacy-policy)
+
 = Google Maps Platform (developers.google.com/maps) =
 
 This plugin optionally uses Google Maps to display campaign locations and geographic information.
