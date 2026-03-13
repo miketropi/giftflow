@@ -263,6 +263,16 @@ The GiftFlow Share block allows visitors to share campaign or page content to so
 
 **Legal (WhatsApp):**
 
+This plugin includes a sharing feature that allows users to share content via WhatsApp.
+
+When the user clicks the WhatsApp share button, the plugin opens the WhatsApp sharing URL and sends the following data:
+- The page title
+- The page URL
+
+This request is sent only when the user actively clicks the share button.
+
+This service is provided by WhatsApp.
+
 * Terms of Service: [https://www.whatsapp.com/legal/terms-of-service](https://www.whatsapp.com/legal/terms-of-service)
 * Privacy Policy: [https://www.whatsapp.com/legal/privacy-policy](https://www.whatsapp.com/legal/privacy-policy)
 
