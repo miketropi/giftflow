@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -260,6 +260,11 @@ The GiftFlow Share block allows visitors to share campaign or page content to so
 **Data transmitted:** Only the page URL and title (or description) that the user is sharing, passed as query parameters in the share link. No data is sent to these services until the user clicks a share button.
 
 **When data is sent:** When a visitor clicks a social share button in the Share block.
+
+**Legal (WhatsApp):**
+
+* Terms of Service: [https://www.whatsapp.com/legal/terms-of-service](https://www.whatsapp.com/legal/terms-of-service)
+* Privacy Policy: [https://www.whatsapp.com/legal/privacy-policy](https://www.whatsapp.com/legal/privacy-policy)
 
 = Google Maps Platform (developers.google.com/maps) =
 

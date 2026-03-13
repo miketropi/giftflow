@@ -548,6 +548,7 @@ function giftflow_get_campaign_donations( $campaign_id, $args = array(), $paged 
 				$donor_meta['state'] = get_post_meta( $donor_meta['id'], '_state', true );
 				$donor_meta['postal_code'] = get_post_meta( $donor_meta['id'], '_postal_code', true );
 				$donor_meta['country'] = get_post_meta( $donor_meta['id'], '_country', true );
+				$donor_meta['datetime_join'] = get_the_date( 'Y-m-d H:i:s', $donor_meta['id'] );
 
 				if ( 'yes' === $is_anonymous ) {
 					$donor_meta['name'] = esc_html__( 'Anonymous 🍀', 'giftflow' );

@@ -47,7 +47,7 @@ class SubscriptionItemService extends AbstractService
      * subscription will not cancel the subscription.
      *
      * @param string $id
-     * @param null|array{clear_usage?: bool, proration_behavior?: string, proration_date?: int} $params
+     * @param null|array{clear_usage?: bool, payment_behavior?: string, proration_behavior?: string, proration_date?: int} $params
      * @param null|RequestOptionsArray|\GiftFlow\Vendor\Stripe\Util\RequestOptions $opts
      *
      * @return \GiftFlow\Vendor\Stripe\SubscriptionItem
