@@ -84,13 +84,12 @@ foreach ( $posts as $donation ) {
 	$donor_secondary = '';
 	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	if ( ! $is_anonymous ) {
+		// Donor secondary: Datetime join.
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-		$city    = $donation['donor_meta']['city'] ?? '';
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-		$country = $donation['donor_meta']['country'] ?? '';
-		if ( $city && $country ) {
+		$datetime_join = $donation['donor_meta']['datetime_join'] ?? '';
+		if ( $datetime_join ) {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-			$donor_secondary = $city . ', ' . $country;
+			$donor_secondary = __( 'Joined on', 'giftflow' ) . ' ' . date_i18n( get_option( 'date_format' ), strtotime( $datetime_join ) );
 		} else {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$donor_secondary = '—';

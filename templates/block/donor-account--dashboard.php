@@ -38,7 +38,6 @@ if ( empty( trim( $name ) ) ) {
 	</p>
 	<ul>
 		<li><?php esc_html_e( 'Track your recent donations and see the impact you\'ve made.', 'giftflow' ); ?></li>
-		<li><?php esc_html_e( 'Bookmark campaigns you care about for easy access.', 'giftflow' ); ?></li>
 		<li><?php esc_html_e( 'Update your profile to personalize your giving experience.', 'giftflow' ); ?></li>
 	</ul>
 	</div>
@@ -55,12 +54,6 @@ if ( empty( trim( $name ) ) ) {
 		<a href="<?php echo esc_url( giftflow_donor_account_page_url( 'my-account' ) ); ?>" class="giftflow-dashboard-action">
 			<?php echo wp_kses( giftflow_svg_icon( 'user' ), giftflow_allowed_svg_tags() ); ?>
 			<span><?php esc_html_e( 'Edit Profile', 'giftflow' ); ?></span>
-		</a>
-		</li>
-		<li>
-		<a href="<?php echo esc_url( giftflow_donor_account_page_url( 'bookmarks' ) ); ?>" class="giftflow-dashboard-action">
-			<?php echo wp_kses( giftflow_svg_icon( 'bookmark' ), giftflow_allowed_svg_tags() ); ?>
-			<span><?php esc_html_e( 'Bookmarks', 'giftflow' ); ?></span>
 		</a>
 		</li>
 	</ul>

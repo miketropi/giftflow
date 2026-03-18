@@ -201,6 +201,69 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			<?php
 		}
 
+		// PayPal recurring: show subscription details when this is a subscription parent.
+		$paypal_subscription_id = get_post_meta( $post->ID, '_paypal_subscription_id', true );
+		if ( $is_subscription_parent && ! empty( $paypal_subscription_id ) && 'paypal' === get_post_meta( $post->ID, '_payment_method', true ) ) {
+			$recurring_status   = get_post_meta( $post->ID, '_recurring_status', true );
+			$next_payment       = get_post_meta( $post->ID, '_recurring_next_payment_date', true );
+			$recurring_interval = get_post_meta( $post->ID, '_recurring_interval', true );
+			$paypal_plan_id     = get_post_meta( $post->ID, '_paypal_plan_id', true );
+			?>
+			<div class="giftflow-recurring-details" style="margin-top:1em;padding:1em;background:#f0f0f1;border-left:4px solid #0070ba;">
+				<p><strong><?php esc_html_e( 'Recurring (PayPal)', 'giftflow' ); ?></strong></p>
+				<p>
+					<?php esc_html_e( 'Subscription ID:', 'giftflow' ); ?>
+					<code><?php echo esc_html( $paypal_subscription_id ); ?></code>
+				</p>
+				<?php if ( $paypal_plan_id ) : ?>
+				<p>
+					<?php esc_html_e( 'Plan ID:', 'giftflow' ); ?>
+					<code><?php echo esc_html( $paypal_plan_id ); ?></code>
+				</p>
+				<?php endif; ?>
+				<p><?php esc_html_e( 'Status:', 'giftflow' ); ?> <?php echo esc_html( $recurring_status ?? '—' ); ?></p>
+				<p><?php esc_html_e( 'Interval:', 'giftflow' ); ?> <?php echo esc_html( $recurring_interval ?? '—' ); ?></p>
+				<?php if ( $next_payment ) : ?>
+					<p><?php esc_html_e( 'Next payment:', 'giftflow' ); ?> <?php echo esc_html( gmdate( get_option( 'date_format' ), strtotime( $next_payment ) ) ); ?></p>
+				<?php endif; ?>
+				<?php if ( $recurring_status && ! in_array( $recurring_status, array( 'cancelled', 'expired' ), true ) ) : ?>
+					<p>
+						<button type="button" class="button giftflow-cancel-paypal-subscription" data-donation-id="<?php echo esc_attr( (string) $post->ID ); ?>">
+							<?php esc_html_e( 'Cancel subscription', 'giftflow' ); ?>
+						</button>
+						<span class="giftflow-paypal-cancel-result" style="margin-left:8px;"></span>
+					</p>
+					<script>
+					jQuery( function( $ ) {
+						$( '.giftflow-cancel-paypal-subscription' ).on( 'click', function() {
+							var btn = $( this ), id = btn.data( 'donation-id' ), result = btn.siblings( '.giftflow-paypal-cancel-result' );
+							if ( ! confirm( '<?php echo esc_js( __( 'Are you sure you want to cancel this PayPal subscription?', 'giftflow' ) ); ?>' ) ) return;
+							btn.prop( 'disabled', true );
+							result.text( '<?php echo esc_js( __( 'Cancelling…', 'giftflow' ) ); ?>' );
+							$.post( ajaxurl, {
+								action: 'giftflow_paypal_cancel_subscription',
+								nonce: '<?php echo esc_js( wp_create_nonce( 'giftflow_paypal_nonce' ) ); ?>',
+								donation_id: id
+							} ).done( function( r ) {
+								if ( r.success ) {
+									result.text( r.data && r.data.message ? r.data.message : '<?php echo esc_js( __( 'Cancelled.', 'giftflow' ) ); ?>' );
+									location.reload();
+								} else {
+									result.text( r.data && r.data.message ? r.data.message : '<?php echo esc_js( __( 'Error.', 'giftflow' ) ); ?>' );
+									btn.prop( 'disabled', false );
+								}
+							} ).fail( function() {
+								result.text( '<?php echo esc_js( __( 'Request failed.', 'giftflow' ) ); ?>' );
+								btn.prop( 'disabled', false );
+							} );
+						} );
+					} );
+					</script>
+				<?php endif; ?>
+			</div>
+			<?php
+		}
+
 		// When this is a renewal, link to parent.
 		$parent_id = get_post_meta( $post->ID, '_parent_donation_id', true );
 		if ( ! empty( $parent_id ) && get_post_meta( $post->ID, '_is_subscription_renewal', true ) ) {

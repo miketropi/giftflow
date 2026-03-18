@@ -548,6 +548,7 @@ function giftflow_get_campaign_donations( $campaign_id, $args = array(), $paged 
 				$donor_meta['state'] = get_post_meta( $donor_meta['id'], '_state', true );
 				$donor_meta['postal_code'] = get_post_meta( $donor_meta['id'], '_postal_code', true );
 				$donor_meta['country'] = get_post_meta( $donor_meta['id'], '_country', true );
+				$donor_meta['datetime_join'] = get_the_date( 'Y-m-d H:i:s', $donor_meta['id'] );
 
 				if ( 'yes' === $is_anonymous ) {
 					$donor_meta['name'] = esc_html__( 'Anonymous 🍀', 'giftflow' );
@@ -1585,4 +1586,21 @@ function giftflow_get_file_content( $file_path = '' ) {
 
 	// apply filters to the file content.
 	return apply_filters( 'giftflow_get_file_content_filter', $_content, $file_path );
+}
+
+/**
+ * Redirect to the given slug.
+ *
+ * @return void
+ */
+function giftflow_redirect_gf_direct_to() {
+	// $_GET gf-direct-to.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page_slug = isset( $_GET['gf-direct-to'] ) ? sanitize_text_field( wp_unslash( $_GET['gf-direct-to'] ) ) : '';
+
+	$page = get_page_by_path( $page_slug );
+	if ( $page && is_a( $page, 'WP_Post' ) ) {
+		wp_safe_redirect( get_permalink( $page->ID ) );
+		exit;
+	}
 }

@@ -23,6 +23,7 @@ class V2CoreAccountClosedEvent extends \GiftFlow\Vendor\Stripe\V2\Core\Event
         $apiMode = \GiftFlow\Vendor\Stripe\Util\Util::getApiMode($this->related_object->url);
         list($object, $options) = $this->_request('get', $this->related_object->url, [], [
             'stripe_context' => $this->context,
+            'headers' => ['Stripe-Request-Trigger' => 'event=' . $this->id],
         ], [], $apiMode);
 
         return \GiftFlow\Vendor\Stripe\Util\Util::convertToStripeObject($object, $options, $apiMode);

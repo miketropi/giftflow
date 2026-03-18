@@ -76,6 +76,7 @@ GiftFlow is a powerful WordPress plugin designed to help organizations manage do
 - **PHP**: 8.2 or higher
 - **MySQL**: 5.6 or higher
 - **Composer**: For dependency management
+- **Node.js**: v24 (for building assets — `npm run dev` / `npm run build`)
 - **SSL Certificate**: Required for secure payment processing
 
 ## Installation
@@ -89,7 +90,7 @@ GiftFlow is a powerful WordPress plugin designed to help organizations manage do
 ### Manual Installation
 
 1. Upload the `giftflow` folder to the `/wp-content/plugins/` directory
-2. Install dependencies:
+2. Install dependencies (use **Node v24** for `npm` steps — e.g. `nvm use 24`):
    ```bash
    cd wp-content/plugins/giftflow
    composer install
@@ -217,6 +218,15 @@ The plugin includes the following templates that can be overridden in your theme
 
 ## Development
 
+**Node.js v24** is required for local asset builds and `npm run dev` (watch). Use the same major version as CI/production to avoid mismatches with Laravel Mix / Webpack and native dependencies.
+
+```bash
+# Example with nvm — use Node 24 before install/dev/build
+nvm install 24
+nvm use 24
+node -v   # should show v24.x.x
+```
+
 This plugin uses [Laravel Mix](https://laravel-mix.com/) (a wrapper around Webpack) to compile and bundle JavaScript and CSS files for production.
 
 ### Source Code
@@ -251,13 +261,13 @@ In the `assets/js/` directory, the plugin follows this naming convention:
 
 ### Build Commands
 
-To rebuild assets locally:
+To rebuild assets locally, **use Node v24** (see above), then:
 
 ```bash
 # Install dependencies
 npm install
 
-# Watch for changes and rebuild automatically during development
+# Watch for changes and rebuild automatically during development (Node v24)
 npm run dev
 
 # Build for production (minified)

@@ -347,7 +347,6 @@
   border: 1px solid var(--giftflow-border-color);
   border-radius: var(--giftflow-border-radius);
   font-size: 1rem;
-  font-family: serif;
 }
 .gfw-campaign-comments-list .comment .comment-body .comment-content p {
   margin: 0 0 15px;
@@ -1485,8 +1484,10 @@
   height: 36px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: var(--giftflow-transition);
-  background: black;
   padding: 0;
+}
+.giftflow-campaign-single-images-lightbox-open-btn svg {
+  stroke: black;
 }
 .giftflow-campaign-single-images-lightbox-open-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -2793,7 +2794,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 .gfw-donations-filter-form__select {
   width: 100%;
   min-width: 0;
-  padding: 0.4rem 0.6rem;
+  padding: 0.8rem;
   font-size: 0.9375rem;
   font-family: inherit;
   color: #1e293b;
@@ -2839,6 +2840,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   padding: 1rem 1.5rem;
   letter-spacing: 0;
   text-transform: none;
+  border-radius: 4px;
 }
 .gfw-donations-filter-form__submit svg {
   width: 1em;
