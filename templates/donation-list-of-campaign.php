@@ -162,7 +162,7 @@ foreach ( $posts as $donation ) {
 						?>
 						<div class="<?php echo esc_attr( trim( $cell_class ) ); ?>">
 							<?php if ( 'donor' === $format ) : ?>
-								<span class="gfw-donation-list__avatar"><?php echo $row['avatar_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+								<span class="gfw-donation-list__avatar"><?php echo wp_kses_post( $row['avatar_html'] ); ?></span>
 								<div class="gfw-donation-list__donor-main">
 									<span class="gfw-donation-list__donor-name"><?php echo esc_html( $row['donor_name'] ); ?></span>
 									<?php if ( ! empty( $row['donor_secondary'] ) ) : ?>
