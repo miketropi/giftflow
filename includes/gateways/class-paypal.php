@@ -2227,6 +2227,7 @@ class PayPal_Gateway extends Gateway_Base {
 			$donations_class = new Donations();
 			$donations_class->update_status( $donation_id, 'cancelled' );
 			update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+			delete_post_meta( $donation_id, '_token_verification_callback_url' );
 
 			Donation_Event_History::add(
 				$donation_id,
@@ -2272,14 +2273,20 @@ class PayPal_Gateway extends Gateway_Base {
 
 		if ( empty( $subscription_id ) ) {
 			$this->log_error( 'subscription_return_no_id', 'No subscription ID found on return', $donation_id );
-			return;
+
+			// direct to home url.
+			wp_safe_redirect( home_url() );
+			exit;
 		}
 
 		$subscription = $this->get_paypal_subscription( $subscription_id );
 
 		if ( is_wp_error( $subscription ) ) {
 			$this->log_error( 'subscription_return_verify_failed', $subscription->get_error_message(), $donation_id );
-			return;
+
+			// direct to home url.
+			wp_safe_redirect( home_url() );
+			exit;
 		}
 
 		$status = isset( $subscription['status'] ) ? $subscription['status'] : '';
@@ -2295,6 +2302,8 @@ class PayPal_Gateway extends Gateway_Base {
 
 		$recurring_status = isset( $status_map[ $status ] ) ? $status_map[ $status ] : 'pending';
 		update_post_meta( $donation_id, '_recurring_status', $recurring_status );
+
+		delete_post_meta( $donation_id, '_token_verification_callback_url' );
 
 		// Do NOT mark donation as completed here. The PAYMENT.SALE.COMPLETED and
 		// BILLING.SUBSCRIPTION.ACTIVATED webhooks handle status transitions.
