@@ -98,10 +98,11 @@ function walk(dir) {
     if (isBlacklisted(relPath)) return;
 
     const stat = fs.statSync(fullPath);
+    const archivePath = path.posix.join("giftflow", relPath);
     if (stat.isDirectory()) {
       walk(fullPath);
     } else {
-      archive.file(fullPath, { name: relPath });
+      archive.file(fullPath, { name: archivePath });
     }
   });
 }
