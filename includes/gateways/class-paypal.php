@@ -1945,18 +1945,26 @@ class PayPal_Gateway extends Gateway_Base {
 			$base_return = home_url();
 		}
 
+		// Generate a random token for verification callback URL.
+		$token_verification_callback_url = 'giftflow_' . wp_generate_password( 32, false );
+		update_post_meta( $donation_id, '_token_verification_callback_url', $token_verification_callback_url );
+
+		// Create return URL with token for verification.
 		$return_url = add_query_arg(
 			array(
 				'giftflow_paypal_subscription_return' => '1',
 				'donation_id' => $donation_id,
+				'token_verification' => $token_verification_callback_url,
 			),
 			$base_return
 		);
 
+		// Create cancel URL with token for verification.
 		$cancel_url = add_query_arg(
 			array(
 				'giftflow_paypal_subscription_cancel' => '1',
 				'donation_id' => $donation_id,
+				'token_verification' => $token_verification_callback_url,
 			),
 			$base_return
 		);
@@ -2182,29 +2190,55 @@ class PayPal_Gateway extends Gateway_Base {
 	// =========================================================================
 
 	/**
+	 * Verify the token verification callback URL.
+	 *
+	 * @since 1.0.6
+	 *
+	 * @param string $token_verification Token verification.
+	 * @param int $donation_id Donation ID.
+	 * @return bool True if the token verification callback URL is valid, false otherwise.
+	 */
+	private function verify_token_verification_callback_url( $token_verification, $donation_id ) {
+		$token_verification_callback_url = get_post_meta( $donation_id, '_token_verification_callback_url', true );
+		if ( empty( $token_verification_callback_url ) || $token_verification_callback_url !== $token_verification ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Handle PayPal subscription return URL after donor approval.
 	 */
 	public function handle_subscription_return() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['giftflow_paypal_subscription_cancel'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$donation_id = isset( $_GET['donation_id'] ) ? absint( $_GET['donation_id'] ) : 0;
-			if ( $donation_id ) {
-				$donations_class = new Donations();
-				$donations_class->update_status( $donation_id, 'failed' );
-				update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+			$token_verification = isset( $_GET['token_verification'] ) ? sanitize_text_field( wp_unslash( $_GET['token_verification'] ) ) : '';
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$donation_id = isset( $_GET['donation_id'] ) ? absint( wp_unslash( $_GET['donation_id'] ) ) : 0;
 
-				Donation_Event_History::add(
-					$donation_id,
-					'recurring_subscription_cancelled_by_donor',
-					'failed',
-					__( 'Donor cancelled PayPal subscription approval', 'giftflow' ),
-					array(
-						'gateway' => 'paypal',
-						'source' => 'cancel_url',
-					)
-				);
+			if ( ! $donation_id || ! $this->verify_token_verification_callback_url( $token_verification, $donation_id ) ) {
+				// direct to home url.
+				wp_safe_redirect( home_url() );
+				exit;
 			}
+
+			$donations_class = new Donations();
+			$donations_class->update_status( $donation_id, 'cancelled' );
+			update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
+
+			Donation_Event_History::add(
+				$donation_id,
+				'recurring_subscription_cancelled_by_donor',
+				'cancelled',
+				__( 'Donor cancelled PayPal subscription approval', 'giftflow' ),
+				array(
+					'gateway' => 'paypal',
+					'source' => 'cancel_url',
+				)
+			);
+
 			$campaign_id  = $donation_id ? absint( get_post_meta( $donation_id, '_campaign_id', true ) ) : 0;
 			$redirect_url = $campaign_id ? get_permalink( $campaign_id ) : home_url();
 			if ( ! $redirect_url ) {
@@ -2220,12 +2254,16 @@ class PayPal_Gateway extends Gateway_Base {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$donation_id     = isset( $_GET['donation_id'] ) ? absint( $_GET['donation_id'] ) : 0;
+		$token_verification = isset( $_GET['token_verification'] ) ? sanitize_text_field( wp_unslash( $_GET['token_verification'] ) ) : '';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$subscription_id = isset( $_GET['subscription_id'] ) ? sanitize_text_field( wp_unslash( $_GET['subscription_id'] ) ) : '';
+		$donation_id        = isset( $_GET['donation_id'] ) ? absint( $_GET['donation_id'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$subscription_id    = isset( $_GET['subscription_id'] ) ? sanitize_text_field( wp_unslash( $_GET['subscription_id'] ) ) : '';
 
-		if ( ! $donation_id ) {
-			return;
+		if ( ! $donation_id || ! $this->verify_token_verification_callback_url( $token_verification, $donation_id ) ) {
+			// direct to home url.
+			wp_safe_redirect( home_url() );
+			exit;
 		}
 
 		if ( empty( $subscription_id ) ) {
