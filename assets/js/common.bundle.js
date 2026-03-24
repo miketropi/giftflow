@@ -1420,11 +1420,13 @@ function donationButton_Handle(_x) {
 }
 function _donationButton_Handle() {
   _donationButton_Handle = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(el) {
-    var _el$dataset, campaignId, campaignTitle, ajaxModal;
+    var _window;
+    var _el$dataset, campaignId, campaignTitle, modalWidth, ajaxModal;
     return _regenerator().w(function (_context) {
       while (1) switch (_context.n) {
         case 0:
           _el$dataset = el.dataset, campaignId = _el$dataset.campaignId, campaignTitle = _el$dataset.campaignTitle;
+          modalWidth = ((_window = window) === null || _window === void 0 || (_window = _window._giftflow_common) === null || _window === void 0 ? void 0 : _window.modalWidth) || '720px';
           ajaxModal = new GiftFlowModal({
             ajax: true,
             ajaxUrl: "".concat(ajax_url, "?action=giftflow_get_campaign_donation_form&campaign_id=").concat(campaignId, "&nonce=").concat(nonce),
@@ -1439,7 +1441,7 @@ function _donationButton_Handle() {
               }
             },
             className: 'modal-transparent-wrapper',
-            width: '800px',
+            width: modalWidth,
             onClose: function onClose(_) {
               _.destroy();
             }

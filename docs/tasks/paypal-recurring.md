@@ -1,7 +1,5 @@
 # PayPal Recurring Payments — Feature Development Roadmap
 
-> **Purpose:** This document is a complete, self-contained specification for implementing PayPal recurring (subscription) donations inside `GiftFlow`. It is written for an AI Agent or developer who starts from zero context. Every step references the exact file, class, method, or hook to touch.
-
 ---
 
 ## Table of Contents

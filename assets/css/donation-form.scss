@@ -65,7 +65,7 @@ $mobile: 480px;
   font-size: 1rem;
   
   @include tablet {
-    max-width: 95%;
+    // max-width: 95%;
   }
   
   @include mobile {
@@ -96,8 +96,8 @@ $mobile: 480px;
     align-items: center;
     
     @include tablet {
-      grid-template-columns: 1fr;
-      text-align: center;
+      // grid-template-columns: 1fr;
+      // text-align: center;
     }
 
     &-thumbnail {
@@ -108,9 +108,9 @@ $mobile: 480px;
       border-radius: $border-radius;
       
       @include tablet {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto;
+        // width: 80px;
+        // height: 80px;
+        // margin: 0 auto;
       }
       
       @include mobile {
@@ -173,7 +173,7 @@ $mobile: 480px;
     align-items: center;
 
     @include tablet {
-      flex-direction: column;
+      // flex-direction: column;
       gap: 0.75rem;
     }
     
@@ -224,6 +224,7 @@ $mobile: 480px;
   &__step-number {
     width: 32px;
     height: 32px;
+    min-width: 32px;
     border-radius: 50%;
     background: $border-color;
     color: $text-light;
@@ -236,6 +237,7 @@ $mobile: 480px;
     @include mobile {
       width: 28px;
       height: 28px;
+      min-width: 28px;
       font-size: 0.875rem;
     }
   }
@@ -530,6 +532,7 @@ $mobile: 480px;
     
     @include mobile {
       grid-template-columns: repeat(2, 1fr);
+      gap: .5rem;
     }
 
     button {
@@ -1010,11 +1013,11 @@ $mobile: 480px;
 @media (max-width: 768px) {
   .donation-form {
     &__campaign {
-      grid-template-columns: 1fr;
+      // grid-template-columns: 1fr;
 
       &-thumbnail {
-        width: 80px;
-        height: 80px;
+        // width: 80px;
+        // height: 80px;
       }
     }
 
@@ -1032,8 +1035,41 @@ $mobile: 480px;
   }
 }
 
+@media (max-width: 555px) {
+  .donation-form {
+    
+    &__header {
+
+    }
+
+    &__campaign-title {
+      font-size: max(1.25rem, 1.5em);
+    }
+  }
+
+  .giftflow-modal {
+
+    .donation-form__campaign-thumbnail {  
+      display: none;
+    }
+
+    .donation-form__campaign-title {
+      padding-right: 26px;
+    }
+
+    .donation-form__step-item { 
+      font-size: .9em;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .donation-form {
+
+    &__campaign-title {
+      // font-size: max(1rem, 1.25em);
+    }
+
     &__preset-amounts {
       grid-template-columns: repeat(2, 1fr);
     }
