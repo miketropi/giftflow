@@ -867,6 +867,52 @@ function giftflow_get_donor_data_by_id( $donor_id = 0 ) {
 }
 
 /**
+ * Get donor by email.
+ *
+ * @param string $email Email.
+ * @return object|null
+ */
+function giftflow_get_donor_by_email( $email = '' ) {
+	if ( empty( $email ) ) {
+		return null;
+	}
+
+	// query donor by email.
+	$donors = get_posts(
+		array(
+			'post_type' => 'donor',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_key' => '_email',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			'meta_value' => $email,
+			'posts_per_page' => 1,
+		)
+	);
+
+	if ( empty( $donors ) ) {
+		return null;
+	}
+
+	if ( ! empty( $donors ) ) {
+		$donor = array();
+		$donor['id'] = $donors[0]->ID;
+		$donor['email'] = get_post_meta( $donor['id'], '_email', true );
+		$donor['first_name'] = get_post_meta( $donor['id'], '_first_name', true );
+		$donor['last_name'] = get_post_meta( $donor['id'], '_last_name', true );
+		$donor['full_name'] = $donor['first_name'] . ' ' . $donor['last_name'];
+		$donor['phone'] = get_post_meta( $donor['id'], '_phone', true );
+		$donor['address'] = get_post_meta( $donor['id'], '_address', true );
+		$donor['city'] = get_post_meta( $donor['id'], '_city', true );
+		$donor['state'] = get_post_meta( $donor['id'], '_state', true );
+		$donor['postal_code'] = get_post_meta( $donor['id'], '_postal_code', true );
+		$donor['country'] = get_post_meta( $donor['id'], '_country', true );
+		return $donor;
+	}
+
+	return null;
+}
+
+/**
  * Query donations by donor id, use wp_query
  *
  * @param string|int $donor_id Donor ID.

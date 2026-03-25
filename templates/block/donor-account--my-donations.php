@@ -72,7 +72,7 @@ $donations_data = apply_filters( 'giftflow_my_donations_table_data', $donations_
 ?>
 <div class="gfw-my-donations-header">
 	<h2 class="gfw-donor-account__title"><?php esc_html_e( 'My Donations', 'giftflow' ); ?></h2>
-	<p class="gfw-my-donations-desc">
+	<p>
 	<?php esc_html_e( 'Here you can view a detailed record of your recent donations. Each contribution helps us create lasting impact and drive positive change in our community.', 'giftflow' ); ?>
 	</p>
 </div>

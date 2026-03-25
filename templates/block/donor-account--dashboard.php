@@ -10,13 +10,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-// current user.
-// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-$current_user = wp_get_current_user();
+// donor.
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+$donor = $donor ?? array();
 
 // get name.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$name = implode( ' ', array( $current_user->first_name, $current_user->last_name ) );
+$name = $donor['full_name'];
 if ( empty( trim( $name ) ) ) {
   // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 	$name = 'donor';

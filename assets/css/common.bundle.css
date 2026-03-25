@@ -1782,11 +1782,6 @@
   padding: 1.5rem 0;
   border-top: 1px solid #eee;
 }
-.giftflow-donor-account-dashboard__message p {
-  margin: 0;
-  font-size: 0.95rem;
-  opacity: 0.6;
-}
 
 .giftflow-dashboard-action {
   display: inline-flex;
@@ -1886,15 +1881,6 @@
 
 .gfw-my-donations-header {
   margin-bottom: 1.5rem;
-}
-.gfw-my-donations-header .gfw-donor-account__title {
-  margin: 0 0 0.35rem 0;
-}
-.gfw-my-donations-header .gfw-my-donations-desc {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.5;
 }
 
 .gfw-view-detail-link {
@@ -2923,11 +2909,12 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 }
 .giftflow-donor-account__tab-label {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 1rem;
+  line-height: normal;
 }
 @media (max-width: 768px) {
   .giftflow-donor-account__tab-label {
-    font-size: 13px;
+    font-size: 0.9rem;
   }
 }
 .giftflow-donor-account__content {
