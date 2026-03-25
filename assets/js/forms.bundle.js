@@ -316,9 +316,119 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   applySlideEffect: () => (/* binding */ applySlideEffect),
 /* harmony export */   createElementFromTemplate: () => (/* binding */ createElementFromTemplate),
+/* harmony export */   initClickToCopyByClass: () => (/* binding */ initClickToCopyByClass),
 /* harmony export */   replaceContentBySelector: () => (/* binding */ replaceContentBySelector),
 /* harmony export */   validateValue: () => (/* binding */ validateValue)
 /* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+
+function _regenerator() {
+  /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */var e,
+    t,
+    r = "function" == typeof Symbol ? Symbol : {},
+    n = r.iterator || "@@iterator",
+    o = r.toStringTag || "@@toStringTag";
+  function i(r, n, o, i) {
+    var c = n && n.prototype instanceof Generator ? n : Generator,
+      u = Object.create(c.prototype);
+    return _regeneratorDefine2(u, "_invoke", function (r, n, o) {
+      var i,
+        c,
+        u,
+        f = 0,
+        p = o || [],
+        y = !1,
+        G = {
+          p: 0,
+          n: 0,
+          v: e,
+          a: d,
+          f: d.bind(e, 4),
+          d: function d(t, r) {
+            return i = t, c = 0, u = e, G.n = r, a;
+          }
+        };
+      function d(r, n) {
+        for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) {
+          var o,
+            i = p[t],
+            d = G.p,
+            l = i[2];
+          r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0));
+        }
+        if (o || r > 1) return a;
+        throw y = !0, n;
+      }
+      return function (o, p, l) {
+        if (f > 1) throw TypeError("Generator is already running");
+        for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) {
+          i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u);
+          try {
+            if (f = 2, i) {
+              if (c || (o = "next"), t = i[o]) {
+                if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object");
+                if (!t.done) return t;
+                u = t.value, c < 2 && (c = 0);
+              } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1);
+              i = e;
+            } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break;
+          } catch (t) {
+            i = e, c = 1, u = t;
+          } finally {
+            f = 1;
+          }
+        }
+        return {
+          value: t,
+          done: y
+        };
+      };
+    }(r, o, i), !0), u;
+  }
+  var a = {};
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+  t = Object.getPrototypeOf;
+  var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () {
+      return this;
+    }), t),
+    u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c);
+  function f(e) {
+    return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e;
+  }
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () {
+    return this;
+  }), _regeneratorDefine2(u, "toString", function () {
+    return "[object Generator]";
+  }), (_regenerator = function _regenerator() {
+    return {
+      w: i,
+      m: f
+    };
+  })();
+}
+function _regeneratorDefine2(e, r, n, t) {
+  var i = Object.defineProperty;
+  try {
+    i({}, "", {});
+  } catch (e) {
+    i = 0;
+  }
+  _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) {
+    function o(r, n) {
+      _regeneratorDefine2(e, r, function (e) {
+        return this._invoke(r, n, e);
+      });
+    }
+    r ? i ? i(e, r, {
+      value: n,
+      enumerable: !t,
+      configurable: !t,
+      writable: !t
+    }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2));
+  }, _regeneratorDefine2(e, r, n, t);
+}
 function _createForOfIteratorHelper(r, e) {
   var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
   if (!t) {
@@ -517,6 +627,162 @@ function createElementFromTemplate(template) {
   var div = document.createElement('div');
   div.innerHTML = template;
   return div.children[0] || null;
+}
+
+/** @type {WeakMap<Document|HTMLElement, Set<string>>} */
+var clickToCopyRoots = new WeakMap();
+
+/**
+ * Copy string to clipboard (Clipboard API when available, else execCommand fallback).
+ * @param {string} text
+ * @returns {Promise<boolean>}
+ */
+function copyTextToClipboard(_x) {
+  return _copyTextToClipboard.apply(this, arguments);
+}
+/**
+ * Short visual feedback after a successful copy (Web Animations API).
+ * @param {HTMLElement} element
+ */
+function _copyTextToClipboard() {
+  _copyTextToClipboard = (0,_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/_regenerator().m(function _callee(text) {
+    var ta, ok, _t;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          if (text) {
+            _context.n = 1;
+            break;
+          }
+          return _context.a(2, false);
+        case 1:
+          _context.p = 1;
+          if (!(navigator.clipboard && window.isSecureContext)) {
+            _context.n = 3;
+            break;
+          }
+          _context.n = 2;
+          return navigator.clipboard.writeText(text);
+        case 2:
+          return _context.a(2, true);
+        case 3:
+          _context.n = 5;
+          break;
+        case 4:
+          _context.p = 4;
+          _t = _context.v;
+        case 5:
+          ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          ta.style.top = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, text.length);
+          ok = false;
+          try {
+            ok = document.execCommand('copy');
+          } catch (_unused2) {
+            ok = false;
+          }
+          document.body.removeChild(ta);
+          return _context.a(2, ok);
+      }
+    }, _callee, null, [[1, 4]]);
+  }));
+  return _copyTextToClipboard.apply(this, arguments);
+}
+function playCopySuccessEffect(element) {
+  if (typeof element.animate !== 'function') return;
+  var computed = window.getComputedStyle(element);
+  var fromBg = computed.backgroundColor || 'transparent';
+  element.animate([{
+    backgroundColor: fromBg,
+    transform: 'scale(1)'
+  }, {
+    backgroundColor: 'rgba(0, 255, 247, 0.48)',
+    transform: 'scale(1.01)'
+  }, {
+    backgroundColor: fromBg,
+    transform: 'scale(1)'
+  }], {
+    duration: 450,
+    easing: 'ease-out'
+  });
+}
+
+/**
+ * Delegate clicks: elements with the given class copy text and show success feedback.
+ * Works for content injected after load (AJAX) because the listener is on document/root.
+ *
+ * Text source: `data-copy` / `data-copy-text` attribute if set, otherwise trimmed `textContent`.
+ * Tooltip: on first hover, `data-copy-tooltip` is set from `tooltipLabel` (or localized
+ * `giftflow_common.click_to_copy_tooltip`). Override per element with `data-copy-tooltip` in HTML,
+ * or disable with `data-no-copy-tooltip`.
+ *
+ * @param {Object} options
+ * @param {string} options.className - Single CSS class (no leading dot), e.g. `'gfw-click-to-copy'`.
+ * @param {Document|HTMLElement} [options.root=document] - Delegation root (use a modal container if needed).
+ * @param {string} [options.successClass='gfw-click-to-copy--copied'] - Class added briefly after success.
+ * @param {number} [options.successDuration=1500] - How long successClass stays before removal (ms).
+ * @param {string} [options.tooltipLabel] - Hover tooltip text; falls back to `giftflow_common.click_to_copy_tooltip` or English default.
+ * @returns {void}
+ */
+function initClickToCopyByClass(options) {
+  var _options$successClass;
+  if (!options || typeof options.className !== 'string') {
+    console.warn('initClickToCopyByClass: `className` (string) is required');
+    return;
+  }
+  var cls = options.className.replace(/^\./, '').trim().split(/\s+/)[0];
+  if (!cls) {
+    console.warn('initClickToCopyByClass: empty className');
+    return;
+  }
+  var root = options.root && options.root.nodeType ? options.root : document;
+  var successClass = (_options$successClass = options.successClass) !== null && _options$successClass !== void 0 ? _options$successClass : 'gfw-click-to-copy--copied';
+  var successDuration = typeof options.successDuration === 'number' ? options.successDuration : 1500;
+  var tooltipLabel = typeof options.tooltipLabel === 'string' && options.tooltipLabel ? options.tooltipLabel : typeof window !== 'undefined' && window.giftflow_common && typeof window.giftflow_common.click_to_copy_tooltip === 'string' && window.giftflow_common.click_to_copy_tooltip || 'Click to copy';
+  var set = clickToCopyRoots.get(root);
+  if (!set) {
+    set = new Set();
+    clickToCopyRoots.set(root, set);
+  }
+  if (set.has(cls)) return;
+  set.add(cls);
+  var selector = ".".concat(CSS.escape(cls));
+  root.addEventListener('pointerover', function (e) {
+    var target = e.target;
+    if (!(target instanceof Element)) return;
+    var el = target.closest(selector);
+    if (!el || !root.contains(el)) return;
+    if (el.hasAttribute('data-no-copy-tooltip')) return;
+    if (el.hasAttribute('data-copy-tooltip')) return;
+    el.setAttribute('data-copy-tooltip', tooltipLabel);
+  }, true);
+  root.addEventListener('click', function (e) {
+    var target = e.target;
+    if (!(target instanceof Element)) return;
+    var el = target.closest(selector);
+    if (!el || !root.contains(el)) return;
+    var explicit = el.getAttribute('data-copy') || el.getAttribute('data-copy-text') || '';
+    var text = (explicit || el.textContent || '').trim();
+    if (!text) return;
+    e.preventDefault();
+    copyTextToClipboard(text).then(function (ok) {
+      if (!ok) return;
+      el.classList.add(successClass);
+      playCopySuccessEffect(el);
+      var prev = el._gfwCopySuccessTimer;
+      if (prev) clearTimeout(prev);
+      el._gfwCopySuccessTimer = setTimeout(function () {
+        el.classList.remove(successClass);
+        el._gfwCopySuccessTimer = undefined;
+      }, successDuration);
+    });
+  }, false);
 }
 
 /***/ }),

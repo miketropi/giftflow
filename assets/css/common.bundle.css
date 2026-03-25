@@ -1096,14 +1096,17 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #64748b;
   font-size: 0.875rem;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 .giftflow-modal__loading::before {
   content: "";
   width: 20px;
   height: 20px;
-  border: 2px solid #e2e8f0;
+  border: 3px solid white;
   border-top-color: #3b82f6;
   border-radius: 50%;
   animation: giftflowModalSpin 1s linear infinite;
@@ -3184,6 +3187,34 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   font-family: var(--giftflow-font-family-monospace);
 }
 
+.gfw-click-to-copy {
+  position: relative;
+}
+.gfw-click-to-copy::after {
+  content: attr(data-copy-tooltip);
+  transition: 0.2s ease;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(16px);
+  transition: 0.2s ease;
+  padding: 2px 6px;
+  font-size: 10px;
+  background: black;
+  color: #fff;
+  opacity: 0;
+  border-radius: 40px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.gfw-click-to-copy[data-copy-tooltip]:hover::after, .gfw-click-to-copy[data-copy-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(6px);
+}
+
+.gfw-click-to-copy--copied {
+  transition: box-shadow 0.2s ease;
+}
+
 .__hidden-fieldset {
   display: none;
 }
@@ -3277,7 +3308,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 @media (max-width: 480px) {
   .giftflow-user-info {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     padding: 1rem;
     gap: 0.75rem;
   }
@@ -3358,11 +3389,21 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   height: 1em;
   flex-shrink: 0;
 }
+@media (max-width: 555px) {
+  .giftflow-user-info .giftflow-my-donor-profile-link {
+    font-size: 0;
+    gap: 0;
+  }
+  .giftflow-user-info .giftflow-my-donor-profile-link svg {
+    font-size: 1rem;
+  }
+}
 @media (max-width: 480px) {
   .giftflow-user-info .giftflow-my-donor-profile-link {
     width: 100%;
     justify-content: center;
     padding: 0.6rem 0.75rem;
     font-size: 0.9rem;
+    gap: 0.5rem;
   }
 }

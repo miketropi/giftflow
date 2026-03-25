@@ -950,6 +950,10 @@ $mobile: 480px;
 
   &__bank-instructions {
     color: $text-color;
+
+    > p {
+      margin: 0 0 .5rem;
+    }
   }
 
   &__bank-detail {

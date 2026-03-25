@@ -537,10 +537,18 @@ function giftflow_get_campaign_donations( $campaign_id, $args = array(), $paged 
 	return array(
 		'posts' => array_map(
 			function ( $post ) {
+
 				$is_anonymous = get_post_meta( $post->ID, '_anonymous_donation', true );
 				$donor_meta = array();
 				$donor_meta['id'] = get_post_meta( $post->ID, '_donor_id', true );
-				$donor_meta['name'] = get_the_title( $donor_meta['id'] );
+
+				// donor name.
+				$donor_full_name = get_post_meta( $donor_meta['id'], '_first_name', true ) . ' ' . get_post_meta( $donor_meta['id'], '_last_name', true );
+				if ( ! $donor_full_name ) {
+					$donor_full_name = get_the_title( $donor_meta['id'] );
+				}
+
+				$donor_meta['name'] = $donor_full_name;
 				$donor_meta['email'] = get_post_meta( $donor_meta['id'], '_email', true );
 				$donor_meta['phone'] = get_post_meta( $donor_meta['id'], '_phone', true );
 				$donor_meta['address'] = get_post_meta( $donor_meta['id'], '_address', true );

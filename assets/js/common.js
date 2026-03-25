@@ -7,7 +7,7 @@ import './util/campaign-single.js';
 import './util/share-block.js';
 import './util/campaign-images-gallery.js';
 
-import { replaceContentBySelector } from './util/helpers.js';
+import { replaceContentBySelector, initClickToCopyByClass } from './util/helpers.js';
 import donationButton_Handle from './util/donation-button.js';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
@@ -96,6 +96,7 @@ import 'photoswipe/style.css';
   // dom loaded
   document.addEventListener('DOMContentLoaded', function() {
     gfw.lightbox_initialize();
+    initClickToCopyByClass({ className: 'gfw-click-to-copy' });
   });
 
 })(window, jQuery)

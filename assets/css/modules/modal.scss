@@ -373,14 +373,19 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #64748b;
+  // color: #64748b;
   font-size: 0.875rem;
+
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
   
   &::before {
     content: '';
     width: 20px;
     height: 20px;
-    border: 2px solid #e2e8f0;
+    border: 3px solid white;
     border-top-color: #3b82f6;
     border-radius: 50%;
     animation: giftflowModalSpin 1s linear infinite;

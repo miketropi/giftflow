@@ -248,7 +248,7 @@ class GiftFlowModal {
     async loadAjaxContent() {
         try {
             this.showLoading();
-            
+            // return;
             const response = await fetch(this.options.ajaxUrl, {
                 method: this.options.ajaxMethod,
                 headers: {

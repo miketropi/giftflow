@@ -815,6 +815,9 @@
 .donation-form__bank-instructions {
   color: var(--giftflow-text-color);
 }
+.donation-form__bank-instructions > p {
+  margin: 0 0 0.5rem;
+}
 .donation-form__bank-detail {
   display: grid;
   grid-template-columns: 140px 1fr;
