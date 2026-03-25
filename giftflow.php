@@ -3,7 +3,7 @@
  * Plugin Name: GiftFlow
  * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Beplus
  * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
@@ -22,7 +22,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin constants.
-define( 'GIFTFLOW_VERSION', '1.0.6' );
+define( 'GIFTFLOW_VERSION', '1.0.7' );
 define( 'GIFTFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
