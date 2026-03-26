@@ -2923,6 +2923,10 @@
   color: #666;
 }
 
+.giftflow-email-btn {
+  margin-bottom: 4px !important;
+}
+
 .donation-status {
   display: inline-block;
   padding: 2px 8px;

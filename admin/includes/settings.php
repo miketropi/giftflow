@@ -527,7 +527,7 @@ function giftflow_test_mail_html() {
 
 	// Render the buttons.
 	ob_start();
-	echo '<div class="giftflow-email-notification-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">';
+	echo '<div class="giftflow-email-notification-buttons">';
 	foreach ( $notification_buttons as $button ) {
 		printf(
 			'<button 

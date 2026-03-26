@@ -4667,6 +4667,7 @@ function _regeneratorDefine2(e, r, n, t) {
             });
           case 2:
             res = _context.v;
+            console.log(res);
           case 3:
             return _context.a(2);
         }
