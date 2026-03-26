@@ -175,10 +175,15 @@ function giftflow_donor_account_page_url( $tab ) {
 function giftflow_donor_account_dashboard_callback() {
 	// load template donor-account--dashboard.
 	$current_user = wp_get_current_user();
+
+	// get donor by email.
+	$donor = giftflow_get_donor_by_email( $current_user->user_email );
+
 	giftflow_load_template(
 		'block/donor-account--dashboard.php',
 		array(
-			'current_user' => $current_user,
+			'current_user_id' => $current_user->ID,
+			'donor' => $donor,
 		)
 	);
 }
@@ -540,6 +545,10 @@ function giftflow_update_donor_account( $user_id, $data, $donor_id ) {
 			'message' => esc_html__( 'Donor ID is required.', 'giftflow' ),
 		);
 	}
+
+	// update donor first name / last name.
+	update_post_meta( $donor_id, '_first_name', $data['first_name'] );
+	update_post_meta( $donor_id, '_last_name', $data['last_name'] );
 
 	// Update WordPress user data.
 	$user_data = array(

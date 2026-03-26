@@ -9,19 +9,36 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  // bottom: 0;
+  height: 100%;
+  overflow: auto;
   background: rgba(0, 0, 0, 0.5);
   display: none;
-  align-items: center;
+  // align-items: center;
   justify-content: center;
   z-index: 99999;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
 
-  overflow: auto;
+  // overflow: auto;
   
   &--open {
     opacity: 1;
+  }
+
+
+  flex-wrap: wrap;
+
+  &::before,
+  &::after {
+    content: "";
+    height: 5vh;
+    width: 100%;
+    display: block;
+
+    @media (max-width: 555px) {
+      height: 25px;
+    }
   }
 }
 
@@ -32,7 +49,7 @@
   border-radius: var(--giftflow-border-radius);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 90vw;
-  max-height: 90vh;
+  // max-height: 90vh;
   width: auto;
   height: auto;
   display: none;
@@ -119,9 +136,9 @@
 
 // Modal content
 .giftflow-modal__content {
-  padding: 1.5rem;
+  // padding: 1.5rem;
   overflow-y: auto;
-  max-height: calc(90vh - 3rem);
+  // max-height: calc(90vh - 3rem);
   
   // Custom scrollbar
   // &::-webkit-scrollbar {
@@ -172,17 +189,17 @@
   
   &:hover {
     
-    transform: scale(1.1);
+    // transform: scale(1.1);
     opacity: .8;
   }
   
   &:focus {
     // outline: 2px solid #3b82f6;
-    outline-offset: 2px;
+    // outline-offset: 2px;
   }
   
   &:active {
-    transform: scale(0.95);
+    // transform: scale(0.95);
   }
 }
 
@@ -356,14 +373,19 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #64748b;
+  // color: #64748b;
   font-size: 0.875rem;
+
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
   
   &::before {
     content: '';
     width: 20px;
     height: 20px;
-    border: 2px solid #e2e8f0;
+    border: 3px solid white;
     border-top-color: #3b82f6;
     border-radius: 50%;
     animation: giftflowModalSpin 1s linear infinite;
@@ -425,19 +447,19 @@
 // Responsive design
 @media (max-width: 768px) {
   .giftflow-modal {
-    margin: 1rem;
-    max-width: calc(100vw - 2rem);
-    max-height: calc(100vh - 2rem);
+    // margin: 1rem;
+    max-width: calc(100vw - 20px);
+    // max-height: calc(100vh - 20px);
     
     &__content {
-      padding: 1rem;
+      // padding: 1rem;
       max-height: calc(100vh - 4rem);
     }
     
     &__header {
       margin: -1rem -1rem 0.75rem -1rem;
       padding: 1rem 1rem 0 1rem;
-      
+       
       h1, h2, h3, h4, h5, h6 {
         font-size: 1.125rem;
       }
@@ -449,10 +471,10 @@
     }
     
     &__close {
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 28px;
-      height: 28px;
+      // top: 0.75rem;
+      // right: 0.75rem;
+      // width: 28px;
+      // height: 28px;
       font-size: 16px;
     }
   }
@@ -460,14 +482,14 @@
 
 @media (max-width: 480px) {
   .giftflow-modal {
-    margin: 0.5rem;
+    // margin: 0.5rem;
     max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
+    // max-height: calc(100vh - 1rem);
     border-radius: 6px;
     
     &__content {
-      padding: 0.75rem;
-      max-height: calc(100vh - 2.5rem);
+      // padding: 0.75rem;
+      // max-height: calc(100vh - 2.5rem);
     }
     
     &__header {
@@ -491,10 +513,10 @@
     }
     
     &__close {
-      top: 0.5rem;
-      right: 0.5rem;
-      width: 24px;
-      height: 24px;
+      // top: 0.5rem;
+      // right: 0.5rem;
+      // width: 24px;
+      // height: 24px;
       font-size: 14px;
     }
   }
@@ -518,8 +540,8 @@
     }
     
     &__close {
-      min-height: 44px;
-      min-width: 44px;
+      // min-height: 44px;
+      // min-width: 44px;
       
       &:hover {
         transform: none !important;

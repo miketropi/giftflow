@@ -33,6 +33,7 @@ const blacklistRoots = [
  */
 const blacklistExtensions = [
   ".sh",
+  ".DS_Store",
 ];
 
 /**

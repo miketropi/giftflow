@@ -12,4 +12,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="giftflow-html-field"><?php echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+<div class="giftflow-html-field"><?php echo wp_kses_post( $html ); ?></div>

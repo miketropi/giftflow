@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		printf(
 			wp_kses(
 			// translators: %s is the reference number for bank transfer.
-				'Please include your Reference Number (<strong class="gfw-monofont">%s</strong>) in the payment description so we can correctly identify your donation.',
+				'Please include your Reference Number (<strong class="gfw-monofont gfw-click-to-copy">%s</strong>) in the payment description so we can correctly identify your donation.',
 				array(
 					'code'   => array( 'class' => true ),
 					'strong' => array( 'class' => true ),
@@ -57,46 +57,46 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 	<?php endif; ?>
 
-	<div class="donation-form__bank-details gfw-monofont">
+	<div class="donation-form__bank-details">
 	<?php if ( ! empty( $bank_account_name ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'Account Name:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_account_name ); ?></span>
+		<span class="gfw-click-to-copy"><?php echo esc_html( $bank_account_name ); ?></span>
 	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $bank_account_number ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'Account Number:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_account_number ); ?></span>
+		<span class="gfw-monofont gfw-click-to-copy"><?php echo esc_html( $bank_account_number ); ?></span>
 	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $bank_routing_number ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'Routing Number:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_routing_number ); ?></span>
+		<span class="gfw-click-to-copy"><?php echo esc_html( $bank_routing_number ); ?></span>
 	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $bank_name ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'Bank Name:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_name ); ?></span>
+		<span class="gfw-click-to-copy"><?php echo esc_html( $bank_name ); ?></span>
 	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $bank_iban ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'IBAN:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_iban ); ?></span>
+		<span class="gfw-monofont gfw-click-to-copy"><?php echo esc_html( $bank_iban ); ?></span>
 	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $bank_swift ) ) : ?>
 	<div class="donation-form__bank-detail">
 		<strong><?php esc_html_e( 'SWIFT/BIC:', 'giftflow' ); ?></strong>
-		<span><?php echo esc_html( $bank_swift ); ?></span>
+		<span class="gfw-monofont gfw-click-to-copy"><?php echo esc_html( $bank_swift ); ?></span>
 	</div>
 	<?php endif; ?>
 	</div>

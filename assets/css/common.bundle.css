@@ -840,18 +840,29 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 100%;
+  overflow: auto;
   background: rgba(0, 0, 0, 0.5);
   display: none;
-  align-items: center;
   justify-content: center;
   z-index: 99999;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
-  overflow: auto;
+  flex-wrap: wrap;
 }
 .giftflow-modal__overlay--open {
   opacity: 1;
+}
+.giftflow-modal__overlay::before, .giftflow-modal__overlay::after {
+  content: "";
+  height: 5vh;
+  width: 100%;
+  display: block;
+}
+@media (max-width: 555px) {
+  .giftflow-modal__overlay::before, .giftflow-modal__overlay::after {
+    height: 25px;
+  }
 }
 
 .giftflow-modal {
@@ -860,7 +871,6 @@
   border-radius: var(--giftflow-border-radius);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 90vw;
-  max-height: 90vh;
   width: auto;
   height: auto;
   display: none;
@@ -927,9 +937,7 @@
 }
 
 .giftflow-modal__content {
-  padding: 1.5rem;
   overflow-y: auto;
-  max-height: calc(90vh - 3rem);
 }
 .giftflow-modal__close {
   position: absolute;
@@ -953,16 +961,8 @@
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 }
 .giftflow-modal__close:hover {
-  transform: scale(1.1);
   opacity: 0.8;
 }
-.giftflow-modal__close:focus {
-  outline-offset: 2px;
-}
-.giftflow-modal__close:active {
-  transform: scale(0.95);
-}
-
 .giftflow-modal__header {
   margin: -1.5rem -1.5rem 1rem -1.5rem;
   padding: 1.5rem 1.5rem 0 1.5rem;
@@ -1096,14 +1096,17 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #64748b;
   font-size: 0.875rem;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 .giftflow-modal__loading::before {
   content: "";
   width: 20px;
   height: 20px;
-  border: 2px solid #e2e8f0;
+  border: 3px solid white;
   border-top-color: #3b82f6;
   border-radius: 50%;
   animation: giftflowModalSpin 1s linear infinite;
@@ -1157,12 +1160,9 @@
 }
 @media (max-width: 768px) {
   .giftflow-modal {
-    margin: 1rem;
-    max-width: calc(100vw - 2rem);
-    max-height: calc(100vh - 2rem);
+    max-width: calc(100vw - 20px);
   }
   .giftflow-modal__content {
-    padding: 1rem;
     max-height: calc(100vh - 4rem);
   }
   .giftflow-modal__header {
@@ -1177,23 +1177,13 @@
     padding: 0.75rem 1rem 1rem 1rem;
   }
   .giftflow-modal__close {
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 28px;
-    height: 28px;
     font-size: 16px;
   }
 }
 @media (max-width: 480px) {
   .giftflow-modal {
-    margin: 0.5rem;
     max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
     border-radius: 6px;
-  }
-  .giftflow-modal__content {
-    padding: 0.75rem;
-    max-height: calc(100vh - 2.5rem);
   }
   .giftflow-modal__header {
     margin: -0.75rem -0.75rem 0.5rem -0.75rem;
@@ -1212,10 +1202,6 @@
     min-height: 40px;
   }
   .giftflow-modal__close {
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 24px;
-    height: 24px;
     font-size: 14px;
   }
 }
@@ -1230,10 +1216,6 @@
   .giftflow-modal__btn:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
-  }
-  .giftflow-modal__close {
-    min-height: 44px;
-    min-width: 44px;
   }
   .giftflow-modal__close:hover {
     transform: none !important;
@@ -1800,11 +1782,6 @@
   padding: 1.5rem 0;
   border-top: 1px solid #eee;
 }
-.giftflow-donor-account-dashboard__message p {
-  margin: 0;
-  font-size: 0.95rem;
-  opacity: 0.6;
-}
 
 .giftflow-dashboard-action {
   display: inline-flex;
@@ -1904,15 +1881,6 @@
 
 .gfw-my-donations-header {
   margin-bottom: 1.5rem;
-}
-.gfw-my-donations-header .gfw-donor-account__title {
-  margin: 0 0 0.35rem 0;
-}
-.gfw-my-donations-header .gfw-my-donations-desc {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.5;
 }
 
 .gfw-view-detail-link {
@@ -2941,11 +2909,12 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 }
 .giftflow-donor-account__tab-label {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 1rem;
+  line-height: normal;
 }
 @media (max-width: 768px) {
   .giftflow-donor-account__tab-label {
-    font-size: 13px;
+    font-size: 0.9rem;
   }
 }
 .giftflow-donor-account__content {
@@ -3205,6 +3174,34 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   font-family: var(--giftflow-font-family-monospace);
 }
 
+.gfw-click-to-copy {
+  position: relative;
+}
+.gfw-click-to-copy::after {
+  content: attr(data-copy-tooltip);
+  transition: 0.2s ease;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(16px);
+  transition: 0.2s ease;
+  padding: 2px 6px;
+  font-size: 10px;
+  background: black;
+  color: #fff;
+  opacity: 0;
+  border-radius: 40px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.gfw-click-to-copy[data-copy-tooltip]:hover::after, .gfw-click-to-copy[data-copy-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(6px);
+}
+
+.gfw-click-to-copy--copied {
+  transition: box-shadow 0.2s ease;
+}
+
 .__hidden-fieldset {
   display: none;
 }
@@ -3298,7 +3295,7 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
 @media (max-width: 480px) {
   .giftflow-user-info {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     padding: 1rem;
     gap: 0.75rem;
   }
@@ -3379,11 +3376,21 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   height: 1em;
   flex-shrink: 0;
 }
+@media (max-width: 555px) {
+  .giftflow-user-info .giftflow-my-donor-profile-link {
+    font-size: 0;
+    gap: 0;
+  }
+  .giftflow-user-info .giftflow-my-donor-profile-link svg {
+    font-size: 1rem;
+  }
+}
 @media (max-width: 480px) {
   .giftflow-user-info .giftflow-my-donor-profile-link {
     width: 100%;
     justify-content: center;
     padding: 0.6rem 0.75rem;
     font-size: 0.9rem;
+    gap: 0.5rem;
   }
 }

@@ -71,8 +71,9 @@ class Loader extends Base {
 			'giftflow-common',
 			'giftflow_common',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'giftflow_common_nonce' ),
+				'ajax_url'              => admin_url( 'admin-ajax.php' ),
+				'nonce'                 => wp_create_nonce( 'giftflow_common_nonce' ),
+				'click_to_copy_tooltip' => __( 'Click to copy', 'giftflow' ),
 			)
 		);
 	}

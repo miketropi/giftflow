@@ -2,6 +2,7 @@ const { ajax_url, nonce } = giftflow_common;
 
 export default async function donationButton_Handle(el) {
   const { campaignId, campaignTitle } = el.dataset;
+  const modalWidth = window?._giftflow_common?.modalWidth || '720px';
   
   const ajaxModal = new GiftFlowModal({
     ajax: true,
@@ -17,7 +18,7 @@ export default async function donationButton_Handle(el) {
       } 
     },
     className: 'modal-transparent-wrapper',
-    width: '800px',
+    width: modalWidth,
     onClose: (_) => {
       _.destroy();
     }
