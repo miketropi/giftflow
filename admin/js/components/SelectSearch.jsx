@@ -345,7 +345,7 @@ export default function SelectSearch({
   return (
     <div 
       ref={containerRef}
-      className={`giftflow-select-search ${className} ${disabled ? 'giftflow-select-search--disabled' : ''} ${error ? 'giftflow-select-search--error' : ''}`}
+      className={`giftflow-select-search ${className} ${disabled ? 'giftflow-select-search--disabled' : ''} ${error ? 'giftflow-select-search--error' : ''} ${isOpen ? 'giftflow-select-search--open' : ''}`}
     >
       <div
         className="giftflow-select-search__trigger"

@@ -40,6 +40,8 @@ class Loader extends Base {
 				'rest_nonce'      => wp_create_nonce( 'wp_rest' ),
 				'admin_url'       => admin_url(),
 				'currency_symbol' => giftflow_get_global_currency_symbol(),
+				'docs_url'        => trailingslashit( 'https://giftflow-doc.beplus-agency.cloud' ),
+				'support_url'     => 'https://giftflow.beplus-agency.cloud/contact',
 			)
 		);
 	}

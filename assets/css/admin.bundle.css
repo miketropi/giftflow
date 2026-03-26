@@ -1,143 +1,279 @@
+@charset "UTF-8";
 /**
  * GiftFlow Variables
  *
  * Global variables for styling
  */
-.giftflow-welcome {
-  background: #fff;
-  border: solid 1px #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  max-width: 100%;
-  margin: 2rem auto;
+/**
+ * GiftFlow — Dashboard (React) layout aligned with help center
+ */
+.giftflow-dashboard-view {
+  --gfh-bg: #fff;
+  --gfh-bg-soft: #f6f7f7;
+  --gfh-bg-muted: #f0f0f1;
+  --gfh-line: #dcdcde;
+  --gfh-line-strong: #c3c4c7;
+  --gfh-text: #1d2327;
+  --gfh-text-secondary: #50575e;
+  --gfh-text-muted: #646970;
+  --gfh-theme: var(--wp-admin-theme-color, #2271b1);
+  --gfh-theme-2: var(--wp-admin-theme-color-darker-10, #135e96);
+  --gfh-theme-3: var(--wp-admin-theme-color-darker-20, #0a4b78);
+  --gfh-radius: 8px;
+  --gfh-radius-sm: 6px;
+  --gfh-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --gfh-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gfh-dur: 0.2s;
+  --gfh-dur-slow: 0.32s;
+  --gfh-shade: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --gfh-shade-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --gfh-chart-donations: #007017;
+  --gfh-chart-donors: var(--gfh-theme);
+  margin: 2rem 0 32px;
+  padding: 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  line-height: 1.55;
+  color: var(--gfh-text-secondary);
+  -webkit-font-smoothing: antialiased;
 }
-.giftflow-welcome__header {
-  margin-bottom: 32px;
+.giftflow-dashboard-view *,
+.giftflow-dashboard-view *::before,
+.giftflow-dashboard-view *::after {
+  box-sizing: border-box;
 }
-.giftflow-welcome__logo-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.giftflow-dashboard-view #GFWP_DASHBOARD_VIEW_ROOT .__monospace {
+  font-family: "Courier New", Courier, monospace;
 }
-.giftflow-welcome__logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: #f8f9fa;
-  padding: 6px;
-  display: block;
-}
-.giftflow-welcome__title-section {
-  flex: 1;
-}
-.giftflow-welcome__title {
-  margin: 0;
-  font-weight: 700;
-  font-size: 1.5rem;
-  line-height: 1.5;
-  margin-bottom: 0.1rem;
-}
-.giftflow-welcome__subtitle {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: normal;
-  opacity: 0.8;
-}
-.giftflow-welcome__content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-@media (max-width: 768px) {
-  .giftflow-welcome__content {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-}
-.giftflow-welcome__left-column .giftflow-welcome__features h3 {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-.giftflow-welcome__left-column .giftflow-welcome__features-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.3em 0;
-}
-.giftflow-welcome__features-list {
-  padding-left: 0px;
-  margin: 0;
-  line-height: 1.5;
-}
-.giftflow-welcome__features-list li {
-  margin-bottom: 0.4rem;
-}
-.giftflow-welcome__features-list li strong {
-  font-weight: 600;
-}
-.giftflow-welcome__right-column {
+.giftflow-dashboard-view__shell {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
 }
-.giftflow-welcome__actions {
-  display: flex;
-  gap: 0.5rem;
+.giftflow-dashboard-view__masthead {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius);
 }
-.giftflow-welcome__help {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
+@media (min-width: 782px) {
+  .giftflow-dashboard-view__masthead {
+    grid-template-columns: minmax(0, 1.15fr) minmax(200px, 1fr);
+    min-height: 220px;
+  }
 }
-.giftflow-welcome__help h4 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+.giftflow-dashboard-view__masthead-main {
+  position: relative;
+  z-index: 2;
+  padding: 24px 22px 22px;
+}
+@media (min-width: 782px) {
+  .giftflow-dashboard-view__masthead-main {
+    padding: 28px 28px 26px;
+  }
+}
+.giftflow-dashboard-view__masthead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px 10px 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gfh-text-muted);
+  background: var(--gfh-bg-soft);
+  border: 1px solid var(--gfh-line);
+  border-radius: 999px;
+}
+.giftflow-dashboard-view__masthead-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gfh-theme);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gfh-theme) 22%, transparent);
+}
+.giftflow-dashboard-view__masthead-title {
+  margin: 0 0 10px;
+  padding: 0;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
   font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--gfh-text);
 }
-.giftflow-welcome__help p {
+.giftflow-dashboard-view__masthead-lead {
+  margin: 0 0 20px;
+  max-width: 36rem;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--gfh-text-secondary);
+}
+.giftflow-dashboard-view__masthead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.giftflow-dashboard-view__masthead-actions .button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--gfh-dur) var(--gfh-ease);
+  padding: 0.5rem 1rem !important;
+  font-weight: bold;
+}
+@media (max-width: 519px) {
+  .giftflow-dashboard-view__masthead-actions .button {
+    padding: 0.2rem 0.5rem !important;
+  }
+}
+.giftflow-dashboard-view__masthead-actions .button .dashicons {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 1;
+}
+.giftflow-dashboard-view__masthead-actions .button:active {
+  transform: scale(0.98);
+}
+.giftflow-dashboard-view__masthead-meta {
   margin: 0;
-  color: #6c757d;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 12px;
+  color: var(--gfh-text-muted);
 }
-.giftflow-welcome__help p a {
+.giftflow-dashboard-view__masthead-meta a {
+  color: var(--gfh-theme);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: none;
+  transition: color var(--gfh-dur) var(--gfh-ease);
+}
+.giftflow-dashboard-view__masthead-meta a:hover {
+  color: var(--gfh-theme-2);
   text-decoration: underline;
 }
-.giftflow-welcome__help p a:hover {
-  text-decoration: none;
+.giftflow-dashboard-view__masthead-meta-label {
+  margin-right: 6px;
+  font-weight: 600;
+  color: var(--gfh-text-secondary);
 }
-@media (max-width: 768px) {
-  .giftflow-welcome {
-    padding: 24px;
-    max-width: 100%;
+.giftflow-dashboard-view__masthead-deco {
+  position: relative;
+  min-height: 120px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--gfh-theme) 9%, var(--gfh-bg-soft)) 0%, var(--gfh-bg-soft) 55%, var(--gfh-bg-muted) 100%);
+  border-top: 1px solid var(--gfh-line);
+}
+@media (min-width: 782px) {
+  .giftflow-dashboard-view__masthead-deco {
+    border-top: none;
+    border-left: 1px solid var(--gfh-line);
+    min-height: auto;
   }
-  .giftflow-welcome__title {
-    font-size: 24px;
+}
+.giftflow-dashboard-view__masthead-deco-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image: radial-gradient(var(--gfh-line-strong) 1px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: linear-gradient(135deg, #000 20%, transparent 75%);
+          mask-image: linear-gradient(135deg, #000 20%, transparent 75%);
+}
+.giftflow-dashboard-view__masthead-deco-glow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gfh-theme) 28%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+  transition: opacity var(--gfh-dur-slow) var(--gfh-ease);
+}
+.giftflow-dashboard-view__masthead:hover .giftflow-dashboard-view__masthead-deco-glow {
+  opacity: 0.85;
+}
+.giftflow-dashboard-view__masthead-aside {
+  position: relative;
+  z-index: 2;
+  padding: 20px 18px 22px;
+  height: 100%;
+}
+@media (min-width: 782px) {
+  .giftflow-dashboard-view__masthead-aside {
+    padding: 26px 22px 24px;
   }
-  .giftflow-welcome__subtitle {
-    font-size: 15px;
-  }
-  .giftflow-welcome__logo-section {
-    gap: 12px;
-  }
+}
+.giftflow-dashboard-view__masthead-aside h3 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gfh-text-muted);
+}
+.giftflow-dashboard-view__feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--gfh-text-secondary);
+}
+.giftflow-dashboard-view__feature-item:last-of-type {
+  margin-bottom: 0;
+}
+.giftflow-dashboard-view__feature-item svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--gfh-theme);
+}
+.giftflow-dashboard-view__feature-item strong {
+  color: var(--gfh-text);
+  font-weight: 600;
+}
+.giftflow-dashboard-view__help-callout {
+  margin-top: 18px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--gfh-bg) 88%, transparent);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gfh-text-secondary);
+}
+.giftflow-dashboard-view__help-callout a {
+  color: var(--gfh-theme);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: none;
+}
+.giftflow-dashboard-view__help-callout a:hover {
+  color: var(--gfh-theme-2);
+  text-decoration: underline;
 }
 
 .giftflow-overview {
   display: grid;
   grid-template-columns: 1fr 25%;
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 0;
   box-sizing: border-box;
 }
 .giftflow-overview__main {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--gfh-bg, #fff);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius, 8px);
   padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--gfh-shade, 0 1px 3px rgba(0, 0, 0, 0.06));
 }
 .giftflow-overview__widget-header {
   display: flex;
@@ -151,31 +287,30 @@
 .giftflow-overview__chart {
   margin: 1.5rem 0;
   padding: 1.5rem;
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius, 8px);
 }
 .giftflow-overview__widget-header-btn {
   padding: 0.5rem;
-  background: #f8f9fa;
-  border: none;
-  background: none;
   cursor: pointer;
-  color: #6c757d;
-  transition: all 0.2s ease;
-  border: solid 1px #e0e0e0;
+  color: var(--gfh-text-muted, #646970);
+  transition: color 0.2s var(--gfh-ease, ease), border-color 0.2s var(--gfh-ease, ease);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  background: var(--gfh-bg, #fff);
   line-height: 0;
-  border-radius: 0.2rem;
+  border-radius: var(--gfh-radius-sm, 6px);
 }
 .giftflow-overview__widget-header-btn:hover {
-  opacity: 0.8;
+  color: var(--gfh-theme, #2271b1);
+  border-color: var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-overview__widget-header-btn:active {
-  opacity: 0.6;
+  opacity: 0.85;
 }
 .giftflow-overview__widget-header-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-overview__widget-header-btn:disabled {
   opacity: 0.5;
@@ -185,7 +320,7 @@
   margin: 0 0 1.5rem 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1e1e1e;
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-overview__stats {
   display: grid;
@@ -194,19 +329,19 @@
   margin-bottom: 2rem;
 }
 .giftflow-overview__stat-card {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius, 8px);
   padding: 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  transition: all 0.2s ease;
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-overview__stat-card:hover {
-  background: #fff;
-  border-color: black;
-  box-shadow: 0 2px 8px rgba(34, 113, 177, 0.1);
+  background: var(--gfh-bg, #fff);
+  border-color: color-mix(in srgb, var(--gfh-theme, #2271b1) 35%, var(--gfh-line, #dcdcde));
+  box-shadow: var(--gfh-shade-hover, 0 8px 24px rgba(0, 0, 0, 0.08));
 }
 .giftflow-overview__stat-icon {
   font-size: 1.5rem;
@@ -215,9 +350,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
+  background: var(--gfh-bg, #fff);
+  border-radius: var(--gfh-radius-sm, 6px);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  color: var(--gfh-theme, #2271b1);
+}
+.giftflow-overview__stat-icon svg {
+  flex-shrink: 0;
 }
 .giftflow-overview__stat-content {
   display: flex;
@@ -227,12 +366,12 @@
 .giftflow-overview__stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e1e1e;
+  color: var(--gfh-text, #1d2327);
   line-height: 1;
 }
 .giftflow-overview__stat-label {
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--gfh-text-muted, #646970);
   margin-top: 0.25rem;
 }
 .giftflow-overview__activity-list {
@@ -245,14 +384,14 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-  transition: all 0.2s ease;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border-radius: var(--gfh-radius-sm, 6px);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-overview__activity-item:hover {
-  background: #fff;
-  border-color: #e0e0e0;
+  background: var(--gfh-bg, #fff);
+  border-color: var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-overview__activity-icon {
   font-size: 1.25rem;
@@ -261,9 +400,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--gfh-bg, #fff);
   border-radius: 4px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--gfh-line, #dcdcde);
   flex-shrink: 0;
 }
 .giftflow-overview__activity-content {
@@ -273,13 +412,13 @@
 }
 .giftflow-overview__activity-text {
   font-size: 0.875rem;
-  color: #1e1e1e;
+  color: var(--gfh-text, #1d2327);
   line-height: 1.4;
   margin-bottom: 0.25rem;
 }
 .giftflow-overview__activity-time {
   font-size: 0.75rem;
-  color: #6c757d;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-overview__sidebar {
   display: flex;
@@ -287,52 +426,48 @@
   gap: 1.5rem;
 }
 .giftflow-overview__widget {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius, 8px);
   padding: 1.5rem;
 }
 .giftflow-overview__widget-title {
   margin: 0 0 1rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1e1e1e;
+  color: var(--gfh-text, #1d2327);
+}
+.giftflow-overview__widget--actions {
+  background: var(--gfh-bg, #fff);
+  box-shadow: var(--gfh-shade, 0 1px 3px rgba(0, 0, 0, 0.06));
 }
 .giftflow-overview__action-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 10px;
 }
-.giftflow-overview__action-btn {
-  display: inline-flex;
+.giftflow-overview__action-list .button {
+  width: 100%;
+  display: inline-flex !important;
   align-items: center;
-  gap: 0.5rem;
-  justify-content: space-between;
-  padding: 0.7rem;
-  background: black;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  justify-content: flex-start;
+  gap: 8px;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  text-align: left;
+  padding: 0.5rem 1rem !important;
 }
-.giftflow-overview__action-btn:hover, .giftflow-overview__action-btn:focus {
-  opacity: 0.5;
-}
-.giftflow-overview__action-btn:active {
-  opacity: 0.5;
-}
-.giftflow-overview__action-btn:disabled, .giftflow-overview__action-btn[aria-disabled=true] {
-  background: #b8c7d9;
-  color: #fff;
-  cursor: not-allowed;
-  opacity: 0.7;
+@media (max-width: 519px) {
+  .giftflow-overview__action-list .button {
+    padding: 0.2rem 0.5rem !important;
+  }
 }
 .giftflow-overview__action-icon {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 0;
+  flex-shrink: 0;
 }
 .giftflow-overview__campaign-list {
   display: flex;
@@ -340,9 +475,9 @@
   gap: 1rem;
 }
 .giftflow-overview__campaign-item {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
+  background: var(--gfh-bg, #fff);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius-sm, 6px);
   padding: 1rem;
 }
 .giftflow-overview__campaign-info {
@@ -354,23 +489,23 @@
 .giftflow-overview__campaign-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1e1e1e;
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-overview__campaign-progress {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #2271b1;
+  color: var(--gfh-theme, #2271b1);
 }
 .giftflow-overview__progress-bar {
   width: 100%;
   height: 6px;
-  background: #e9ecef;
+  background: var(--gfh-bg-muted, #f0f0f1);
   border-radius: 3px;
   overflow: hidden;
 }
 .giftflow-overview__progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2271b1 0%, #165a8f 100%);
+  background: linear-gradient(90deg, var(--gfh-theme, #2271b1) 0%, var(--gfh-theme-2, #135e96) 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -470,7 +605,7 @@
 .skeleton, .giftflow-overview__stat-card--loading .giftflow-overview__stat-icon,
 .giftflow-overview__stat-card--loading .giftflow-overview__stat-value,
 .giftflow-overview__stat-card--loading .giftflow-overview__stat-label {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 37%, #f0f0f0 63%);
+  background: linear-gradient(90deg, var(--gfh-bg-muted, #f0f0f1) 25%, var(--gfh-line, #dcdcde) 37%, var(--gfh-bg-muted, #f0f0f1) 63%);
   background-size: 400% 100%;
   animation: giftflow-skeleton-loading 1.4s ease infinite;
   border-radius: 4px;
@@ -498,23 +633,71 @@
   height: 400px;
   margin-bottom: 1rem;
 }
+.giftflow-chart-container .giftflow-chart-description {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gfh-text-secondary, #50575e);
+  color: black;
+}
 .giftflow-chart-container .giftflow-chart-description__select {
   font-size: 0.95em;
   display: inline;
-  padding: 0.2rem;
-  background-color: white;
+  padding: 0.2rem 1.5em 0.2rem 0.25rem;
+  background-color: var(--gfh-bg, #fff);
   margin: 0;
   line-height: normal;
   border: none;
-  border-bottom: solid 2px;
+  border-bottom: 2px solid var(--gfh-theme, #2271b1);
   height: auto !important;
   min-height: auto;
   border-radius: 0;
+  color: var(--gfh-text, #1d2327);
+  cursor: pointer;
   background-image: url(../../images/chevron-down-icon.svg);
   background-size: 10px;
   background-position: right 0.5em center;
   background-repeat: no-repeat;
-  padding-right: 1.5em !important;
+}
+.giftflow-chart-container .giftflow-chart-description__select:focus {
+  outline: 1px solid var(--gfh-theme, #2271b1);
+  outline-offset: 2px;
+}
+.giftflow-chart-container .giftflow-chart-description__legend {
+  font-weight: 600;
+}
+.giftflow-chart-container .giftflow-chart-description__legend--donations {
+  color: var(--gfh-chart-donations, #007017);
+}
+.giftflow-chart-container .giftflow-chart-description__legend--donors {
+  color: var(--gfh-chart-donors, #2271b1);
+}
+
+.giftflow-chart-cache-note {
+  margin-top: 1rem;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.2rem;
+  color: var(--gfh-text-muted, #646970);
+}
+
+.giftflow-chart-clear-cache-btn {
+  margin-left: auto;
+  padding: 0.35em 0.85em;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  border-radius: var(--gfh-radius-sm, 6px);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  background: var(--gfh-bg-soft, #f6f7f7);
+  color: var(--gfh-theme, #2271b1);
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
+}
+.giftflow-chart-clear-cache-btn:hover {
+  background: var(--gfh-bg-muted, #f0f0f1);
+  border-color: var(--gfh-theme, #2271b1);
 }
 
 .giftflow-chart-loading {
@@ -524,13 +707,13 @@
   justify-content: center;
   padding: 3rem 1rem;
   text-align: center;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-chart-loading__spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #f3f4f6;
-  border-top: 3px solid #3b82f6;
+  border: 3px solid var(--gfh-bg-muted, #f0f0f1);
+  border-top: 3px solid var(--gfh-theme, #2271b1);
   border-radius: 50%;
   animation: giftflow-chart-spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -555,18 +738,21 @@
   justify-content: center;
   padding: 3rem 1rem;
   text-align: center;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-chart-error__icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
-  opacity: 0.6;
+  color: #d63638;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
 }
 .giftflow-chart-error h4 {
   margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #dc2626;
+  color: #d63638;
 }
 .giftflow-chart-error p {
   margin: 0 0 1.5rem 0;
@@ -575,21 +761,21 @@
   line-height: 1.5;
 }
 .giftflow-chart-error__retry {
-  background: #3b82f6;
+  background: var(--gfh-theme, #2271b1);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--gfh-radius-sm, 6px);
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), transform var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-chart-error__retry:hover {
-  background: #2563eb;
+  background: var(--gfh-theme-2, #135e96);
 }
 .giftflow-chart-error__retry:active {
-  background: #1d4ed8;
+  transform: scale(0.98);
 }
 
 .giftflow-chart-empty {
@@ -599,18 +785,21 @@
   justify-content: center;
   padding: 3rem 1rem;
   text-align: center;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-chart-empty__icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
-  opacity: 0.6;
+  color: var(--gfh-text-muted, #646970);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
 }
 .giftflow-chart-empty h4 {
   margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-chart-empty p {
   margin: 0;
@@ -638,26 +827,31 @@
 .giftflow-campaigns-list__content {
   flex: 1;
   width: 100%;
-  background: #ffffff;
+  background: var(--gfh-bg, #fff);
   padding: 1rem;
-  border-radius: 0.5rem;
-  border: solid 1px #eee;
+  border-radius: var(--gfh-radius-sm, 6px);
+  border: 1px solid var(--gfh-line, #dcdcde);
 }
 .giftflow-campaigns-list__title-link {
   text-decoration: none;
   display: block;
   margin-bottom: 0.25rem;
   border-bottom: none !important;
+  color: var(--gfh-theme, #2271b1);
+  transition: color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
+}
+.giftflow-campaigns-list__title-link:hover {
+  color: var(--gfh-theme-2, #135e96);
 }
 .giftflow-campaigns-list__title {
   margin: 0 0 0.25rem 0;
   font-size: 0.9rem;
-  color: inherit;
+  color: var(--gfh-text, #1d2327);
   margin-bottom: 0.5rem;
 }
 .giftflow-campaigns-list__excerpt {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--gfh-text-muted, #646970);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
@@ -681,37 +875,37 @@
 }
 .giftflow-campaigns-list__stat strong {
   font-weight: 600;
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
 }
 .giftflow-campaigns-list__status {
-  font-weight: 500;
+  font-weight: 600;
 }
 .giftflow-campaigns-list__status--closed {
-  color: #ef4444;
+  color: #d63638;
 }
 .giftflow-campaigns-list__status--active, .giftflow-campaigns-list__status--open {
-  color: #22c55e;
+  color: var(--gfh-chart-donations, #007017);
 }
 .giftflow-campaigns-list__status--draft {
-  color: #f59e0b;
+  color: #996800;
 }
 .giftflow-campaigns-list__progress-bar {
   width: 100%;
-  background: #f1f5f9;
-  border-radius: 2px;
+  background: var(--gfh-bg-muted, #f0f0f1);
+  border-radius: 3px;
   height: 6px;
   margin-bottom: 0.5rem;
   overflow: hidden;
 }
 .giftflow-campaigns-list__progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #22c55e, #4ade80);
-  border-radius: 2px;
-  transition: width 0.5s ease;
+  background: linear-gradient(90deg, var(--gfh-theme, #2271b1) 0%, var(--gfh-theme-2, #135e96) 100%);
+  border-radius: 3px;
+  transition: width 0.5s var(--gfh-ease-out, ease);
 }
 .giftflow-campaigns-list__meta {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--gfh-text-muted, #646970);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -725,25 +919,52 @@
 }
 .giftflow-campaigns-list__percentage {
   font-weight: 600;
-  color: #22c55e;
+  color: var(--gfh-theme, #2271b1);
 }
 .giftflow-campaigns-list__date strong {
   font-weight: 600;
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
 }
 .giftflow-campaigns-list__loading {
   text-align: center;
   padding: 2rem;
-  color: #64748b;
+  color: var(--gfh-text-muted, #646970);
   font-style: italic;
 }
 .giftflow-campaigns-list__error {
   text-align: center;
-  padding: 2rem;
-  color: #ef4444;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  color: #d63638;
+  background: #fcf0f1;
+  border: 1px solid #f0b0b5;
+  border-radius: var(--gfh-radius-sm, 6px);
+}
+.giftflow-campaigns-list__modal-state {
+  padding: 1rem 1.25rem;
+  border-radius: var(--gfh-radius-sm, 6px);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.giftflow-campaigns-list__modal-state--loading {
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  color: var(--gfh-text-muted, #646970);
+}
+.giftflow-campaigns-list__modal-state--error {
+  background: #fcf0f1;
+  border: 1px solid #f0b0b5;
+  color: #d63638;
+}
+.giftflow-campaigns-list__auto-message {
+  padding: 10px 12px;
+  margin-bottom: 0.75rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--gfh-text-secondary, #50575e);
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius-sm, 6px);
 }
 @media (max-width: 768px) {
   .giftflow-campaigns-list__stats {
@@ -761,19 +982,19 @@
   margin-bottom: 1.5rem;
 }
 .giftflow-campaigns-list__select-wrapper {
-  border: 1px solid #e0e0e7;
-  border-radius: 8px;
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius, 8px);
   overflow: hidden;
-  background: #fff;
-  transition: border 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  background: var(--gfh-bg, #fff);
+  transition: border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
+  box-shadow: var(--gfh-shade, 0 1px 3px rgba(0, 0, 0, 0.06));
 }
 .giftflow-campaigns-list__select-wrapper:hover {
-  border-color: #2271b1;
+  border-color: var(--gfh-theme, #2271b1);
 }
 .giftflow-campaigns-list__select-wrapper:focus-within {
-  border-color: #2271b1;
-  box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
+  border-color: var(--gfh-theme, #2271b1);
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-campaigns-list__multiselect {
   width: 100%;
@@ -783,7 +1004,7 @@
   padding: 12px;
   font-size: 1rem;
   background: transparent;
-  color: #22223b;
+  color: var(--gfh-text, #1d2327);
   font-family: inherit;
   box-sizing: border-box;
   resize: vertical;
@@ -795,16 +1016,16 @@
 }
 .giftflow-campaigns-list__multiselect option {
   padding: 8px 10px;
-  border-bottom: 1px solid #f0f0f5;
-  background: #fff;
-  color: #22223b;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--gfh-line, #dcdcde);
+  background: var(--gfh-bg, #fff);
+  color: var(--gfh-text, #1d2327);
+  transition: background-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-campaigns-list__multiselect option:hover {
-  background: #f8f9fa;
+  background: var(--gfh-bg-soft, #f6f7f7);
 }
 .giftflow-campaigns-list__multiselect option:checked {
-  background: #2271b1;
+  background: var(--gfh-theme, #2271b1);
   color: #fff;
 }
 .giftflow-campaigns-list__multiselect option:last-child {
@@ -812,18 +1033,19 @@
 }
 .giftflow-campaigns-list__help-text {
   font-size: 0.92rem;
-  color: #6c6f80;
+  color: var(--gfh-text-muted, #646970);
   margin-top: 10px;
   line-height: 1.4;
 }
 .giftflow-campaigns-list__key {
-  background: #ececf3;
+  background: var(--gfh-bg-muted, #f0f0f1);
+  border: 1px solid var(--gfh-line, #dcdcde);
   border-radius: 4px;
   padding: 2px 6px;
   font-family: monospace;
   font-size: 0.92em;
   font-weight: 600;
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
 }
 @media (max-width: 480px) {
   .giftflow-campaigns-list__item {
@@ -863,13 +1085,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -879,9 +1101,10 @@
   visibility: visible;
 }
 .giftflow-modal__content {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  background: var(--gfh-bg, #fff);
+  border-radius: var(--gfh-radius, 8px);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  box-shadow: var(--gfh-shade-hover, 0 8px 24px rgba(0, 0, 0, 0.12));
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
@@ -914,7 +1137,7 @@
 }
 .giftflow-modal__header {
   padding: 1.5rem 1.5rem 0 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--gfh-line, #dcdcde);
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
@@ -927,7 +1150,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--gfh-text, #1d2327);
   line-height: 1.3;
 }
 .giftflow-modal__close {
@@ -935,9 +1158,9 @@
   border: none;
   padding: 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
-  color: #6b7280;
-  transition: all 0.2s ease;
+  border-radius: var(--gfh-radius-sm, 6px);
+  color: var(--gfh-text-muted, #646970);
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -945,12 +1168,12 @@
   height: 32px;
 }
 .giftflow-modal__close:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-modal__close:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #2271b1;
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-modal__close svg {
   width: 20px;
@@ -960,31 +1183,31 @@
   padding: 0 1.5rem;
   flex: 1;
   overflow-y: auto;
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
   line-height: 1.6;
 }
 .giftflow-modal__body::-webkit-scrollbar {
   width: 6px;
 }
 .giftflow-modal__body::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--gfh-bg-muted, #f0f0f1);
 }
 .giftflow-modal__body::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--gfh-line-strong, #c3c4c7);
   border-radius: 3px;
 }
 .giftflow-modal__body::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--gfh-text-muted, #646970);
 }
 .giftflow-modal__footer {
   padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--gfh-line, #dcdcde);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
   flex-shrink: 0;
-  background: #f9fafb;
+  background: var(--gfh-bg-soft, #f6f7f7);
 }
 .giftflow-modal__footer--center {
   justify-content: center;
@@ -999,11 +1222,11 @@
 }
 .giftflow-modal__button {
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--gfh-radius-sm, 6px);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), transform var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   border: none;
   text-decoration: none;
   display: inline-flex;
@@ -1012,28 +1235,28 @@
   min-height: 36px;
 }
 .giftflow-modal__button--primary {
-  background: black;
+  background: var(--gfh-theme, #2271b1);
   color: #fff;
 }
 .giftflow-modal__button--primary:hover {
-  opacity: 0.7;
+  background: var(--gfh-theme-2, #135e96);
 }
 .giftflow-modal__button--primary:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3);
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-modal__button--secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--gfh-bg, #fff);
+  color: var(--gfh-text-secondary, #50575e);
+  border: 1px solid var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-modal__button--secondary:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border-color: var(--gfh-text-muted, #646970);
 }
 .giftflow-modal__button--secondary:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.3);
+  box-shadow: 0 0 0 1px var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-modal__button--danger {
   background: #ef4444;
@@ -1048,12 +1271,12 @@
 }
 .giftflow-modal__button--ghost {
   background: transparent;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   border: 1px solid transparent;
 }
 .giftflow-modal__button--ghost:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-modal__button--ghost:focus {
   outline: none;
@@ -1087,8 +1310,8 @@
   z-index: 2;
   width: 40px;
   height: 40px;
-  border: 3px solid #f3f4f6;
-  border-top: 3px solid #2271b1;
+  border: 3px solid var(--gfh-bg-muted, #f0f0f1);
+  border-top: 3px solid var(--gfh-theme, #2271b1);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -1103,7 +1326,7 @@
   padding: 1.5rem;
 }
 .giftflow-modal--with-image .giftflow-modal__header {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--gfh-bg-soft, #f6f7f7) 0%, var(--gfh-bg-muted, #f0f0f1) 100%);
   border-bottom: none;
   padding: 2rem 1.5rem;
   text-align: center;
@@ -1115,8 +1338,8 @@
   border-radius: 50%;
   -o-object-fit: cover;
      object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 3px solid var(--gfh-bg, #fff);
+  box-shadow: var(--gfh-shade, 0 1px 3px rgba(0, 0, 0, 0.06));
 }
 @media (max-width: 768px) {
   .giftflow-modal {
@@ -1214,7 +1437,7 @@
   justify-content: space-between;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--gfh-line, #dcdcde);
 }
 .giftflow-recent-donations__header-left {
   flex: 1;
@@ -1227,24 +1450,30 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--gfh-text, #1d2327);
   line-height: 1.2;
 }
 .giftflow-recent-donations__subtitle {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   font-weight: 400;
   margin: 0;
 }
 .giftflow-recent-donations__count {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--gfh-bg-muted, #f0f0f1);
+  color: var(--gfh-text-secondary, #50575e);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--gfh-radius-sm, 6px);
   min-width: 1.5rem;
   text-align: center;
+}
+.giftflow-recent-donations__footer {
+  margin-top: 1rem;
+  text-align: right;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--gfh-line, #dcdcde);
 }
 .giftflow-recent-donations__empty {
   display: flex;
@@ -1253,23 +1482,23 @@
   justify-content: center;
   padding: 2rem 1rem;
   text-align: center;
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-recent-donations__empty-icon {
   margin-bottom: 0.75rem;
-  opacity: 0.5;
-  color: #d1d5db;
+  opacity: 0.55;
+  color: var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-recent-donations__empty-text {
   margin: 0 0 0.25rem 0;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--gfh-text-secondary, #50575e);
 }
 .giftflow-recent-donations__empty-subtext {
   margin: 0;
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
   max-width: 250px;
   line-height: 1.4;
 }
@@ -1279,16 +1508,16 @@
   gap: 0.5rem;
 }
 .giftflow-recent-donations__card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius-sm, 6px);
   padding: 0.75rem;
-  transition: all 0.15s ease;
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   position: relative;
 }
 .giftflow-recent-donations__card:hover {
-  background: #fff;
-  border-color: #d1d5db;
+  background: var(--gfh-bg, #fff);
+  border-color: var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-recent-donations__card-header {
   display: flex;
@@ -1307,7 +1536,7 @@
 .giftflow-recent-donations__donor-avatar {
   width: 32px;
   height: 32px;
-  background: #3b82f6;
+  background: var(--gfh-theme, #2271b1);
   color: #fff;
   font-weight: 600;
   font-size: 0.8rem;
@@ -1326,22 +1555,25 @@
   margin: 0 0 0.125rem 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--gfh-text, #1d2327);
   line-height: 1.2;
   margin-bottom: 0.2rem;
 }
 .giftflow-recent-donations__donor-link {
+  color: var(--gfh-theme, #2271b1);
   text-decoration: none;
-  transition: color 0.15s ease;
+  font-weight: 600;
+  border-bottom: none;
+  transition: color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-recent-donations__donor-link:hover {
-  color: #1d4ed8;
+  color: var(--gfh-theme-2, #135e96);
   text-decoration: underline;
 }
 .giftflow-recent-donations__donor-email {
   margin: 0;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   line-height: 1.2;
   word-break: break-all;
 }
@@ -1351,7 +1583,7 @@
   font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
 }
 .giftflow-recent-donations__amount :global(.giftflow-currency-formatted-amount) {
-  color: #059669;
+  color: var(--gfh-chart-donations, #007017);
 }
 .giftflow-recent-donations__card-body {
   display: flex;
@@ -1365,7 +1597,7 @@
   margin: 0;
   font-size: 0.8rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -1373,12 +1605,14 @@
   overflow: hidden;
 }
 .giftflow-recent-donations__campaign-link {
-  color: #374151;
+  color: var(--gfh-text-secondary, #50575e);
   text-decoration: none;
-  transition: color 0.15s ease;
+  font-weight: 600;
+  border-bottom: none;
+  transition: color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-recent-donations__campaign-link:hover {
-  color: #3b82f6;
+  color: var(--gfh-theme, #2271b1);
   text-decoration: underline;
 }
 .giftflow-recent-donations__card-footer {
@@ -1387,7 +1621,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--gfh-line, #dcdcde);
 }
 .giftflow-recent-donations__status-badge {
   flex-shrink: 0;
@@ -1422,13 +1656,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-recent-donations__date {
   font-weight: 500;
 }
 .giftflow-recent-donations__payment-method {
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
+  opacity: 0.9;
   text-transform: capitalize;
 }
 @media (max-width: 768px) {
@@ -1516,72 +1751,6 @@
   .giftflow-recent-donations__meta {
     font-size: 0.6rem;
   }
-}
-
-.giftflow-overview__widget {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.giftflow-overview__widget__widget-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.2;
-}
-.giftflow-overview__widget__action-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.giftflow-overview__widget__action-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  width: 100%;
-}
-.giftflow-overview__widget__action-btn:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-.giftflow-overview__widget__action-btn:active {
-  background: #1d4ed8;
-  transform: translateY(0);
-}
-.giftflow-overview__widget__action-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-.giftflow-overview__widget__action-btn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-.giftflow-overview__widget__action-btn:disabled:hover {
-  background: #9ca3af;
-  transform: none;
-  box-shadow: none;
-}
-.giftflow-overview__widget__action-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .giftflow-export-campaign__select-container {
@@ -1762,16 +1931,6 @@
   }
 }
 @media (max-width: 768px) {
-  .giftflow-overview__widget {
-    padding: 1rem;
-  }
-  .giftflow-overview__widget__widget-title {
-    font-size: 1rem;
-  }
-  .giftflow-overview__widget__action-btn {
-    padding: 0.75rem;
-    font-size: 0.8rem;
-  }
   .giftflow-export-campaign__select,
   .giftflow-export-donor__select {
     padding: 0.625rem 0.875rem;
@@ -1788,19 +1947,6 @@
     padding: 0.625rem 0.875rem;
   }
 }
-@media (max-width: 480px) {
-  .giftflow-overview__widget {
-    padding: 0.75rem;
-  }
-  .giftflow-overview__widget__action-list {
-    gap: 0.5rem;
-  }
-  .giftflow-overview__widget__action-btn {
-    padding: 0.625rem;
-    font-size: 0.75rem;
-    gap: 0.5rem;
-  }
-}
 .giftflow-select-search {
   position: relative;
   width: 100%;
@@ -1813,20 +1959,20 @@
   width: 100%;
   min-height: 44px;
   padding: 0.75rem;
-  background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  background: var(--gfh-bg, #fff);
+  border: 1px solid var(--gfh-line-strong, #c3c4c7);
+  border-radius: var(--gfh-radius-sm, 6px);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   outline: none;
   box-sizing: border-box;
 }
 .giftflow-select-search__trigger:hover {
-  border-color: #9ca3af;
+  border-color: var(--gfh-text-muted, #646970);
 }
 .giftflow-select-search__trigger:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--gfh-theme, #2271b1);
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-select-search__value {
   flex: 1;
@@ -1835,7 +1981,7 @@
   min-width: 0;
 }
 .giftflow-select-search__value-text {
-  color: #374151;
+  color: var(--gfh-text, #1d2327);
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.4;
@@ -1844,7 +1990,7 @@
   text-overflow: ellipsis;
 }
 .giftflow-select-search__placeholder {
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
   font-size: 0.875rem;
   line-height: 1.4;
   white-space: nowrap;
@@ -1866,33 +2012,33 @@
   background: none;
   border: none;
   border-radius: 50%;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-select-search__clear:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-select-search__clear:focus {
   outline: none;
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--gfh-bg-soft, #f6f7f7);
+  color: var(--gfh-text, #1d2327);
 }
 .giftflow-select-search__arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
-  transition: transform 0.2s ease;
+  color: var(--gfh-text-muted, #646970);
+  transition: transform var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-select-search__dropdown {
   position: fixed;
-  z-index: 9999;
-  background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 100001;
+  background: var(--gfh-bg, #fff);
+  border: 1px solid var(--gfh-line, #dcdcde);
+  border-radius: var(--gfh-radius-sm, 6px);
+  box-shadow: var(--gfh-shade-hover, 0 8px 24px rgba(0, 0, 0, 0.1));
   overflow: hidden;
   animation: giftflow-select-search-dropdown 0.2s ease-out;
   max-height: 300px;
@@ -1901,37 +2047,37 @@
 .giftflow-select-search__search {
   position: relative;
   padding: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid var(--gfh-line, #dcdcde);
+  background: var(--gfh-bg-soft, #f6f7f7);
 }
 .giftflow-select-search__search-icon {
   position: absolute;
   left: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   pointer-events: none;
 }
 .giftflow-select-search__search-input {
   width: 100%;
   padding: 0.5rem 0.5rem 0.5rem 2.5rem !important;
-  background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  background: var(--gfh-bg, #fff);
+  border: 1px solid var(--gfh-line-strong, #c3c4c7);
+  border-radius: var(--gfh-radius-sm, 6px);
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--gfh-text, #1d2327);
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 }
 .giftflow-select-search__search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--gfh-theme, #2271b1);
+  box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
 }
 .giftflow-select-search__search-input::-moz-placeholder {
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-select-search__search-input::placeholder {
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-select-search__options {
   max-height: 200px;
@@ -1942,49 +2088,49 @@
   width: 6px;
 }
 .giftflow-select-search__options::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--gfh-bg-muted, #f0f0f1);
 }
 .giftflow-select-search__options::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--gfh-line-strong, #c3c4c7);
   border-radius: 3px;
 }
 .giftflow-select-search__options::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--gfh-text-muted, #646970);
 }
 .giftflow-select-search__option {
   display: flex;
   flex-direction: column;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   border: none;
   background: none;
   width: 100%;
   text-align: left;
   box-sizing: border-box;
-  border-bottom: solid 1px #e5e7eb;
+  border-bottom: solid 1px var(--gfh-line, #dcdcde);
 }
 .giftflow-select-search__option:hover, .giftflow-select-search__option--highlighted {
-  background: #f3f4f6;
+  background: var(--gfh-bg-soft, #f6f7f7);
 }
 .giftflow-select-search__option--selected {
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 500;
+  background: color-mix(in srgb, var(--gfh-theme, #2271b1) 12%, var(--gfh-bg, #fff));
+  color: var(--gfh-theme, #2271b1);
+  font-weight: 600;
 }
 .giftflow-select-search__option--selected .giftflow-select-search__option-label {
-  color: #1d4ed8;
+  color: var(--gfh-theme, #2271b1);
 }
 .giftflow-select-search__option-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--gfh-text, #1d2327);
   line-height: 1.4;
   margin-bottom: 0.125rem;
 }
 .giftflow-select-search__option-description {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   line-height: 1.3;
 }
 .giftflow-select-search__loading {
@@ -1992,62 +2138,62 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   font-size: 0.875rem;
   justify-content: center;
 }
 .giftflow-select-search__spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
+  border: 2px solid var(--gfh-line, #dcdcde);
+  border-top: 2px solid var(--gfh-theme, #2271b1);
   border-radius: 50%;
   animation: giftflow-select-search-spin 1s linear infinite;
 }
 .giftflow-select-search__no-options {
   padding: 1rem;
   text-align: center;
-  color: #6b7280;
+  color: var(--gfh-text-muted, #646970);
   font-size: 0.875rem;
   font-style: italic;
 }
 .giftflow-select-search__error-message {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  color: #dc2626;
+  background: #fcf0f1;
+  border: 1px solid #f0b0b5;
+  border-radius: var(--gfh-radius-sm, 6px);
+  color: #d63638;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
 }
 .giftflow-select-search--disabled .giftflow-select-search__trigger {
-  background: #f9fafb;
-  color: #9ca3af;
+  background: var(--gfh-bg-muted, #f0f0f1);
+  color: var(--gfh-text-muted, #646970);
   cursor: not-allowed;
-  border-color: #e5e7eb;
+  border-color: var(--gfh-line, #dcdcde);
 }
 .giftflow-select-search--disabled .giftflow-select-search__trigger:hover, .giftflow-select-search--disabled .giftflow-select-search__trigger:focus {
-  border-color: #e5e7eb;
+  border-color: var(--gfh-line, #dcdcde);
   box-shadow: none;
 }
 .giftflow-select-search--disabled .giftflow-select-search__value-text,
 .giftflow-select-search--disabled .giftflow-select-search__placeholder {
-  color: #9ca3af;
+  color: var(--gfh-text-muted, #646970);
 }
 .giftflow-select-search--disabled .giftflow-select-search__arrow {
-  color: #d1d5db;
+  color: var(--gfh-line-strong, #c3c4c7);
 }
 .giftflow-select-search--error .giftflow-select-search__trigger {
-  border-color: #dc2626;
+  border-color: #d63638;
 }
 .giftflow-select-search--error .giftflow-select-search__trigger:hover {
-  border-color: #b91c1c;
+  border-color: #b32d2e;
 }
 .giftflow-select-search--error .giftflow-select-search__trigger:focus {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: #d63638;
+  box-shadow: 0 0 0 1px #d63638;
 }
 .giftflow-select-search.giftflow-select-search--open .giftflow-select-search__arrow {
   transform: rotate(180deg);
@@ -2137,25 +2283,19 @@
     font-size: 0.75rem;
   }
 }
-#GFWP_DASHBOARD_VIEW_ROOT {
-  font-family: Arial, Helvetica, sans-serif;
-}
-#GFWP_DASHBOARD_VIEW_ROOT .__monospace {
-  font-family: "Courier New", Courier, monospace;
-}
-#GFWP_DASHBOARD_VIEW_ROOT a {
+#GFWP_DASHBOARD_VIEW_ROOT a:not(.button):not(.giftflow-chart-description__select) {
+  color: var(--gfh-theme, #2271b1);
+  font-weight: 600;
   text-decoration: none;
-  border-bottom: solid 2px;
-  font-weight: 500;
-  transition: color 0.2s;
+  border-bottom: none;
+  transition: color 0.2s var(--gfh-ease, cubic-bezier(0.4, 0, 0.2, 1));
 }
-#GFWP_DASHBOARD_VIEW_ROOT a:hover {
-  opacity: 0.5;
+#GFWP_DASHBOARD_VIEW_ROOT a:not(.button):not(.giftflow-chart-description__select):hover {
+  color: var(--gfh-theme-2, #135e96);
+  text-decoration: underline;
+  opacity: 1;
 }
 
-/**
- * GiftFlow Dashboard Styles
- */
 /**
  * GiftFlow Field Styles
  *
@@ -3062,307 +3202,625 @@
 }
 
 /**
- * GiftFlow Dashboard Helps Styles
+ * GiftFlow — Help center (modern admin layout)
  */
 .giftflow-dashboard-helps {
-  max-width: 1200px;
-  margin: 2rem 0;
+  --gfh-bg: #fff;
+  --gfh-bg-soft: #f6f7f7;
+  --gfh-bg-muted: #f0f0f1;
+  --gfh-line: #dcdcde;
+  --gfh-line-strong: #c3c4c7;
+  --gfh-text: #1d2327;
+  --gfh-text-secondary: #50575e;
+  --gfh-text-muted: #646970;
+  --gfh-theme: var(--wp-admin-theme-color, #2271b1);
+  --gfh-theme-2: var(--wp-admin-theme-color-darker-10, #135e96);
+  --gfh-theme-3: var(--wp-admin-theme-color-darker-20, #0a4b78);
+  --gfh-radius: 8px;
+  --gfh-radius-sm: 6px;
+  --gfh-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --gfh-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gfh-dur: 0.2s;
+  --gfh-dur-slow: 0.32s;
+  --gfh-shade: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --gfh-shade-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+  margin: 2rem 0 32px;
   padding: 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  line-height: 1.55;
+  color: var(--gfh-text-secondary);
+  -webkit-font-smoothing: antialiased;
 }
-.giftflow-dashboard-helps__header {
-  margin-bottom: 2rem;
+.giftflow-dashboard-helps *,
+.giftflow-dashboard-helps *::before,
+.giftflow-dashboard-helps *::after {
+  box-sizing: border-box;
 }
-.giftflow-dashboard-helps__title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #1e1e1e;
-  line-height: 1.3;
-}
-.giftflow-dashboard-helps__description {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #6c757d;
-  line-height: 1.5;
-}
-.giftflow-dashboard-helps__content {
+.giftflow-dashboard-helps__shell {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 20px;
 }
-.giftflow-dashboard-helps__section {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+.giftflow-dashboard-helps__masthead {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius);
 }
-.giftflow-dashboard-helps__section:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+@media (min-width: 782px) {
+  .giftflow-dashboard-helps__masthead {
+    grid-template-columns: minmax(0, 1.15fr) minmax(200px, 1fr);
+    min-height: 220px;
+  }
 }
-.giftflow-dashboard-helps__section--support {
-  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
-  border-color: #e9ecef;
-  text-align: center;
+.giftflow-dashboard-helps__masthead-main {
+  position: relative;
+  z-index: 2;
+  padding: 24px 22px 22px;
 }
-.giftflow-dashboard-helps__section--coming-soon {
-  background: #f8f9fa;
-  border-color: #e9ecef;
-  opacity: 0.8;
+@media (min-width: 782px) {
+  .giftflow-dashboard-helps__masthead-main {
+    padding: 28px 28px 26px;
+  }
 }
-.giftflow-dashboard-helps__section-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
+.giftflow-dashboard-helps__masthead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px 10px 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gfh-text-muted);
+  background: var(--gfh-bg-soft);
+  border: 1px solid var(--gfh-line);
+  border-radius: 999px;
+}
+.giftflow-dashboard-helps__masthead-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gfh-theme);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gfh-theme) 22%, transparent);
+}
+.giftflow-dashboard-helps__masthead-title {
+  margin: 0 0 10px;
+  padding: 0;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
   font-weight: 600;
-  color: #1e1e1e;
-  line-height: 1.4;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--gfh-text);
 }
-.giftflow-dashboard-helps__section-description {
-  margin: 0 0 1.5rem 0;
-  font-size: 0.95rem;
-  color: #6c757d;
+.giftflow-dashboard-helps__masthead-lead {
+  margin: 0 0 20px;
+  max-width: 36rem;
+  font-size: 15px;
   line-height: 1.6;
+  color: var(--gfh-text-secondary);
 }
-.giftflow-dashboard-helps__docs-list {
+.giftflow-dashboard-helps__masthead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.giftflow-dashboard-helps__masthead-actions .button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--gfh-dur) var(--gfh-ease);
+  padding: 0.5rem 1rem !important;
+  font-weight: bold;
+}
+@media (max-width: 519px) {
+  .giftflow-dashboard-helps__masthead-actions .button {
+    padding: 0.2rem 0.5rem !important;
+  }
+}
+.giftflow-dashboard-helps__masthead-actions .button .dashicons {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 1;
+}
+.giftflow-dashboard-helps__masthead-actions .button:active {
+  transform: scale(0.98);
+}
+.giftflow-dashboard-helps__masthead-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--gfh-text-muted);
+}
+.giftflow-dashboard-helps__masthead-meta a {
+  color: var(--gfh-theme);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--gfh-dur) var(--gfh-ease);
+}
+.giftflow-dashboard-helps__masthead-meta a:hover {
+  color: var(--gfh-theme-2);
+  text-decoration: underline;
+}
+.giftflow-dashboard-helps__masthead-meta-label {
+  margin-right: 6px;
+  font-weight: 600;
+  color: var(--gfh-text-secondary);
+}
+.giftflow-dashboard-helps__masthead-deco {
+  position: relative;
+  min-height: 120px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--gfh-theme) 9%, var(--gfh-bg-soft)) 0%, var(--gfh-bg-soft) 55%, var(--gfh-bg-muted) 100%);
+  border-top: 1px solid var(--gfh-line);
+}
+@media (min-width: 782px) {
+  .giftflow-dashboard-helps__masthead-deco {
+    border-top: none;
+    border-left: 1px solid var(--gfh-line);
+    min-height: auto;
+  }
+}
+.giftflow-dashboard-helps__masthead-deco-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image: radial-gradient(var(--gfh-line-strong) 1px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: linear-gradient(135deg, #000 20%, transparent 75%);
+          mask-image: linear-gradient(135deg, #000 20%, transparent 75%);
+}
+.giftflow-dashboard-helps__masthead-deco-glow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gfh-theme) 28%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+  transition: opacity var(--gfh-dur-slow) var(--gfh-ease);
+}
+.giftflow-dashboard-helps__masthead:hover .giftflow-dashboard-helps__masthead-deco-glow {
+  opacity: 0.85;
+}
+.giftflow-dashboard-helps__jump {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius);
 }
-.giftflow-dashboard-helps__doc-item {
+@media (min-width: 600px) {
+  .giftflow-dashboard-helps__jump {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+  }
+}
+.giftflow-dashboard-helps__jump-label {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gfh-text-muted);
+}
+.giftflow-dashboard-helps__jump-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.giftflow-dashboard-helps__jump-link {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gfh-text-secondary);
+  text-decoration: none;
+  background: var(--gfh-bg-soft);
+  border: 1px solid var(--gfh-line);
+  border-radius: 999px;
+  transition: background var(--gfh-dur) var(--gfh-ease), border-color var(--gfh-dur) var(--gfh-ease), color var(--gfh-dur) var(--gfh-ease), transform var(--gfh-dur) var(--gfh-ease-out);
+}
+.giftflow-dashboard-helps__jump-link:hover {
+  color: var(--gfh-theme-2);
+  border-color: color-mix(in srgb, var(--gfh-theme) 35%, var(--gfh-line));
+  background: color-mix(in srgb, var(--gfh-theme) 6%, var(--gfh-bg));
+  transform: translateY(-1px);
+}
+.giftflow-dashboard-helps__jump-link:focus {
+  outline: none;
+}
+.giftflow-dashboard-helps__jump-link:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gfh-theme) 35%, transparent);
+}
+.giftflow-dashboard-helps__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .giftflow-dashboard-helps__body {
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+  }
+}
+.giftflow-dashboard-helps__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.giftflow-dashboard-helps__featured {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+  gap: 16px;
+  padding: 20px 20px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s ease;
-  cursor: pointer;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--gfh-theme) 10%, var(--gfh-bg)) 0%, var(--gfh-bg) 48%);
+  border: 1px solid color-mix(in srgb, var(--gfh-theme) 22%, var(--gfh-line));
+  border-radius: var(--gfh-radius);
+  transition: border-color var(--gfh-dur-slow) var(--gfh-ease), box-shadow var(--gfh-dur-slow) var(--gfh-ease), transform var(--gfh-dur-slow) var(--gfh-ease-out);
 }
-.giftflow-dashboard-helps__doc-item:hover {
-  background: #fff;
-  border-color: #000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.giftflow-dashboard-helps__featured:hover {
+  border-color: color-mix(in srgb, var(--gfh-theme) 40%, var(--gfh-line));
   transform: translateY(-2px);
 }
-.giftflow-dashboard-helps__doc-item:hover .giftflow-dashboard-helps__doc-link {
-  color: #000;
-  gap: 0.5rem;
-}
-.giftflow-dashboard-helps__doc-item:hover .giftflow-dashboard-helps__doc-link svg {
+.giftflow-dashboard-helps__featured:hover .giftflow-dashboard-helps__featured-arrow {
+  color: var(--gfh-theme);
   transform: translateX(4px);
 }
-.giftflow-dashboard-helps__doc-item:focus {
+.giftflow-dashboard-helps__featured:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
-.giftflow-dashboard-helps__doc-item:active {
-  transform: translateY(0);
+.giftflow-dashboard-helps__featured:focus-visible {
+  box-shadow: 0 0 0 2px var(--gfh-bg), 0 0 0 5px color-mix(in srgb, var(--gfh-theme) 35%, transparent);
 }
-.giftflow-dashboard-helps__doc-icon {
+@media (min-width: 600px) {
+  .giftflow-dashboard-helps__featured {
+    align-items: center;
+    padding: 22px 24px;
+  }
+}
+.giftflow-dashboard-helps__featured-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  color: #1e1e1e;
-  transition: all 0.2s ease;
-}
-.giftflow-dashboard-helps__doc-icon svg {
-  width: 24px;
-  height: 24px;
-}
-.giftflow-dashboard-helps__doc-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 0.2rem;
-  min-width: 0;
-}
-.giftflow-dashboard-helps__doc-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-.giftflow-dashboard-helps__doc-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1e1e1e;
-  line-height: 1.4;
-  flex: 1;
-  min-width: 0;
-}
-.giftflow-dashboard-helps__doc-description {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.875rem;
-  color: #6c757d;
-  line-height: 1.6;
-}
-.giftflow-dashboard-helps__doc-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.625rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #856404;
-  line-height: 1;
-  white-space: nowrap;
-  flex-shrink: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-.giftflow-dashboard-helps__doc-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #6c757d;
-  transition: all 0.2s ease;
-}
-.giftflow-dashboard-helps__doc-link svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.2s ease;
-}
-.giftflow-dashboard-helps__coming-soon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-}
-.giftflow-dashboard-helps__coming-soon-icon {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6c757d;
-  margin-bottom: 1rem;
-  opacity: 0.6;
-}
-.giftflow-dashboard-helps__coming-soon-icon svg {
   width: 48px;
   height: 48px;
+  color: var(--gfh-theme);
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius-sm);
+  box-shadow: var(--gfh-shade);
 }
-.giftflow-dashboard-helps__coming-soon-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
+.giftflow-dashboard-helps__featured-icon .dashicons {
+  width: 26px;
+  height: 26px;
+  font-size: 26px;
+}
+.giftflow-dashboard-helps__featured-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.giftflow-dashboard-helps__featured-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gfh-theme-2);
+}
+.giftflow-dashboard-helps__featured-title {
+  font-size: 17px;
   font-weight: 600;
-  color: #6c757d;
-  line-height: 1.4;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--gfh-text);
 }
-.giftflow-dashboard-helps__coming-soon-description {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #6c757d;
-  line-height: 1.6;
-  max-width: 500px;
+.giftflow-dashboard-helps__featured-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gfh-text-secondary);
 }
-.giftflow-dashboard-helps__support-button {
-  display: inline-flex;
+.giftflow-dashboard-helps__featured-arrow {
+  flex-shrink: 0;
+  display: none;
+  color: var(--gfh-text-muted);
+  transition: color var(--gfh-dur-slow) var(--gfh-ease), transform var(--gfh-dur-slow) var(--gfh-ease-out);
+}
+@media (min-width: 600px) {
+  .giftflow-dashboard-helps__featured-arrow {
+    display: flex;
+    align-items: center;
+  }
+}
+.giftflow-dashboard-helps__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 520px) {
+  .giftflow-dashboard-helps__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.giftflow-dashboard-helps__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 16px 16px;
+  text-decoration: none;
+  color: inherit;
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius);
+  transition: border-color var(--gfh-dur-slow) var(--gfh-ease), box-shadow var(--gfh-dur-slow) var(--gfh-ease), transform var(--gfh-dur-slow) var(--gfh-ease-out);
+}
+.giftflow-dashboard-helps__tile:hover {
+  border-color: var(--gfh-line-strong);
+  transform: translateY(-3px);
+}
+.giftflow-dashboard-helps__tile:hover .giftflow-dashboard-helps__tile-cta {
+  color: var(--gfh-theme-2);
+}
+.giftflow-dashboard-helps__tile:hover .giftflow-dashboard-helps__tile-cta svg {
+  transform: translateX(3px);
+}
+.giftflow-dashboard-helps__tile:hover .giftflow-dashboard-helps__tile-icon {
+  color: var(--gfh-theme);
+  border-color: color-mix(in srgb, var(--gfh-theme) 40%, var(--gfh-line));
+  background: color-mix(in srgb, var(--gfh-theme) 6%, var(--gfh-bg-soft));
+}
+.giftflow-dashboard-helps__tile:focus {
+  outline: none;
+}
+.giftflow-dashboard-helps__tile:focus-visible {
+  box-shadow: 0 0 0 2px var(--gfh-bg), 0 0 0 4px color-mix(in srgb, var(--gfh-theme) 32%, transparent);
+}
+.giftflow-dashboard-helps__tile-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gfh-theme-3);
+  background: color-mix(in srgb, var(--gfh-theme) 9%, var(--gfh-bg));
+  border: 1px solid color-mix(in srgb, var(--gfh-theme) 20%, var(--gfh-line));
+  border-radius: 4px;
+}
+.giftflow-dashboard-helps__tile-icon {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 40px;
+  height: 40px;
+  color: #787c82;
+  background: var(--gfh-bg-soft);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius-sm);
+  transition: color var(--gfh-dur-slow) var(--gfh-ease), border-color var(--gfh-dur-slow) var(--gfh-ease), background var(--gfh-dur-slow) var(--gfh-ease);
 }
-.giftflow-dashboard-helps__support-button svg {
+.giftflow-dashboard-helps__tile-icon .dashicons {
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+}
+.giftflow-dashboard-helps__tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding-right: 3.5rem;
+}
+.giftflow-dashboard-helps__tile-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--gfh-text);
+}
+.giftflow-dashboard-helps__tile-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gfh-text-muted);
+}
+.giftflow-dashboard-helps__tile-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gfh-theme);
+  transition: color var(--gfh-dur) var(--gfh-ease);
+}
+.giftflow-dashboard-helps__tile-cta svg {
+  transition: transform var(--gfh-dur-slow) var(--gfh-ease-out);
+}
+.giftflow-dashboard-helps__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.giftflow-dashboard-helps__rail-card {
+  padding: 20px 18px;
+  background: var(--gfh-bg);
+  border: 1px solid var(--gfh-line);
+  border-radius: var(--gfh-radius);
+  transition: box-shadow var(--gfh-dur-slow) var(--gfh-ease);
+}
+.giftflow-dashboard-helps__rail-card--dev {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gfh-theme) 5%, var(--gfh-bg)) 0%, var(--gfh-bg) 100%);
+}
+.giftflow-dashboard-helps__rail-card--support {
+  text-align: center;
+}
+.giftflow-dashboard-helps__rail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--gfh-text);
+}
+.giftflow-dashboard-helps__rail-card--support .giftflow-dashboard-helps__rail-title {
+  justify-content: center;
+}
+.giftflow-dashboard-helps__rail-title-icon.dashicons {
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--gfh-theme);
 }
-.giftflow-dashboard-helps__support-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: #fff;
+.giftflow-dashboard-helps__rail-text {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gfh-text-muted);
+}
+.giftflow-dashboard-helps__rail-card--support .giftflow-dashboard-helps__rail-text {
+  margin-bottom: 16px;
+}
+.giftflow-dashboard-helps__rail-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.giftflow-dashboard-helps__rail-links li {
+  margin: 0;
+  border-bottom: 1px solid var(--gfh-line);
+}
+.giftflow-dashboard-helps__rail-links li:last-child {
+  border-bottom: none;
+}
+.giftflow-dashboard-helps__rail-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 4px;
+  margin: 0 -4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gfh-theme);
   text-decoration: none;
+  border-radius: var(--gfh-radius-sm);
+  transition: background var(--gfh-dur) var(--gfh-ease), color var(--gfh-dur) var(--gfh-ease);
 }
-.giftflow-dashboard-helps__support-button:focus {
+.giftflow-dashboard-helps__rail-links a .dashicons {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--gfh-text-muted);
+  transition: transform var(--gfh-dur-slow) var(--gfh-ease-out), color var(--gfh-dur) var(--gfh-ease);
+}
+.giftflow-dashboard-helps__rail-links a:hover {
+  background: var(--gfh-bg-soft);
+  color: var(--gfh-theme-2);
+}
+.giftflow-dashboard-helps__rail-links a:hover .dashicons {
+  color: var(--gfh-theme);
+  transform: translateX(2px);
+}
+.giftflow-dashboard-helps__rail-links a:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
-.giftflow-dashboard-helps__support-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.giftflow-dashboard-helps__rail-links a:focus-visible {
+  background: var(--gfh-bg-soft);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gfh-theme) 28%, transparent);
 }
-@media (max-width: 768px) {
-  .giftflow-dashboard-helps {
-    margin: 1.5rem 0;
-  }
-  .giftflow-dashboard-helps__header {
-    margin-bottom: 1.5rem;
-  }
-  .giftflow-dashboard-helps__title {
-    font-size: 1.5rem;
-  }
-  .giftflow-dashboard-helps__content {
-    gap: 1.5rem;
-  }
-  .giftflow-dashboard-helps__section {
-    padding: 1.25rem;
-  }
-  .giftflow-dashboard-helps__section-title {
-    font-size: 1.125rem;
-  }
-  .giftflow-dashboard-helps__docs-list {
-    gap: 0.75rem;
-  }
-  .giftflow-dashboard-helps__doc-item {
-    padding: 0.875rem;
-  }
-  .giftflow-dashboard-helps__doc-icon {
-    width: 36px;
-    height: 36px;
-  }
-  .giftflow-dashboard-helps__doc-icon svg {
-    width: 20px;
-    height: 20px;
+.giftflow-dashboard-helps__btn--block {
+  width: 100%;
+  justify-content: center !important;
+  text-align: center;
+  padding: 0.5rem !important;
+  font-weight: bold;
+}
+@media (max-width: 519px) {
+  .giftflow-dashboard-helps__btn--block {
+    padding: 0.2rem 0.5rem !important;
   }
 }
-@media (max-width: 480px) {
-  .giftflow-dashboard-helps {
-    margin: 1rem 0;
+@media (max-width: 519px) {
+  .giftflow-dashboard-helps__tile-body {
+    padding-right: 0;
   }
-  .giftflow-dashboard-helps__title {
-    font-size: 1.25rem;
+  .giftflow-dashboard-helps__tile-tag {
+    position: static;
+    align-self: flex-start;
+    order: -1;
+    margin-bottom: 2px;
   }
-  .giftflow-dashboard-helps__section {
-    padding: 1rem;
+  .giftflow-dashboard-helps__tile {
+    padding-top: 16px;
   }
-  .giftflow-dashboard-helps__support-button {
-    width: 100%;
-    padding: 0.75rem 1.25rem;
-    font-size: 0.95rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .giftflow-dashboard-helps, .giftflow-dashboard-helps * {
+    transition: none !important;
+  }
+  .giftflow-dashboard-helps__featured:hover, .giftflow-dashboard-helps__tile:hover, .giftflow-dashboard-helps__jump-link:hover {
+    transform: none;
+  }
+  .giftflow-dashboard-helps .button:active {
+    transform: none !important;
   }
 }
 
+@supports not (color: color-mix(in srgb, #000 50%, #fff)) {
+  .giftflow-dashboard-helps__masthead-badge-dot {
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.2);
+  }
+  .giftflow-dashboard-helps__masthead-deco {
+    background: linear-gradient(145deg, #e8f0f8 0%, #f6f7f7 55%, #f0f0f1 100%);
+  }
+  .giftflow-dashboard-helps__masthead-deco-glow {
+    background: radial-gradient(circle, rgba(34, 113, 177, 0.2) 0%, transparent 70%);
+  }
+  .giftflow-dashboard-helps__featured {
+    background: linear-gradient(120deg, #f0f6fc 0%, #fff 48%);
+    border-color: #c5d9ed;
+  }
+  .giftflow-dashboard-helps__tile-tag {
+    background: #f0f6fc;
+    border-color: #c5d9ed;
+    color: #0a4b78;
+  }
+  .giftflow-dashboard-helps__jump-link:hover {
+    background: #f0f6fc;
+    border-color: #8cc8ff;
+  }
+}
 .gfw-monofont {
   font-family: "Courier New", Courier, monospace;
+  font-weight: bold;
 }

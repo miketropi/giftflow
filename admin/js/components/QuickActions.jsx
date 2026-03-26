@@ -19,20 +19,20 @@ export default function QuickActions() {
 
   return (
     <>
-      <div className="giftflow-overview__widget">
+      <div className="giftflow-overview__widget giftflow-overview__widget--actions">
         <h4 className="giftflow-overview__widget-title">Actions</h4>
         <div className="giftflow-overview__action-list">
-          <button className="giftflow-overview__action-btn" type="button" onClick={handleExportCampaign}>
-            <span className="giftflow-overview__action-icon">
-              <FileDown color='#FFF' size={20} />
+          <button className="button button-primary" type="button" onClick={handleExportCampaign}>
+            <span className="giftflow-overview__action-icon" aria-hidden="true">
+              <FileDown size={18} />
             </span>
-            Export Campaign (.csv)
+            Export campaign (.csv)
           </button>
-          <button className="giftflow-overview__action-btn" type="button" onClick={handleExportDonor}>
-            <span className="giftflow-overview__action-icon">
-              <FileDown color='#FFF' size={20} />
+          <button className="button button-primary" type="button" onClick={handleExportDonor}>
+            <span className="giftflow-overview__action-icon" aria-hidden="true">
+              <FileDown size={18} />
             </span>
-            Export Donor (.csv)
+            Export donor (.csv)
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ const ExportCampaignModal = ({ isModalExportCampaignOpen, setIsModalExportCampai
       )}
 
     {/* Notification message for user about export functionality */}
-    <div className="__monospace">
+    <div className="">
       <strong>Export Info:</strong> Exporting a campaign will download a CSV file with all details for the selected campaign, including donations, donor information, dates, and amounts.
     </div>
 
@@ -152,7 +152,7 @@ const ExportDonorModal = ({ isModalExportDonorOpen, setIsModalExportDonorOpen })
       }
     }]}
   >
-    <div className="__monospace" style={{  padding: '0 0 2rem 0', fontSize: '.8rem' }}>
+    <div className="" style={{  padding: '0 0 2rem 0' }}>
       <strong>Coming Soon:</strong> Exporting donors will be available in a future update.
     </div>
   </Modal>

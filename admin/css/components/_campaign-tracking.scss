@@ -1,4 +1,4 @@
-// GiftFlow Campaign Tracking Component
+// GiftFlow Campaign Tracking (inherits --gfh-* from .giftflow-dashboard-view)
 .giftflow-campaigns-list {
   &__ul {
     list-style: none;
@@ -24,11 +24,10 @@
   &__content {
     flex: 1;
     width: 100%;
-
-    background: #ffffff;
+    background: var(--gfh-bg, #fff);
     padding: 1rem;
-    border-radius: 0.5rem;
-    border: solid 1px #eee;
+    border-radius: var(--gfh-radius-sm, 6px);
+    border: 1px solid var(--gfh-line, #dcdcde);
   }
 
   &__title-link {
@@ -36,20 +35,24 @@
     display: block;
     margin-bottom: 0.25rem;
     border-bottom: none !important;
+    color: var(--gfh-theme, #2271b1);
+    transition: color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
+
+    &:hover {
+      color: var(--gfh-theme-2, #135e96);
+    }
   }
 
   &__title {
     margin: 0 0 0.25rem 0;
-    // font-weight: 600;
-    font-size: .9rem;
-    // line-height: 1.5;
-    color: inherit;
-    margin-bottom: .5rem;
+    font-size: 0.9rem;
+    color: var(--gfh-text, #1d2327);
+    margin-bottom: 0.5rem;
   }
 
   &__excerpt {
     font-size: 0.95rem;
-    color: #64748b;
+    color: var(--gfh-text-muted, #646970);
     margin-bottom: 0.5rem;
     line-height: 1.4;
 
@@ -76,31 +79,31 @@
   &__stat {
     strong {
       font-weight: 600;
-      color: #374151;
+      color: var(--gfh-text-secondary, #50575e);
     }
   }
 
   &__status {
-    font-weight: 500;
+    font-weight: 600;
 
     &--closed {
-      color: #ef4444;
+      color: #d63638;
     }
 
     &--active,
     &--open {
-      color: #22c55e;
+      color: var(--gfh-chart-donations, #007017);
     }
 
     &--draft {
-      color: #f59e0b;
+      color: #996800;
     }
   }
 
   &__progress-bar {
     width: 100%;
-    background: #f1f5f9;
-    border-radius: 2px;
+    background: var(--gfh-bg-muted, #f0f0f1);
+    border-radius: 3px;
     height: 6px;
     margin-bottom: 0.5rem;
     overflow: hidden;
@@ -108,14 +111,18 @@
 
   &__progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #22c55e, #4ade80);
-    border-radius: 2px;
-    transition: width 0.5s ease;
+    background: linear-gradient(
+      90deg,
+      var(--gfh-theme, #2271b1) 0%,
+      var(--gfh-theme-2, #135e96) 100%
+    );
+    border-radius: 3px;
+    transition: width 0.5s var(--gfh-ease-out, ease);
   }
 
   &__meta {
     font-size: 0.85rem;
-    color: #64748b;
+    color: var(--gfh-text-muted, #646970);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -129,13 +136,13 @@
 
   &__percentage {
     font-weight: 600;
-    color: #22c55e;
+    color: var(--gfh-theme, #2271b1);
   }
 
   &__date {
     strong {
       font-weight: 600;
-      color: #374151;
+      color: var(--gfh-text-secondary, #50575e);
     }
   }
 
@@ -143,17 +150,48 @@
   &__loading {
     text-align: center;
     padding: 2rem;
-    color: #64748b;
+    color: var(--gfh-text-muted, #646970);
     font-style: italic;
   }
 
   &__error {
     text-align: center;
-    padding: 2rem;
-    color: #ef4444;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    color: #d63638;
+    background: #fcf0f1;
+    border: 1px solid #f0b0b5;
+    border-radius: var(--gfh-radius-sm, 6px);
+  }
+
+  &__modal-state {
+    padding: 1rem 1.25rem;
+    border-radius: var(--gfh-radius-sm, 6px);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+
+    &--loading {
+      background: var(--gfh-bg-soft, #f6f7f7);
+      border: 1px solid var(--gfh-line, #dcdcde);
+      color: var(--gfh-text-muted, #646970);
+    }
+
+    &--error {
+      background: #fcf0f1;
+      border: 1px solid #f0b0b5;
+      color: #d63638;
+    }
+  }
+
+  &__auto-message {
+    padding: 10px 12px;
+    margin-bottom: 0.75rem;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--gfh-text-secondary, #50575e);
+    background: var(--gfh-bg-soft, #f6f7f7);
+    border: 1px solid var(--gfh-line, #dcdcde);
+    border-radius: var(--gfh-radius-sm, 6px);
   }
 
   // Responsive adjustments
@@ -182,20 +220,22 @@
   }
 
   &__select-wrapper {
-    border: 1px solid #e0e0e7;
-    border-radius: 8px;
+    border: 1px solid var(--gfh-line, #dcdcde);
+    border-radius: var(--gfh-radius, 8px);
     overflow: hidden;
-    background: #fff;
-    transition: border 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    background: var(--gfh-bg, #fff);
+    transition:
+      border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease),
+      box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
+    box-shadow: var(--gfh-shade, 0 1px 3px rgba(0, 0, 0, 0.06));
 
     &:hover {
-      border-color: #2271b1;
+      border-color: var(--gfh-theme, #2271b1);
     }
 
     &:focus-within {
-      border-color: #2271b1;
-      box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
+      border-color: var(--gfh-theme, #2271b1);
+      box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
     }
   }
 
@@ -207,7 +247,7 @@
     padding: 12px;
     font-size: 1rem;
     background: transparent;
-    color: #22223b;
+    color: var(--gfh-text, #1d2327);
     font-family: inherit;
     box-sizing: border-box;
     resize: vertical;
@@ -221,17 +261,17 @@
 
     option {
       padding: 8px 10px;
-      border-bottom: 1px solid #f0f0f5;
-      background: #fff;
-      color: #22223b;
-      transition: background-color 0.2s ease;
+      border-bottom: 1px solid var(--gfh-line, #dcdcde);
+      background: var(--gfh-bg, #fff);
+      color: var(--gfh-text, #1d2327);
+      transition: background-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 
       &:hover {
-        background: #f8f9fa;
+        background: var(--gfh-bg-soft, #f6f7f7);
       }
 
       &:checked {
-        background: #2271b1;
+        background: var(--gfh-theme, #2271b1);
         color: #fff;
       }
 
@@ -243,19 +283,20 @@
 
   &__help-text {
     font-size: 0.92rem;
-    color: #6c6f80;
+    color: var(--gfh-text-muted, #646970);
     margin-top: 10px;
     line-height: 1.4;
   }
 
   &__key {
-    background: #ececf3;
+    background: var(--gfh-bg-muted, #f0f0f1);
+    border: 1px solid var(--gfh-line, #dcdcde);
     border-radius: 4px;
     padding: 2px 6px;
     font-family: monospace;
     font-size: 0.92em;
     font-weight: 600;
-    color: #374151;
+    color: var(--gfh-text-secondary, #50575e);
   }
 
   @media (max-width: 480px) {

@@ -1,6 +1,5 @@
-import { Link } from 'lucide-react';
-
 export default function RecentDonations({ donations = [] }) {
+  const base = typeof giftflow_admin !== 'undefined' && giftflow_admin.admin_url ? giftflow_admin.admin_url : '';
   if (!donations || donations.length === 0) {
     return (
       <div className="giftflow-recent-donations">
@@ -43,7 +42,7 @@ export default function RecentDonations({ donations = [] }) {
                 <div className="giftflow-recent-donations__donor-details">
                   <h4 className="giftflow-recent-donations__donor-name">
                     <a 
-                      href={ giftflow_admin.admin_url + `post.php?post=${donation.donor_id}&action=edit` } 
+                      href={ `${base}post.php?post=${donation.donor_id}&action=edit` } 
                       className="giftflow-recent-donations__donor-link"
                       target='_blank'
                       dangerouslySetInnerHTML={{ __html: donation.donor_name }}
@@ -60,7 +59,7 @@ export default function RecentDonations({ donations = [] }) {
               <div className="giftflow-recent-donations__campaign-info">
                 <h5 className="giftflow-recent-donations__campaign-title">
                   <a 
-                    href={ giftflow_admin.admin_url + `post.php?post=${donation.campaign_id}&action=edit` } 
+                    href={ `${base}post.php?post=${donation.campaign_id}&action=edit` } 
                     target='_blank'
                     className="giftflow-recent-donations__campaign-link"
                     dangerouslySetInnerHTML={{ __html: donation.campaign_title }}
@@ -86,11 +85,11 @@ export default function RecentDonations({ donations = [] }) {
         ))}
       </div>
 
-    <div className="giftflow-recent-donations__footer" style={{ marginTop: '1rem', textAlign: 'right' }}>
+    <div className="giftflow-recent-donations__footer">
       <a
-        href="edit.php?post_type=donation"
-        className="giftflow-btn giftflow-btn--secondary button button-small">
-        View All Donations
+        href={`${base}edit.php?post_type=donation`}
+        className="button button-small">
+        View all donations
       </a>
     </div>
     </div>
