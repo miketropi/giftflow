@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -308,6 +308,47 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.9 =
+* Release: Finalize/stabilize release for development and production sites.
+* Docs: Added developer-focused release documentation.
+* Update: Overhauled and updated content on the admin help page for better clarity and onboarding.
+* Improvement: Minor performance, translation, and code quality refinements.
+
+= 1.0.8 =
+* Update: Refined and upgraded the payment gateway package for smoother transactions.
+* Fix: Enhanced modal donation experience for better user flow and responsiveness.
+* Improvement: Further improved UI/UX on tablet & mobile, ensuring consistent and intuitive interactions.
+* Security: Addressed additional backend vulnerabilities for stronger protection.
+* Docs: Updated and extended documentation to reflect new changes and usage recommendations.
+
+= 1.0.7 =
+* Update: Improved UI designs and fixed several minor bugs in the admin backend.
+* Fix: Resolved an issue causing modal donation to not behave properly under certain conditions.
+* Improvement: Adjusted tablet/mobile layouts for campaign and donation forms for greater accessibility.
+* Security: Patched an issue related to data sanitization and access control in admin screens.
+* Docs: Added detailed setup and usage instructions for new features.
+
+= 1.0.6 =
+* Update: Upgraded payment gateway libraries to latest stable releases.
+* Improvement: Optimized modal donation speed; donations now process with less delay.
+* Improvement: Enhanced mobile navigation menus and fixed UI glitches on iOS devices.
+* Fix: Prevented unauthorized data exposure by strengthening security checks in backend logic.
+* Docs: Clarified payment setup and mobile customization steps in documentation.
+
+= 1.0.5 =
+* Update: Refactored gateway integration package for better reliability.
+* Improvement: Polished modal donation interface for improved clarity and conversion rates.
+* Improvement: Improved responsive design for donor listing and campaign edit screens.
+* Fix: Hardened code to resolve vulnerabilities uncovered in plugin audits.
+* Docs: Cleaned up outdated tips and added FAQ section.
+
+= 1.0.4 =
+* Update: Added support for custom payment gateway extensions.
+* Improvement: Slight modal donation improvements (rendering and error handling).
+* Improvement: Initial major UI update for tablet and mobile screens.
+* Security: Fixed several XSS and CSRF vulnerabilities in admin area.
+* Docs: Documented new UI changes and gateway extension methods.
 
 = 1.0.3 =
 * Added support for Classic (non-block) WordPress themes

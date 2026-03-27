@@ -3,7 +3,7 @@
  * Plugin Name: GiftFlow – Donation & Fundraising
  * Plugin URI: https://giftflow.beplus-agency.cloud/
  * Description: The all-in-one fundraising and donation management solution for WordPress. GiftFlow empowers nonprofits and organizations to easily accept donations, run unlimited campaigns, and manage donor relationships—all with a modern interface, robust analytics, and seamless payment integrations (Stripe, PayPal, bank transfer). Designed for growth, security, and extensibility, GiftFlow offers powerful tools—even no coding required—to launch, track, and optimize your giving programs.
- * Version: 1.0.8
+ * Version: 1.0.9
  * Author: Beplus
  * Author URI: https://beplusthemes.com/
  * Text Domain: giftflow
@@ -22,7 +22,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin constants.
-define( 'GIFTFLOW_VERSION', '1.0.8' );
+define( 'GIFTFLOW_VERSION', '1.0.9' );
 define( 'GIFTFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
