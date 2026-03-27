@@ -20,13 +20,18 @@ require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/dashboard-functions.php';
  * @return void
  */
 function giftflow_register_dashboard_page() {
+
+	// add icon to the menu page.
+	// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+	$icon = 'data:image/svg+xml;base64,' . base64_encode( giftflow_svg_icon( 'plgicon' ) );
+
 	add_menu_page(
-		__( 'GiftFlow Dashboard', 'giftflow' ),
-		__( 'GiftFlow', 'giftflow' ),
+		apply_filters( 'giftflow_dashboard_page_title', __( 'GiftFlow Dashboard', 'giftflow' ) ),
+		apply_filters( 'giftflow_menu_title', __( 'GiftFlow', 'giftflow' ) ),
 		'manage_options',
 		'giftflow-dashboard',
 		'giftflow_dashboard_page',
-		'dashicons-heart',
+		$icon,
 		30
 	);
 
