@@ -1752,6 +1752,14 @@ function validateValue(type, value) {
           if (isNaN(value) || value === '') overallValid = false;
           break;
 
+        // price
+        case 'price':
+          // Accepts numeric value, optional decimals, >0, not empty
+          if (value === '' || value === null || value === undefined || isNaN(value) || Number(value) <= 0 || !/^(\d+)(\.\d{1,2})?$/.test(value.toString())) {
+            overallValid = false;
+          }
+          break;
+
         // min
         case 'min':
           var __min = parseInt((extraData === null || extraData === void 0 ? void 0 : extraData.min) || 0, 10);

@@ -141,6 +141,9 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 				'id' => $this->id,
 				'title' => $this->title,
 				'icon' => $this->icon,
+				'icons' => array(
+					'checked' => giftflow_svg_icon( 'checked' ),
+				),
 				'instructions' => $this->get_setting( 'instructions' ),
 				'bank_account_name' => $this->get_setting( 'bank_account_name' ),
 				'bank_account_number' => $this->get_setting( 'bank_account_number' ),
