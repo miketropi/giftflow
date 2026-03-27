@@ -16,62 +16,80 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------------------------
-      # Setup environments
-      # ---------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "npm"
+          node-version: '24'
+          cache: 'npm'
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: '8.2'
           tools: composer:v2
 
-      # ---------------------------
-      # Build
-      # ---------------------------
-      - run: npm install
-      - run: npm run build
-      - run: composer run build
-      - run: npm run build:package
+      - name: Install npm dependencies
+        run: npm install
 
-      # ---------------------------
-      # Extract version
-      # ---------------------------
+      - name: Build assets
+        run: npm run build
+
+      - name: Build vendor dependencies
+        run: composer run build
+
+      - name: Build package
+        run: npm run build:package
+
+      # 🔥 Extract version (support v1.0.0 or 1.0.0)
       - name: Extract version
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      # ---------------------------
-      # Validate package
-      # ---------------------------
+      # 🔥 Validate version + structure
       - name: Validate version
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
 
+          echo "Validating version: $VERSION"
+
+          # check semver
           if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version"
+            echo "❌ Invalid version format: $VERSION"
             exit 1
           fi
 
           unzip giftflow.zip -d build
 
-          FILE_VERSION=$(grep -i "Version:" build/giftflow/giftflow.php | head -1 | awk -F': ' '{print $2}' | tr -d '\r')
-
-          if [ "$FILE_VERSION" != "$VERSION" ]; then
-            echo "Version mismatch"
+          # check plugin file
+          if [ ! -f "build/giftflow/giftflow.php" ]; then
+            echo "❌ Plugin main file not found!"
             exit 1
           fi
 
-          echo "Validation passed"
+          # check plugin version
+          FILE_VERSION=$(grep -i "Version:" build/giftflow/giftflow.php | head -1 | awk -F': ' '{print $2}' | tr -d '\r')
+          echo "Plugin version: $FILE_VERSION"
 
-      # ---------------------------
-      # GitHub Release
-      # ---------------------------
+          if [ "$FILE_VERSION" != "$VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "Tag: $VERSION"
+            echo "Plugin: $FILE_VERSION"
+            exit 1
+          fi
+
+          # check readme stable tag (optional but recommended)
+          if [ -f "build/giftflow/readme.txt" ]; then
+            README_VERSION=$(grep -i "Stable tag:" build/giftflow/readme.txt | awk -F': ' '{print $2}' | tr -d '\r')
+            echo "Readme stable tag: $README_VERSION"
+
+            if [ "$README_VERSION" != "$VERSION" ]; then
+              echo "❌ Stable tag mismatch!"
+              exit 1
+            fi
+          fi
+
+          echo "✅ Validation passed"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -79,58 +97,43 @@ jobs:
           files: giftflow.zip
           generate_release_notes: true
 
-      # ---------------------------
-      # Install SVN
-      # ---------------------------
+      # 🔥 Install SVN
       - name: Install SVN
         run: sudo apt-get install subversion -y
 
-      # ---------------------------
-      # 🚀 FAST WordPress.org Deploy
-      # ---------------------------
+      # 🔥 Deploy to WordPress.org
       - name: Deploy to WordPress.org
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
-          set -e
-
           PLUGIN_SLUG="giftflow"
 
           echo "Deploying version $VERSION"
 
-          # ✅ checkout ONLY trunk (FAST)
-          svn checkout \
-            https://plugins.svn.wordpress.org/$PLUGIN_SLUG/trunk \
-            svn-trunk \
-            --depth immediates
+          svn checkout https://plugins.svn.wordpress.org/$PLUGIN_SLUG svn-repo
 
-          # unzip package
+          # unzip again (clean state)
           rm -rf build
           unzip giftflow.zip -d build
 
-          # sync files
-          rsync -rc --delete build/giftflow/ svn-trunk/
+          # sync trunk
+          rsync -av --delete build/giftflow/ svn-repo/trunk/
 
-          cd svn-trunk
+          # sync tags
+          mkdir -p svn-repo/tags/$VERSION
+          rsync -av --delete build/giftflow/ svn-repo/tags/$VERSION/
+
+          cd svn-repo
+
+          echo "=== SVN STATUS ==="
+          svn status
 
           svn add . --force
 
-          svn commit -m "Deploy trunk version $VERSION" \
+          svn commit -m "Release $VERSION" \
             --username "$SVN_USERNAME" \
             --password "$SVN_PASSWORD" \
             --non-interactive \
             --trust-server-cert
-
-          # ✅ SERVER-SIDE TAG (NO DOWNLOAD)
-          svn copy \
-            https://plugins.svn.wordpress.org/$PLUGIN_SLUG/trunk \
-            https://plugins.svn.wordpress.org/$PLUGIN_SLUG/tags/$VERSION \
-            -m "Tagging version $VERSION" \
-            --username "$SVN_USERNAME" \
-            --password "$SVN_PASSWORD" \
-            --non-interactive \
-            --trust-server-cert
-
-          echo "✅ Deployment completed"
