@@ -3824,3 +3824,37 @@
   font-family: "Courier New", Courier, monospace;
   font-weight: bold;
 }
+
+a[href="admin.php?page=giftflow-get-pro"] {
+  color: wheat !important;
+  position: relative;
+  overflow: hidden;
+  /* Light effect using ::before pseudo-element */
+  /* Place content above the effect */
+  position: relative;
+  z-index: 2;
+}
+a[href="admin.php?page=giftflow-get-pro"]::before {
+  content: "";
+  position: absolute;
+  left: -60%;
+  top: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 224, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
+  z-index: 1;
+  pointer-events: none;
+  animation: giftflow-get-pro-light 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes giftflow-get-pro-light {
+  0% {
+    left: -60%;
+  }
+  85% {
+    left: 130%;
+  }
+  100% {
+    left: 130%;
+  }
+}
