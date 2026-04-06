@@ -424,6 +424,19 @@ class GiftFlow_Field {
 	}
 
 	/**
+	 * Check if the field is pro only
+	 *
+	 * @return bool
+	 */
+	private function is_pro_only() {
+		// Check if GiftflowPro\License class exists and has is_license_valid method before calling it.
+		return true === $this->pro_only && (
+			! defined( 'GIFTFLOW_PRO_VERSION' )
+			|| ! ( class_exists( 'GiftflowPro\\License' ) && method_exists( 'GiftflowPro\\License', 'is_license_valid' ) && GiftflowPro\License::is_license_valid() )
+		);
+	}
+
+	/**
 	 * Get field wrapper start
 	 *
 	 * @return string
@@ -433,13 +446,11 @@ class GiftFlow_Field {
 		$classes = array( 'giftflow-field', 'giftflow-field-' . $this->type );
 
 		// add pro only class.
-		if ( true === $this->pro_only ) {
+		if ( $this->is_pro_only() ) {
 			$classes[] = 'giftflow-pro-only-field';
 
 			// if defined GIFTFLOW_PRO_VERSION add class disabled.
-			if ( ! defined( 'GIFTFLOW_PRO_VERSION' ) ) {
-				$classes[] = 'giftflow-pro-only-field__disabled';
-			}
+			$classes[] = 'giftflow-pro-only-field__disabled';
 		}
 
 		$wrapper_classes = array_merge( $classes, $this->wrapper_classes );
