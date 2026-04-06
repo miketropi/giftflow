@@ -14,6 +14,8 @@ A comprehensive WordPress plugin for managing donations, donors, and campaigns w
 
 == Description ==
 
+[Landing Page](https://giftflow.beplus-agency.cloud/) | [Live Demo](https://giftflow.beplusthemes.com/)
+
 GiftFlow is a powerful WordPress plugin designed to help organizations manage donations, donors, and fundraising campaigns efficiently. Built with modern WordPress standards and an extensible architecture, GiftFlow provides everything you need to accept donations, track campaigns, and manage donor relationships.
 
 = Key Features =
