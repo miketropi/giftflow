@@ -309,6 +309,17 @@ Site administrators are responsible for ensuring compliance with applicable priv
 
 == Changelog ==
 
+= 1.0.12 =
+* Feature: Added field type "Pro Only" handling in admin and form builder.
+* Feature: Enhanced campaign analytics and reporting summary.
+* Improvement: Improved block registration for custom donation and campaign forms.
+* Improvement: Refined Stripe and PayPal gateway integrations, handling additional currencies and edge-cases.
+* Improvement: Streamlined admin UI styles for campaign and donor management screens.
+* Security: Hardened nonce validation and capability checks in AJAX/REST endpoints.
+* Fix: Resolved issues with date/time fields and timezone alignment.
+* Fix: Fixed compatibility issues with major caching plugins and optimized asset loading.
+* Fix: Minor bugfixes and translation corrections throughout the plugin.
+
 = 1.0.9 =
 * Release: Finalize/stabilize release for development and production sites.
 * Docs: Added developer-focused release documentation.
