@@ -11,9 +11,11 @@ var map = {
 	"./campaign-single-content/block.js": "./blocks/campaign-single-content/block.js",
 	"./campaign-single-images/block.js": "./blocks/campaign-single-images/block.js",
 	"./campaign-status-bar/block.js": "./blocks/campaign-status-bar/block.js",
+	"./campaigns-grid/block.js": "./blocks/campaigns-grid/block.js",
 	"./donation-button/block.js": "./blocks/donation-button/block.js",
 	"./donor-account/block.js": "./blocks/donor-account/block.js",
-	"./share/block.js": "./blocks/share/block.js"
+	"./share/block.js": "./blocks/share/block.js",
+	"./thank-donor/block.js": "./blocks/thank-donor/block.js"
 };
 
 
@@ -270,6 +272,227 @@ var useSelect = wp.data.useSelect;
         })
       })
     }));
+  }
+});
+
+/***/ }),
+
+/***/ "./blocks/campaigns-grid/block.js":
+/*!****************************************!*\
+  !*** ./blocks/campaigns-grid/block.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @wordpress/blocks */ "@wordpress/blocks");
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_wordpress_blocks__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @wordpress/server-side-render */ "@wordpress/server-side-render");
+/* harmony import */ var _wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @wordpress/block-editor */ "@wordpress/block-editor");
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @wordpress/api-fetch */ "@wordpress/api-fetch");
+/* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
+
+
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+
+
+
+
+
+
+
+
+(0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_3__.registerBlockType)('giftflow/campaigns-grid', {
+  apiVersion: 3,
+  title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Campaigns Grid', 'giftflow'),
+  description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Display a responsive grid of published campaigns with progress and pagination.', 'giftflow'),
+  icon: 'grid-view',
+  category: 'giftflow',
+  attributes: {
+    perPage: {
+      type: 'number',
+      "default": 9
+    },
+    orderby: {
+      type: 'string',
+      "default": 'date'
+    },
+    order: {
+      type: 'string',
+      "default": 'DESC'
+    },
+    category: {
+      type: 'string',
+      "default": ''
+    },
+    search: {
+      type: 'string',
+      "default": ''
+    },
+    customClass: {
+      type: 'string',
+      "default": ''
+    }
+  },
+  edit: function edit(props) {
+    var attributes = props.attributes,
+      setAttributes = props.setAttributes;
+    var blockProps = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_5__.useBlockProps)();
+    var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_8__.useState)([{
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('All categories', 'giftflow'),
+        value: ''
+      }]),
+      _useState2 = (0,_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_2__["default"])(_useState, 2),
+      categoryOptions = _useState2[0],
+      setCategoryOptions = _useState2[1];
+    (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_8__.useEffect)(function () {
+      _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_9___default()({
+        path: '/wp/v2/campaign-tax?per_page=100'
+      }).then(function (terms) {
+        if (!Array.isArray(terms)) {
+          return;
+        }
+        setCategoryOptions([{
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('All categories', 'giftflow'),
+          value: ''
+        }].concat((0,_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_1__["default"])(terms.map(function (t) {
+          return {
+            label: t.name,
+            value: String(t.id)
+          };
+        }))));
+      })["catch"](function () {
+        // REST may be unavailable; keep "All categories" only.
+      });
+    }, []);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_5__.InspectorControls, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Query', 'giftflow'),
+          initialOpen: true,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.RangeControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Campaigns per page', 'giftflow'),
+            value: attributes.perPage,
+            onChange: function onChange(v) {
+              return setAttributes({
+                perPage: v == null ? 9 : v
+              });
+            },
+            min: 1,
+            max: 48
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.SelectControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Order by', 'giftflow'),
+            value: attributes.orderby,
+            options: [{
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Date', 'giftflow'),
+              value: 'date'
+            }, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Title', 'giftflow'),
+              value: 'title'
+            }, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Modified', 'giftflow'),
+              value: 'modified'
+            }, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Menu order', 'giftflow'),
+              value: 'menu_order'
+            }],
+            onChange: function onChange(orderby) {
+              return setAttributes({
+                orderby: orderby
+              });
+            }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.SelectControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Order', 'giftflow'),
+            value: attributes.order,
+            options: [{
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Newest / Z–A first', 'giftflow'),
+              value: 'DESC'
+            }, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Oldest / A–Z first', 'giftflow'),
+              value: 'ASC'
+            }],
+            onChange: function onChange(order) {
+              return setAttributes({
+                order: order
+              });
+            }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.SelectControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Campaign category', 'giftflow'),
+            value: attributes.category,
+            options: categoryOptions,
+            onChange: function onChange(category) {
+              return setAttributes({
+                category: category
+              });
+            },
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Filter by a single campaign category.', 'giftflow')
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.TextControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Search', 'giftflow'),
+            value: attributes.search,
+            onChange: function onChange(search) {
+              return setAttributes({
+                search: search
+              });
+            },
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Optional keyword filter (post title/content).', 'giftflow')
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Advanced', 'giftflow'),
+          initialOpen: false,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.TextControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Extra CSS class', 'giftflow'),
+            value: attributes.customClass,
+            onChange: function onChange(customClass) {
+              return setAttributes({
+                customClass: customClass
+              });
+            },
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Single class name added to the grid wrapper.', 'giftflow')
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", _objectSpread(_objectSpread({}, blockProps), {}, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.Disabled, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)((_wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_4___default()), {
+            block: "giftflow/campaigns-grid",
+            attributes: attributes
+          })
+        })
+      }))]
+    });
   }
 });
 
@@ -790,6 +1013,183 @@ function _objectSpread(e) {
 
 /***/ }),
 
+/***/ "./blocks/thank-donor/block.js":
+/*!*************************************!*\
+  !*** ./blocks/thank-donor/block.js ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/blocks */ "@wordpress/blocks");
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_blocks__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/server-side-render */ "@wordpress/server-side-render");
+/* harmony import */ var _wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @wordpress/block-editor */ "@wordpress/block-editor");
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+
+
+
+
+
+
+(0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_1__.registerBlockType)('giftflow/thank-donor', {
+  apiVersion: 3,
+  title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Thank Donor', 'giftflow'),
+  description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Thank-you message for donors after a successful donation, with optional link to the donor account.', 'giftflow'),
+  icon: 'yes-alt',
+  category: 'giftflow',
+  attributes: {
+    heading: {
+      type: 'string',
+      "default": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('🎉 Thank You!', 'giftflow')
+    },
+    message: {
+      type: 'string',
+      "default": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Your donation has been received. We appreciate your support!', 'giftflow')
+    },
+    accountNotice: {
+      type: 'string',
+      "default": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)("We've created an account for you using the email from your donation. Your login details have been sent to your inbox.", 'giftflow')
+    },
+    showAccountNotice: {
+      type: 'boolean',
+      "default": true
+    },
+    buttonText: {
+      type: 'string',
+      "default": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('View My Donations', 'giftflow')
+    },
+    buttonUrl: {
+      type: 'string',
+      "default": ''
+    },
+    showButton: {
+      type: 'boolean',
+      "default": true
+    }
+  },
+  edit: function edit(props) {
+    var attributes = props.attributes,
+      setAttributes = props.setAttributes;
+    var blockProps = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3__.useBlockProps)();
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_3__.InspectorControls, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Content', 'giftflow'),
+          initialOpen: true,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.TextControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Heading', 'giftflow'),
+            value: attributes.heading,
+            onChange: function onChange(heading) {
+              return setAttributes({
+                heading: heading
+              });
+            }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.TextareaControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Message', 'giftflow'),
+            value: attributes.message,
+            onChange: function onChange(message) {
+              return setAttributes({
+                message: message
+              });
+            },
+            rows: 3
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.ToggleControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Show account notice', 'giftflow'),
+            checked: attributes.showAccountNotice,
+            onChange: function onChange(showAccountNotice) {
+              return setAttributes({
+                showAccountNotice: showAccountNotice
+              });
+            }
+          }), attributes.showAccountNotice && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.TextareaControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Account notice', 'giftflow'),
+            value: attributes.accountNotice,
+            onChange: function onChange(accountNotice) {
+              return setAttributes({
+                accountNotice: accountNotice
+              });
+            },
+            rows: 4,
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Basic HTML allowed (links, bold, etc.).', 'giftflow')
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Button', 'giftflow'),
+          initialOpen: false,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.ToggleControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Show button', 'giftflow'),
+            checked: attributes.showButton,
+            onChange: function onChange(showButton) {
+              return setAttributes({
+                showButton: showButton
+              });
+            }
+          }), attributes.showButton && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.TextControl, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Button text', 'giftflow'),
+              value: attributes.buttonText,
+              onChange: function onChange(buttonText) {
+                return setAttributes({
+                  buttonText: buttonText
+                });
+              }
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.TextControl, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Button URL', 'giftflow'),
+              value: attributes.buttonUrl,
+              onChange: function onChange(buttonUrl) {
+                return setAttributes({
+                  buttonUrl: buttonUrl
+                });
+              },
+              help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Leave empty to use the default donor account link (same as ?gf-direct-to=donor-account).', 'giftflow'),
+              type: "url"
+            })]
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", _objectSpread(_objectSpread({}, blockProps), {}, {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_4__.Disabled, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)((_wordpress_server_side_render__WEBPACK_IMPORTED_MODULE_2___default()), {
+            block: "giftflow/thank-donor",
+            attributes: attributes
+          })
+        })
+      }))]
+    });
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js":
 /*!*********************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/esm/arrayLikeToArray.js ***!
@@ -805,6 +1205,24 @@ function _arrayLikeToArray(r, a) {
   (null == a || a > r.length) && (a = r.length);
   for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
   return n;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _arrayWithHoles)
+/* harmony export */ });
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
 }
 
 
@@ -868,6 +1286,66 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 function _iterableToArray(r) {
   if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _iterableToArrayLimit)
+/* harmony export */ });
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = !0,
+      o = !1;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) {
+        if (Object(t) !== t) return;
+        f = !1;
+      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = !0, n = r;
+    } finally {
+      try {
+        if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _nonIterableRest)
+/* harmony export */ });
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
 
@@ -938,6 +1416,32 @@ function _objectWithoutPropertiesLoose(r, e) {
     t[n] = r[n];
   }
   return t;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _slicedToArray)
+/* harmony export */ });
+/* harmony import */ var _arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arrayWithHoles.js */ "./node_modules/@babel/runtime/helpers/esm/arrayWithHoles.js");
+/* harmony import */ var _iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterableToArrayLimit.js */ "./node_modules/@babel/runtime/helpers/esm/iterableToArrayLimit.js");
+/* harmony import */ var _unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./unsupportedIterableToArray.js */ "./node_modules/@babel/runtime/helpers/esm/unsupportedIterableToArray.js");
+/* harmony import */ var _nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./nonIterableRest.js */ "./node_modules/@babel/runtime/helpers/esm/nonIterableRest.js");
+
+
+
+
+function _slicedToArray(r, e) {
+  return (0,_arrayWithHoles_js__WEBPACK_IMPORTED_MODULE_0__["default"])(r) || (0,_iterableToArrayLimit_js__WEBPACK_IMPORTED_MODULE_1__["default"])(r, e) || (0,_unsupportedIterableToArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(r, e) || (0,_nonIterableRest_js__WEBPACK_IMPORTED_MODULE_3__["default"])();
 }
 
 
@@ -1064,6 +1568,17 @@ function _unsupportedIterableToArray(r, a) {
   }
 }
 
+
+/***/ }),
+
+/***/ "@wordpress/api-fetch":
+/*!**********************************!*\
+  !*** external ["wp","apiFetch"] ***!
+  \**********************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = window["wp"]["apiFetch"];
 
 /***/ }),
 

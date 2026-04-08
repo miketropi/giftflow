@@ -179,10 +179,10 @@ class Loader extends Base {
 
 		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
 			// Block Theme.
-			$this->is_block_theme_init();
+			// $this->is_block_theme_init();
 		} else {
 			// Classic Theme.
-			$this->is_classic_theme_init();
+			// $this->is_classic_theme_init();
 		}
 	}
 
@@ -224,13 +224,13 @@ class Loader extends Base {
 	public function is_classic_theme_init() {
 
 		// override template of campaign details page.
-		add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
+		// add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
 
 		// override template of campaign taxonomy archive page.
-		add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
+		// add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
 
 		// override template of my donor account page.
-		add_action( 'template_include', array( $this, 'override_donor_account_page_template' ), 10, 1 );
+		// add_action( 'template_include', array( $this, 'override_donor_account_page_template' ), 10, 1 );
 	}
 
 	/**
@@ -352,11 +352,11 @@ class Loader extends Base {
 				)
 			);
 
-			update_post_meta(
-				$campaigns_page,
-				'_wp_page_template',
-				'campaigns-page'
-			);
+			// update_post_meta(
+			// 	$campaigns_page,
+			// 	'_wp_page_template',
+			// 	'campaigns-page'
+			// );
 		}
 
 		// create 2 pages donor-account and thank-donor & set template for there.
@@ -372,11 +372,11 @@ class Loader extends Base {
 				)
 			);
 
-			update_post_meta(
-				$donor_account_page,
-				'_wp_page_template',
-				'donor-account'
-			);
+			// update_post_meta(
+			// 	$donor_account_page,
+			// 	'_wp_page_template',
+			// 	'donor-account'
+			// );
 		}
 
 		$thank_donor_page = get_page_by_path( 'thank-donor' );
@@ -391,11 +391,11 @@ class Loader extends Base {
 				)
 			);
 
-			update_post_meta(
-				$thank_donor_page,
-				'_wp_page_template',
-				'thank-donor'
-			);
+			// update_post_meta(
+			// 	$thank_donor_page,
+			// 	'_wp_page_template',
+			// 	'thank-donor'
+			// );
 		}
 
 		// create donation Privacy Policy page.

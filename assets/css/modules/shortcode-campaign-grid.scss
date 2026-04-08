@@ -149,10 +149,11 @@
 	// Title
 	&__title {
 		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 600;
-		line-height: 1.4;
-		color: $text-color;
+		font-weight: bold;
+		// font-size: 1.25rem;
+		// font-weight: 600;
+		// line-height: 1.4;
+		// color: $text-color;
 
 		a {
 			color: inherit;
@@ -167,9 +168,9 @@
 
 	// Excerpt
 	&__excerpt {
-		font-size: 0.95rem;
-		line-height: 1.5;
-		color: $text-light;
+		// font-size: 0.95rem;
+		// line-height: 1.5;
+		// color: $text-light;
 		margin: 0;
 	}
 

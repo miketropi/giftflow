@@ -1615,10 +1615,7 @@
 }
 .giftflow-campaign-grid__title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--giftflow-text-color);
+  font-weight: bold;
 }
 .giftflow-campaign-grid__title a {
   color: inherit;
@@ -1629,9 +1626,6 @@
   color: var(--giftflow-primary-color);
 }
 .giftflow-campaign-grid__excerpt {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--giftflow-text-light);
   margin: 0;
 }
 .giftflow-campaign-grid__progress {
@@ -3023,6 +3017,180 @@ input[type=checkbox] + .gfw-login-form label, .gfw-login-form label:has(input[ty
   }
 }
 
+:root {
+  --giftflow-primary-color: #000000;
+  --giftflow-secondary-color: #10B981;
+  --giftflow-text-color: black;
+  --giftflow-text-light: #6B7280;
+  --giftflow-border-color: #E5E7EB;
+  --giftflow-background-color: #F9FAFB;
+  --giftflow-error-color: #EF4444;
+  --giftflow-success-color: #10B981;
+  --giftflow-border-radius: 6px;
+  --giftflow-transition: all 0.3s ease;
+  --giftflow-disabled: #fafafa;
+  --giftflow-disabled-text: #999;
+  --giftflow-font-family-monospace: monospace, "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Droid Sans Mono", "Source Code Pro", "Lucida Console", "Courier New";
+}
+
+.giftflow-thank-donor {
+  --gf-td-pad-x: clamp(0.75rem, 4vw, 1.5rem);
+  --gf-td-pad-y: clamp(1.25rem, 4vw, 2rem);
+  --gf-td-gap: clamp(0.875rem, 2.5vw, 1.375rem);
+  display: block;
+  width: 100%;
+  max-width: 28.5rem;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.giftflow-thank-donor__card {
+  position: relative;
+  padding: var(--gf-td-pad-y) var(--gf-td-pad-x);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  .giftflow-thank-donor__card {
+    --gf-td-pad-x: 1.5rem;
+    --gf-td-pad-y: 1.75rem;
+  }
+}
+@media (min-width: 480px) and (max-width: 599px) {
+  .giftflow-thank-donor__card {
+    --gf-td-pad-x: 1.25rem;
+  }
+}
+
+.giftflow-thank-donor__masthead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.625rem;
+  margin-bottom: var(--gf-td-gap);
+}
+
+.giftflow-thank-donor__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 0.125rem;
+  color: var(--giftflow-success-color);
+  transition: color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.giftflow-thank-donor__mark svg {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+@media (min-width: 600px) {
+  .giftflow-thank-donor__mark svg {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .giftflow-thank-donor__card:hover .giftflow-thank-donor__mark {
+    opacity: 0.92;
+  }
+}
+
+.giftflow-thank-donor__title {
+  margin: 0;
+  max-width: 34rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--giftflow-text-color);
+  text-wrap: balance;
+}
+
+.giftflow-thank-donor__main {
+  max-width: 34rem;
+  margin-inline: auto;
+  margin-bottom: var(--gf-td-gap);
+  text-align: center;
+  font-weight: bold;
+}
+.giftflow-thank-donor__main p {
+  margin: 0;
+}
+.giftflow-thank-donor__main p + p {
+  margin-top: 0.5rem;
+}
+@media (max-width: 479px) {
+  .giftflow-thank-donor__main {
+    text-align: left;
+  }
+}
+
+.giftflow-thank-donor__note {
+  max-width: 34rem;
+  margin-inline: auto;
+  margin-bottom: var(--gf-td-gap);
+  padding: 0;
+  padding-top: 0.5rem;
+  margin-top: 0.125rem;
+  line-height: 1.6;
+  text-align: center;
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+.giftflow-thank-donor__note p {
+  margin: 0;
+}
+.giftflow-thank-donor__note p + p {
+  margin-top: 0.4rem;
+}
+.giftflow-thank-donor__note a {
+  color: color-mix(in srgb, var(--giftflow-text-light) 25%, var(--giftflow-text-color));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.giftflow-thank-donor__note a:hover {
+  color: var(--giftflow-text-color);
+}
+.giftflow-thank-donor__note a:focus-visible {
+  outline: 2px solid var(--giftflow-secondary-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+@media (max-width: 479px) {
+  .giftflow-thank-donor__note {
+    text-align: left;
+  }
+}
+@media (min-width: 600px) {
+  .giftflow-thank-donor__note {
+    padding-top: 0.625rem;
+    margin-bottom: calc(var(--gf-td-gap) + 0.25rem);
+  }
+}
+
+.giftflow-thank-donor__cta {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.375rem;
+}
+
+.giftflow-thank-donor__btn-label {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giftflow-thank-donor__mark,
+  .giftflow-thank-donor__note a,
+  .giftflow-thank-donor__btn {
+    transition: none;
+  }
+}
 .giftflow-table {
   width: 100%;
   border-collapse: collapse;

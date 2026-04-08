@@ -18,7 +18,7 @@ class Block_Template {
 	 * Initialize the class
 	 */
 	public function __construct() {
-		$this->register_block_templates();
+		// $this->register_block_templates();
 	}
 
 	/**
