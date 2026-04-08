@@ -44,12 +44,20 @@ export default function CampaignTrackingModalSettings({ isOpen, onClose, onSave 
     }]}
   >
     <>
-      {
-        loading && <div>Loading...</div>
-      }
-      {
-        error && <div>Error: {error}</div>
-      }
+      {loading && (
+        <div className="giftflow-campaigns-list__modal-state giftflow-campaigns-list__modal-state--loading">
+          Loading campaigns…
+        </div>
+      )}
+      {error && (
+        <div className="giftflow-campaigns-list__modal-state giftflow-campaigns-list__modal-state--error" role="alert">
+          {typeof error === 'string'
+            ? error
+            : error?.message
+              ? error.message
+              : String(error)}
+        </div>
+      )}
       {
         loading === false && campaigns.length > 0 && 
         <div className="giftflow-campaigns-list__settings-container">

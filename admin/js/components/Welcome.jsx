@@ -1,82 +1,100 @@
 import React from 'react';
-import { Waves, MousePointerClick, Settings, TrendingUp } from 'lucide-react';
+import { MousePointerClick, Settings, TrendingUp } from 'lucide-react';
 
 const Welcome = () => {
+  const admin = typeof giftflow_admin !== 'undefined' ? giftflow_admin : {};
+  const base = admin.admin_url || '';
+  const create_campaign_url = `${base}post-new.php?post_type=campaign`;
+  const settings_url = `${base}admin.php?page=giftflow-settings`;
+  const docs_url = admin.docs_url || 'https://giftflow-doc.beplus-agency.cloud/';
+  const support_url = admin.support_url || 'https://giftflow.beplus-agency.cloud/contact';
 
-  const create_campaign_url = giftflow_admin.admin_url + 'post-new.php?post_type=campaign';
-  const settings_url = giftflow_admin.admin_url + 'admin.php?page=giftflow-settings';
+  let doc_host = 'giftflow-doc.beplus-agency.cloud';
+  try {
+    doc_host = new URL(docs_url).hostname;
+  } catch {
+    // keep default
+  }
 
   const features = [
     {
       icon: MousePointerClick,
       title: 'Create and launch new fundraising campaigns',
-      description: 'in just a few clicks.'
+      description: 'in just a few clicks.',
     },
-    
     {
       icon: Settings,
       title: 'Customize plugin settings',
-      description: 'to match your organization\'s needs.'
+      description: "to match your organization's needs.",
     },
     {
       icon: TrendingUp,
       title: 'Track campaign progress',
-      description: 'and donor engagement from your dashboard.'
-    }
+      description: 'and donor engagement from your dashboard.',
+    },
   ];
 
   return (
-    <div className="giftflow-welcome">
-      <div className="giftflow-welcome__header">
-        <div className="giftflow-welcome__logo-section">
-          {/* <Waves width={48} height={48} color='black' /> */}
-          <div className="giftflow-welcome__title-section">
-            <h2 className="giftflow-welcome__title">GiftFlow Dashboard</h2>
-            <p className="giftflow-welcome__subtitle">Your hub for managing fundraising campaigns and settings.</p>
-          </div>
+    <header className="giftflow-dashboard-view__masthead" aria-labelledby="giftflow-dashboard-heading">
+      <div className="giftflow-dashboard-view__masthead-main">
+        <div className="giftflow-dashboard-view__masthead-badge">
+          <span className="giftflow-dashboard-view__masthead-badge-dot" aria-hidden="true" />
+          GiftFlow
         </div>
+        <h2 id="giftflow-dashboard-heading" className="giftflow-dashboard-view__masthead-title">
+          Dashboard
+        </h2>
+        <p className="giftflow-dashboard-view__masthead-lead">
+          Your hub for managing fundraising campaigns, donations, and plugin settings.
+        </p>
+        <div className="giftflow-dashboard-view__masthead-actions">
+          <a className="button button-primary" href={create_campaign_url}>
+            <span className="dashicons dashicons-plus-alt" aria-hidden="true" />
+            Create campaign
+          </a>
+          <a className="button" href={settings_url}>
+            <span className="dashicons dashicons-admin-settings" aria-hidden="true" />
+            Settings
+          </a>
+        </div>
+        <p className="giftflow-dashboard-view__masthead-meta">
+          <span className="giftflow-dashboard-view__masthead-meta-label">Docs</span>
+          <a href={docs_url} target="_blank" rel="noopener noreferrer">
+            {doc_host}
+          </a>
+          {' · '}
+          <a href={support_url} target="_blank" rel="noopener noreferrer">
+            Contact support
+          </a>
+        </p>
       </div>
-
-      <div className="giftflow-welcome__content">
-        <div className="giftflow-welcome__left-column">
-          <div className="giftflow-welcome__features">
-            <h3>Key Features</h3>
-            <div className="giftflow-welcome__features-list ">
-              {
-                features.map((feature, index) => (
-                  <div className='giftflow-welcome__features-item' key={index}>
-                    <feature.icon width={16} height={16} color='black' />
-                    <div><strong>{feature.title}</strong> {feature.description}</div>
-                  </div>
-                ))
-              }
+      <div className="giftflow-dashboard-view__masthead-deco">
+        <div className="giftflow-dashboard-view__masthead-deco-grid" aria-hidden="true" />
+        <div className="giftflow-dashboard-view__masthead-deco-glow" aria-hidden="true" />
+        <div className="giftflow-dashboard-view__masthead-aside">
+          <h3>Key features</h3>
+          {features.map((feature, index) => (
+            <div className="giftflow-dashboard-view__feature-item" key={index}>
+              <feature.icon width={18} height={18} strokeWidth={2} aria-hidden="true" />
+              <div>
+                <strong>{feature.title}</strong> {feature.description}
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="giftflow-welcome__right-column">
-          <div className="giftflow-welcome__actions">
-            <a
-              href={ create_campaign_url }
-              className="giftflow-welcome__action-btn"
-            >
-              <span role="img" aria-label="Create">➕</span> Create Campaign
+          ))}
+          <div className="giftflow-dashboard-view__help-callout">
+            Need more detail? Browse the{' '}
+            <a href={docs_url} target="_blank" rel="noopener noreferrer">
+              documentation
+            </a>{' '}
+            or{' '}
+            <a href={support_url} target="_blank" rel="noopener noreferrer">
+              reach the team
             </a>
-            <a
-              href={ settings_url }
-              className="giftflow-welcome__action-btn"
-            >
-              <span role="img" aria-label="Settings">⚙️</span> Go to Settings
-            </a>
-          </div>
-
-          <div className="giftflow-welcome__help">
-            <h4>Need Help?</h4>
-            <p>Visit our <a href="#" target="_blank" rel="noopener noreferrer">documentation</a> or <a href="#" target="_blank" rel="noopener noreferrer">contact support</a>.</p>
+            .
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

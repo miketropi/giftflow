@@ -25,6 +25,12 @@ ChartJS.register(
   Legend
 );
 
+// Align with GiftFlow admin / WP palette (--gfh-chart-* on .giftflow-dashboard-view)
+const CHART_COLOR_DONATIONS = { fill: 'rgba(0, 112, 23, 0.55)', stroke: 'rgb(0, 112, 23)' };
+const CHART_COLOR_DONORS = { fill: 'rgba(34, 113, 177, 0.5)', stroke: 'rgb(34, 113, 177)' };
+const CHART_TEXT = '#1d2327';
+const CHART_TEXT_MUTED = '#646970';
+
 export default function DonationsChart() {
   const [dataChart, setDataChart] = useState({
     labels: [],
@@ -115,7 +121,7 @@ export default function DonationsChart() {
     return (
       <div className="giftflow-chart-error __monospace">
         <div className="giftflow-chart-error__icon">
-          <Ban size={24} color="#dc2626" />
+          <Ban size={28} strokeWidth={2} aria-hidden="true" />
         </div>
         <h4>Chart Error</h4>
         <p>{error}</p>
@@ -140,7 +146,7 @@ export default function DonationsChart() {
     return (
       <div className="giftflow-chart-empty __monospace">
         <div className="giftflow-chart-empty__icon">
-          <ChartColumn size={24} color="#6b7280" />
+          <ChartColumn size={28} strokeWidth={2} aria-hidden="true" />
         </div>
         <h4>No Data Available</h4>
         <p>No donation data found for the selected period. Try selecting a different time range or check back later.</p>
@@ -155,8 +161,8 @@ export default function DonationsChart() {
         type: "bar",
         label: "Donation Amount",
         data: dataChart.donationsData,
-        backgroundColor: "rgba(34, 197, 94, 0.6)",
-        borderColor: "rgba(34, 197, 94, 1)",
+        backgroundColor: CHART_COLOR_DONATIONS.fill,
+        borderColor: CHART_COLOR_DONATIONS.stroke,
         borderWidth: 1,
         yAxisID: "y",
         order: 1,
@@ -165,8 +171,8 @@ export default function DonationsChart() {
         type: "bar",
         label: "Donors Registered",
         data: dataChart.donorsData,
-        backgroundColor: "rgba(59, 130, 246, 0.6)",
-        borderColor: "rgba(59, 130, 246, 1)",
+        backgroundColor: CHART_COLOR_DONORS.fill,
+        borderColor: CHART_COLOR_DONORS.stroke,
         borderWidth: 1,
         yAxisID: "y1",
         order: 2,
@@ -187,9 +193,9 @@ export default function DonationsChart() {
         text: `Donations & Donors Overview (Last ${period})`,
         font: {
           size: 16,
-          weight: 'bold'
+          weight: '600'
         },
-        color: '#1f2937'
+        color: CHART_TEXT
       },
       legend: {
         display: true,
@@ -203,10 +209,10 @@ export default function DonationsChart() {
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(29, 35, 39, 0.92)',
         titleColor: '#fff',
-        bodyColor: '#fff',
-        borderColor: '#e5e7eb',
+        bodyColor: '#f0f0f1',
+        borderColor: '#50575e',
         borderWidth: 1,
         cornerRadius: 6,
         displayColors: true,
@@ -227,7 +233,7 @@ export default function DonationsChart() {
         title: {
           display: true,
           text: 'Date',
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           font: {
             size: 12,
             weight: 'bold'
@@ -237,7 +243,7 @@ export default function DonationsChart() {
           display: false
         },
         ticks: {
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           maxRotation: 45,
           minRotation: 0
         }
@@ -249,18 +255,18 @@ export default function DonationsChart() {
         title: {
           display: true,
           text: `Donation Amount (${ giftflow_admin.currency_symbol })`,
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           font: {
             size: 12,
             weight: 'bold'
           }
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(100, 105, 112, 0.2)',
           drawBorder: false
         },
         ticks: {
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           callback: function(value) {
             return giftflow_admin.currency_symbol + value.toFixed(0);
           }
@@ -273,7 +279,7 @@ export default function DonationsChart() {
         title: {
           display: true,
           text: "Number of Donors",
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           font: {
             size: 12,
             weight: 'bold'
@@ -284,7 +290,7 @@ export default function DonationsChart() {
           drawBorder: false
         },
         ticks: {
-          color: '#6b7280',
+          color: CHART_TEXT_MUTED,
           stepSize: 1
         }
       },
@@ -296,7 +302,7 @@ export default function DonationsChart() {
       <div className="giftflow-chart-wrapper">
         <Line data={data} options={options} />
       </div>
-      <div className="giftflow-chart-description __monospace">
+      <div className="giftflow-chart-description ">
         <p>
           <strong>Chart Description:</strong> This chart shows donation activity and donor registrations over the <select
             className="giftflow-chart-description__select"
@@ -308,25 +314,21 @@ export default function DonationsChart() {
             <option value="6m">last 6 months</option>
           </select> period.
           <br />
-           <span style={{ color: "rgba(34, 197, 94, 1)", fontWeight: 'bold' }}>Green bars</span> represent total donation amounts (<b>only completed donations</b>), while the <span style={{ color: "rgba(59, 130, 246, 1)", fontWeight: 'bold' }}>blue bars</span> show the number of new donors registered each day.
+          
         </p>
-      {/* Cache info and clear cache button */}
-      <div className="giftflow-chart-cache-note" style={{ marginTop: '1rem', fontSize: '0.95em', display: 'flex', alignItems: 'center', gap: '1.2em' }}>
+        <p>
+          <span className="giftflow-chart-description__legend giftflow-chart-description__legend--donations">Green bars</span>{' '}
+            represent total donation amounts (<b>only completed donations</b>), while the{' '}
+            <span className="giftflow-chart-description__legend giftflow-chart-description__legend--donors">blue bars</span>{' '}
+            show the number of new donors registered each day.
+        </p>
+      <div className="giftflow-chart-cache-note">
         <span>
           <strong>Note:</strong> Chart data is cached for 15 minutes to improve performance.
         </span>
         <button
+          type="button"
           className="giftflow-chart-clear-cache-btn"
-          style={{
-            background: '#f1f5f9',
-            border: '1px solid #2563eb',
-            borderRadius: '4px',
-            color: '#2563eb',
-            padding: '0.3em 0.8em',
-            cursor: 'pointer',
-            fontWeight: 500,
-            marginLeft: 'auto'
-          }}
           onClick={() => {
             // Remove cache for all periods
             ['7d', '30d', '6m', '1y'].forEach(periodKey => {

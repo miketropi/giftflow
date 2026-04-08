@@ -1,4 +1,4 @@
-=== GiftFlow ===
+=== GiftFlow – Donation & Fundraising ===
 Contributors: bearsthemes
 Author: Beplus
 Author URI: https://beplusthemes.com
@@ -6,13 +6,15 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.0.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A comprehensive WordPress plugin for managing donations, donors, and campaigns with modern features and extensible architecture.
 
 == Description ==
+
+[Landing Page](https://giftflow.beplus-agency.cloud/) | [Live Demo](https://giftflow.beplusthemes.com/)
 
 GiftFlow is a powerful WordPress plugin designed to help organizations manage donations, donors, and fundraising campaigns efficiently. Built with modern WordPress standards and an extensible architecture, GiftFlow provides everything you need to accept donations, track campaigns, and manage donor relationships.
 
@@ -308,6 +310,58 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.12 =
+* Feature: Added field type "Pro Only" handling in admin and form builder.
+* Feature: Enhanced campaign analytics and reporting summary.
+* Improvement: Improved block registration for custom donation and campaign forms.
+* Improvement: Refined Stripe and PayPal gateway integrations, handling additional currencies and edge-cases.
+* Improvement: Streamlined admin UI styles for campaign and donor management screens.
+* Security: Hardened nonce validation and capability checks in AJAX/REST endpoints.
+* Fix: Resolved issues with date/time fields and timezone alignment.
+* Fix: Fixed compatibility issues with major caching plugins and optimized asset loading.
+* Fix: Minor bugfixes and translation corrections throughout the plugin.
+
+= 1.0.9 =
+* Release: Finalize/stabilize release for development and production sites.
+* Docs: Added developer-focused release documentation.
+* Update: Overhauled and updated content on the admin help page for better clarity and onboarding.
+* Improvement: Minor performance, translation, and code quality refinements.
+
+= 1.0.8 =
+* Update: Refined and upgraded the payment gateway package for smoother transactions.
+* Fix: Enhanced modal donation experience for better user flow and responsiveness.
+* Improvement: Further improved UI/UX on tablet & mobile, ensuring consistent and intuitive interactions.
+* Security: Addressed additional backend vulnerabilities for stronger protection.
+* Docs: Updated and extended documentation to reflect new changes and usage recommendations.
+
+= 1.0.7 =
+* Update: Improved UI designs and fixed several minor bugs in the admin backend.
+* Fix: Resolved an issue causing modal donation to not behave properly under certain conditions.
+* Improvement: Adjusted tablet/mobile layouts for campaign and donation forms for greater accessibility.
+* Security: Patched an issue related to data sanitization and access control in admin screens.
+* Docs: Added detailed setup and usage instructions for new features.
+
+= 1.0.6 =
+* Update: Upgraded payment gateway libraries to latest stable releases.
+* Improvement: Optimized modal donation speed; donations now process with less delay.
+* Improvement: Enhanced mobile navigation menus and fixed UI glitches on iOS devices.
+* Fix: Prevented unauthorized data exposure by strengthening security checks in backend logic.
+* Docs: Clarified payment setup and mobile customization steps in documentation.
+
+= 1.0.5 =
+* Update: Refactored gateway integration package for better reliability.
+* Improvement: Polished modal donation interface for improved clarity and conversion rates.
+* Improvement: Improved responsive design for donor listing and campaign edit screens.
+* Fix: Hardened code to resolve vulnerabilities uncovered in plugin audits.
+* Docs: Cleaned up outdated tips and added FAQ section.
+
+= 1.0.4 =
+* Update: Added support for custom payment gateway extensions.
+* Improvement: Slight modal donation improvements (rendering and error handling).
+* Improvement: Initial major UI update for tablet and mobile screens.
+* Security: Fixed several XSS and CSRF vulnerabilities in admin area.
+* Docs: Documented new UI changes and gateway extension methods.
 
 = 1.0.3 =
 * Added support for Classic (non-block) WordPress themes

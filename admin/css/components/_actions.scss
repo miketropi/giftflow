@@ -1,78 +1,4 @@
-// GiftFlow Quick Actions Component
-.giftflow-overview__widget {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  &__widget-title {
-    margin: 0 0 1rem 0;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    line-height: 1.2;
-  }
-
-  &__action-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  &__action-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    background: #3b82f6;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-    width: 100%;
-
-    &:hover {
-      background: #2563eb;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    &:active {
-      background: #1d4ed8;
-      transform: translateY(0);
-    }
-
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
-
-    &:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-
-      &:hover {
-        background: #9ca3af;
-        transform: none;
-        box-shadow: none;
-      }
-    }
-  }
-
-  &__action-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-}
+// Quick actions UI lives in _overview.scss (WordPress .button). Export modals below.
 
 // Export Campaign Modal Styles
 .giftflow-export-campaign {
@@ -273,19 +199,6 @@
 
 // Responsive design
 @media (max-width: 768px) {
-  .giftflow-overview__widget {
-    padding: 1rem;
-
-    &__widget-title {
-      font-size: 1rem;
-    }
-
-    &__action-btn {
-      padding: 0.75rem;
-      font-size: 0.8rem;
-    }
-  }
-
   .giftflow-export-campaign,
   .giftflow-export-donor {
     &__select {
@@ -301,22 +214,6 @@
     &__loading {
       font-size: 0.8rem;
       padding: 0.625rem 0.875rem;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .giftflow-overview__widget {
-    padding: 0.75rem;
-
-    &__action-list {
-      gap: 0.5rem;
-    }
-
-    &__action-btn {
-      padding: 0.625rem;
-      font-size: 0.75rem;
-      gap: 0.5rem;
     }
   }
 }

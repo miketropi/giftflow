@@ -156,7 +156,7 @@ $no_payment_methods = count( $gateways ) === 0;
 						<div class="donation-form__amount">
 							<?php
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-							$validate_attr_value = array( 'required', 'number', 'min' );
+							$validate_attr_value = array( 'required', 'number', 'price', 'min' );
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 							$max_attr            = $max_amount ? 'max="' . esc_attr( $max_amount ) . '"' : '';
 							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
@@ -168,7 +168,7 @@ $no_payment_methods = count( $gateways ) === 0;
 								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 								$validate_attr_value[] = 'max';
 								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-								$extra_data['max']     = $max_amount;
+								$extra_data['max']     = esc_attr( $max_amount );
 							}
 							?>
 							<div class="donation-form__amount-input">
@@ -179,8 +179,11 @@ $no_payment_methods = count( $gateways ) === 0;
 									name="donation_amount" 
 									value="<?php echo esc_attr( $default_amount ); ?>" 
 									min="<?php echo esc_attr( $min_amount ); ?>" 
-									<?php echo esc_attr( $max_attr ); ?>
-									step="<?php echo esc_attr( apply_filters( 'giftflow_donation_form_amount_step', 1 ) ); ?>" 
+									<?php
+									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+									echo $max_attr;
+									?>
+									step="<?php echo esc_attr( apply_filters( 'giftflow_donation_form_amount_step', 'any' ) ); ?>" 
 									required 
 									data-validate="<?php echo esc_attr( implode( ',', $validate_attr_value ) ); ?>"
 									data-extra-data='<?php echo esc_attr( wp_json_encode( $extra_data ) ); ?>'

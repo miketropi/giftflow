@@ -1,0 +1,294 @@
+/**
+ * GiftFlow — Dashboard (React) layout aligned with help center
+ */
+
+.giftflow-dashboard-view {
+  --gfh-bg: #fff;
+  --gfh-bg-soft: #f6f7f7;
+  --gfh-bg-muted: #f0f0f1;
+  --gfh-line: #dcdcde;
+  --gfh-line-strong: #c3c4c7;
+  --gfh-text: #1d2327;
+  --gfh-text-secondary: #50575e;
+  --gfh-text-muted: #646970;
+  --gfh-theme: var(--wp-admin-theme-color, #2271b1);
+  --gfh-theme-2: var(--wp-admin-theme-color-darker-10, #135e96);
+  --gfh-theme-3: var(--wp-admin-theme-color-darker-20, #0a4b78);
+  --gfh-radius: 8px;
+  --gfh-radius-sm: 6px;
+  --gfh-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --gfh-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gfh-dur: 0.2s;
+  --gfh-dur-slow: 0.32s;
+  --gfh-shade: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --gfh-shade-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --gfh-chart-donations: #007017;
+  --gfh-chart-donors: var(--gfh-theme);
+
+  margin: 2rem 0 32px;
+  // max-width: 1160px;
+  padding: 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  line-height: 1.55;
+  color: var(--gfh-text-secondary);
+  -webkit-font-smoothing: antialiased;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  #GFWP_DASHBOARD_VIEW_ROOT {
+    .__monospace {
+      font-family: 'Courier New', Courier, monospace;
+    }
+  }
+
+  &__shell {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  &__masthead {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    overflow: hidden;
+    background: var(--gfh-bg);
+    border: 1px solid var(--gfh-line);
+    border-radius: var(--gfh-radius);
+
+    @media (min-width: 782px) {
+      grid-template-columns: minmax(0, 1.15fr) minmax(200px, 1fr);
+      min-height: 220px;
+    }
+  }
+
+  &__masthead-main {
+    position: relative;
+    z-index: 2;
+    padding: 24px 22px 22px;
+
+    @media (min-width: 782px) {
+      padding: 28px 28px 26px;
+    }
+  }
+
+  &__masthead-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 4px 10px 4px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gfh-text-muted);
+    background: var(--gfh-bg-soft);
+    border: 1px solid var(--gfh-line);
+    border-radius: 999px;
+  }
+
+  &__masthead-badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gfh-theme);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gfh-theme) 22%, transparent);
+  }
+
+  &__masthead-title {
+    margin: 0 0 10px;
+    padding: 0;
+    font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: var(--gfh-text);
+  }
+
+  &__masthead-lead {
+    margin: 0 0 20px;
+    max-width: 36rem;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--gfh-text-secondary);
+  }
+
+  &__masthead-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+
+    .button {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 6px;
+      transition: transform var(--gfh-dur) var(--gfh-ease);
+      padding: 0.5rem 1rem !important;
+      font-weight: bold;
+
+      @media (max-width: 519px) {
+        padding: 0.2rem 0.5rem !important;
+      }
+    }
+
+    .button .dashicons {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .button:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &__masthead-meta {
+    margin: 0;
+    font-size: 12px;
+    color: var(--gfh-text-muted);
+
+    a {
+      color: var(--gfh-theme);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: none;
+      transition: color var(--gfh-dur) var(--gfh-ease);
+
+      &:hover {
+        color: var(--gfh-theme-2);
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__masthead-meta-label {
+    margin-right: 6px;
+    font-weight: 600;
+    color: var(--gfh-text-secondary);
+  }
+
+  &__masthead-deco {
+    position: relative;
+    min-height: 120px;
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--gfh-theme) 9%, var(--gfh-bg-soft)) 0%,
+      var(--gfh-bg-soft) 55%,
+      var(--gfh-bg-muted) 100%
+    );
+    border-top: 1px solid var(--gfh-line);
+
+    @media (min-width: 782px) {
+      border-top: none;
+      border-left: 1px solid var(--gfh-line);
+      min-height: auto;
+    }
+  }
+
+  &__masthead-deco-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.45;
+    background-image: radial-gradient(var(--gfh-line-strong) 1px, transparent 1px);
+    background-size: 14px 14px;
+    mask-image: linear-gradient(135deg, #000 20%, transparent 75%);
+  }
+
+  &__masthead-deco-glow {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--gfh-theme) 28%, transparent) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    transition: opacity var(--gfh-dur-slow) var(--gfh-ease);
+  }
+
+  &__masthead:hover &__masthead-deco-glow {
+    opacity: 0.85;
+  }
+
+  &__masthead-aside {
+    position: relative;
+    z-index: 2;
+    padding: 20px 18px 22px;
+    height: 100%;
+
+    @media (min-width: 782px) {
+      padding: 26px 22px 24px;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--gfh-text-muted);
+    }
+  }
+
+  &__feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--gfh-text-secondary);
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--gfh-theme);
+    }
+
+    strong {
+      color: var(--gfh-text);
+      font-weight: 600;
+    }
+  }
+
+  &__help-callout {
+    margin-top: 18px;
+    padding: 12px 14px;
+    background: color-mix(in srgb, var(--gfh-bg) 88%, transparent);
+    border: 1px solid var(--gfh-line);
+    border-radius: var(--gfh-radius-sm);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--gfh-text-secondary);
+
+    a {
+      color: var(--gfh-theme);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: none;
+
+      &:hover {
+        color: var(--gfh-theme-2);
+        text-decoration: underline;
+      }
+    }
+  }
+}

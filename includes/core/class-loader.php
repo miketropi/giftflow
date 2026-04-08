@@ -40,6 +40,8 @@ class Loader extends Base {
 				'rest_nonce'      => wp_create_nonce( 'wp_rest' ),
 				'admin_url'       => admin_url(),
 				'currency_symbol' => giftflow_get_global_currency_symbol(),
+				'docs_url'        => trailingslashit( 'https://giftflow-doc.beplus-agency.cloud' ),
+				'support_url'     => 'https://giftflow.beplus-agency.cloud/contact',
 			)
 		);
 	}
@@ -105,7 +107,41 @@ class Loader extends Base {
 		add_action( 'enqueue_block_assets', array( $this, 'enqueue_blocks' ) );
 		add_filter( 'block_categories_all', array( $this, 'register_block_category' ) );
 		add_action( 'giftflow_cleanup_logs', array( $this, 'run_logs_cleanup' ) );
+
+		// add submenu page with custom link "Go Premium".
+		add_action(
+			'admin_menu',
+			function () {
+				// validate pro not installed.
+				if ( defined( 'GIFTFLOW_PRO_PLUGIN_DIR' ) ) {
+					return;
+				}
+
+				add_submenu_page(
+					'giftflow-dashboard',
+					esc_html__( 'Get Pro ✦', 'giftflow' ),
+					esc_html__( 'Get Pro ✦', 'giftflow' ),
+					'manage_options',
+					'giftflow-get-pro',
+					array( $this, 'giftflow_get_pro_page' ),
+					99
+				);
+			},
+			99
+		);
 	}
+
+	/**
+	 * Display the Go Premium page.
+	 */
+	public function giftflow_get_pro_page() {
+		?>
+		<script>
+			window.location.href = 'https://giftflow.beplus-agency.cloud/pro';
+		</script>
+		<?php
+	}
+
 
 	/**
 	 * Load plugin textdomain

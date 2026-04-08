@@ -1,9 +1,9 @@
 ((w, $) => {
 	'use strict';
 
-	w.giftflow                     = {};
+	w.giftflow = {};
 	w.giftflow.testSendMail_Handle = async( name ) => {
-		let r                      = confirm( 'Are you sure you want to send the test email?' );
+		let r = confirm( 'Are you sure you want to send the test email?' );
 		if ( ! r) {
 			return;
 		}
@@ -23,7 +23,7 @@
 			}
 		)
 
-	// console.log(res);
+		console.log(res);
 	}
 
 })( window, jQuery )

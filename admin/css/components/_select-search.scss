@@ -1,4 +1,4 @@
-// GiftFlow Select Search Component
+// GiftFlow Select Search (inherits --gfh-* from .giftflow-dashboard-view)
 .giftflow-select-search {
   position: relative;
   width: 100%;
@@ -11,21 +11,23 @@
     width: 100%;
     min-height: 44px;
     padding: 0.75rem;
-    background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    background: var(--gfh-bg, #fff);
+    border: 1px solid var(--gfh-line-strong, #c3c4c7);
+    border-radius: var(--gfh-radius-sm, 6px);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+      border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease),
+      box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
     outline: none;
     box-sizing: border-box;
 
     &:hover {
-      border-color: #9ca3af;
+      border-color: var(--gfh-text-muted, #646970);
     }
 
     &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: var(--gfh-theme, #2271b1);
+      box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
     }
   }
 
@@ -37,7 +39,7 @@
   }
 
   &__value-text {
-    color: #374151;
+    color: var(--gfh-text, #1d2327);
     font-size: 0.875rem;
     font-weight: 500;
     line-height: 1.4;
@@ -47,7 +49,7 @@
   }
 
   &__placeholder {
-    color: #9ca3af;
+    color: var(--gfh-text-muted, #646970);
     font-size: 0.875rem;
     line-height: 1.4;
     white-space: nowrap;
@@ -71,19 +73,19 @@
     background: none;
     border: none;
     border-radius: 50%;
-    color: #6b7280;
+    color: var(--gfh-text-muted, #646970);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background var(--gfh-dur, 0.2s) var(--gfh-ease, ease), color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 
     &:hover {
-      background: #f3f4f6;
-      color: #374151;
+      background: var(--gfh-bg-soft, #f6f7f7);
+      color: var(--gfh-text, #1d2327);
     }
 
     &:focus {
       outline: none;
-      background: #f3f4f6;
-      color: #374151;
+      background: var(--gfh-bg-soft, #f6f7f7);
+      color: var(--gfh-text, #1d2327);
     }
   }
 
@@ -91,17 +93,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6b7280;
-    transition: transform 0.2s ease;
+    color: var(--gfh-text-muted, #646970);
+    transition: transform var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
   }
 
   &__dropdown {
     position: fixed;
-    z-index: 9999;
-    background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100001;
+    background: var(--gfh-bg, #fff);
+    border: 1px solid var(--gfh-line, #dcdcde);
+    border-radius: var(--gfh-radius-sm, 6px);
+    box-shadow: var(--gfh-shade-hover, 0 8px 24px rgba(0, 0, 0, 0.1));
     overflow: hidden;
     animation: giftflow-select-search-dropdown 0.2s ease-out;
     max-height: 300px;
@@ -111,8 +113,8 @@
   &__search {
     position: relative;
     padding: 0.75rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-bottom: 1px solid var(--gfh-line, #dcdcde);
+    background: var(--gfh-bg-soft, #f6f7f7);
   }
 
   &__search-icon {
@@ -120,28 +122,28 @@
     left: 1.25rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #6b7280;
+    color: var(--gfh-text-muted, #646970);
     pointer-events: none;
   }
 
   &__search-input {
     width: 100%;
     padding: 0.5rem 0.5rem 0.5rem 2.5rem !important;
-    background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
+    background: var(--gfh-bg, #fff);
+    border: 1px solid var(--gfh-line-strong, #c3c4c7);
+    border-radius: var(--gfh-radius-sm, 6px);
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--gfh-text, #1d2327);
     outline: none;
-    transition: border-color 0.2s ease;
+    transition: border-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease), box-shadow var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
 
     &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      border-color: var(--gfh-theme, #2271b1);
+      box-shadow: 0 0 0 1px var(--gfh-theme, #2271b1);
     }
 
     &::placeholder {
-      color: #9ca3af;
+      color: var(--gfh-text-muted, #646970);
     }
   }
 
@@ -156,16 +158,16 @@
     }
 
     &::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: var(--gfh-bg-muted, #f0f0f1);
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: var(--gfh-line-strong, #c3c4c7);
       border-radius: 3px;
     }
 
     &::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
+      background: var(--gfh-text-muted, #646970);
     }
   }
 
@@ -174,26 +176,26 @@
     flex-direction: column;
     padding: 0.75rem 1rem;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: background-color var(--gfh-dur, 0.2s) var(--gfh-ease, ease);
     border: none;
     background: none;
     width: 100%;
     text-align: left;
     box-sizing: border-box;
-    border-bottom: solid 1px #e5e7eb;
+    border-bottom: solid 1px var(--gfh-line, #dcdcde);
 
     &:hover,
     &--highlighted {
-      background: #f3f4f6;
+      background: var(--gfh-bg-soft, #f6f7f7);
     }
 
     &--selected {
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-weight: 500;
+      background: color-mix(in srgb, var(--gfh-theme, #2271b1) 12%, var(--gfh-bg, #fff));
+      color: var(--gfh-theme, #2271b1);
+      font-weight: 600;
 
       .giftflow-select-search__option-label {
-        color: #1d4ed8;
+        color: var(--gfh-theme, #2271b1);
       }
     }
   }
@@ -201,14 +203,14 @@
   &__option-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--gfh-text, #1d2327);
     line-height: 1.4;
     margin-bottom: 0.125rem;
   }
 
   &__option-description {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: var(--gfh-text-muted, #646970);
     line-height: 1.3;
   }
 
@@ -217,7 +219,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
-    color: #6b7280;
+    color: var(--gfh-text-muted, #646970);
     font-size: 0.875rem;
     justify-content: center;
   }
@@ -225,8 +227,8 @@
   &__spinner {
     width: 16px;
     height: 16px;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
+    border: 2px solid var(--gfh-line, #dcdcde);
+    border-top: 2px solid var(--gfh-theme, #2271b1);
     border-radius: 50%;
     animation: giftflow-select-search-spin 1s linear infinite;
   }
@@ -234,7 +236,7 @@
   &__no-options {
     padding: 1rem;
     text-align: center;
-    color: #6b7280;
+    color: var(--gfh-text-muted, #646970);
     font-size: 0.875rem;
     font-style: italic;
   }
@@ -242,51 +244,51 @@
   &__error-message {
     margin-top: 0.5rem;
     padding: 0.5rem 0.75rem;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 4px;
-    color: #dc2626;
+    background: #fcf0f1;
+    border: 1px solid #f0b0b5;
+    border-radius: var(--gfh-radius-sm, 6px);
+    color: #d63638;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.4;
   }
 
   // States
   &--disabled {
     .giftflow-select-search__trigger {
-      background: #f9fafb;
-      color: #9ca3af;
+      background: var(--gfh-bg-muted, #f0f0f1);
+      color: var(--gfh-text-muted, #646970);
       cursor: not-allowed;
-      border-color: #e5e7eb;
+      border-color: var(--gfh-line, #dcdcde);
 
       &:hover,
       &:focus {
-        border-color: #e5e7eb;
+        border-color: var(--gfh-line, #dcdcde);
         box-shadow: none;
       }
     }
 
     .giftflow-select-search__value-text,
     .giftflow-select-search__placeholder {
-      color: #9ca3af;
+      color: var(--gfh-text-muted, #646970);
     }
 
     .giftflow-select-search__arrow {
-      color: #d1d5db;
+      color: var(--gfh-line-strong, #c3c4c7);
     }
   }
 
   &--error {
     .giftflow-select-search__trigger {
-      border-color: #dc2626;
+      border-color: #d63638;
 
       &:hover {
-        border-color: #b91c1c;
+        border-color: #b32d2e;
       }
 
       &:focus {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        border-color: #d63638;
+        box-shadow: 0 0 0 1px #d63638;
       }
     }
   }

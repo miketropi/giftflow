@@ -228,7 +228,7 @@ class Donation extends Base_Post_Type {
 			echo '<option value="">' . esc_html__( 'All Donors', 'giftflow' ) . '</option>';
 
 			foreach ( $donors as $donor ) {
-				$donor_name = trim( $donor->donor_name );
+				$donor_name = trim( $donor->donor_name ?? '' );
 				if ( empty( $donor_name ) ) {
 					$donor_name = esc_html__( 'Donor ID: ', 'giftflow' ) . $donor->donor_id;
 				}
