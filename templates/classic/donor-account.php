@@ -20,12 +20,12 @@ if ( $page_id <= 0 ) {
 	return;
 }
 
-$page = get_post( $page_id );
-// if ( ! $page instanceof WP_Post ) {
-// 	return;
-// }
-
 get_header( 'giftflow' );
+
+$page = get_post( $page_id );
+if ( ! $page instanceof WP_Post ) {
+	return;
+}
 
 /**
  * @param int $page_id Donor account page ID.

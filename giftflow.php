@@ -308,3 +308,151 @@ function giftflow_add_first_activation_notice() {
 		);
 	}
 }
+
+// add_filter('get_block_templates', function($query_result, $query, $template_type) {
+// 	if ($template_type !== 'wp_template') return $query_result;
+
+// 	// Chỉ inject khi đang query slug cụ thể
+// 	if (empty($query['slug__in'])) return $query_result;
+
+// 	$slugs = $query['slug__in'];
+
+// 	$plugin_templates = [
+// 			'page-campaigns' => plugin_dir_path(__FILE__) . 'templates/page-campaigns.html',
+// 			'single-campaign' => plugin_dir_path(__FILE__) . 'templates/single-campaign.html',
+// 	];
+
+// 	foreach ($plugin_templates as $slug => $file) {
+// 			// Chỉ inject nếu WP đang hỏi slug này
+// 			if (!in_array($slug, $slugs)) continue;
+// 			if (!file_exists($file)) continue;
+
+// 			// Skip nếu đã có
+// 			foreach ($query_result as $t) {
+// 					if ($t->slug === $slug) continue 2;
+// 			}
+
+// 			$template                 = new WP_Block_Template();
+// 			$template->id             = get_stylesheet() . '//' . $slug;
+// 			$template->theme          = get_stylesheet();
+// 			$template->slug           = $slug;
+// 			$template->source         = 'plugin';
+// 			$template->origin         = 'plugin';
+// 			$template->type           = 'wp_template';
+// 			$template->title          = ucwords(str_replace('-', ' ', $slug));
+// 			$template->status         = 'publish';
+// 			$template->has_theme_file = false;
+// 			$template->is_custom      = false;
+// 			$template->content        = file_get_contents($file);
+
+// 			$query_result[] = $template;
+// 	}
+
+// 	return $query_result;
+
+// }, 10, 3);
+
+/**
+ * Block Theme Template Loader
+ * Handles template loading for block themes from plugin
+ */
+class GiftFlow_Block_Templates {
+
+    /**
+     * Map slug => điều kiện context
+     * Thêm template mới vào đây
+     */
+    private static function get_template_map(): array {
+        return [
+            'page-campaigns'  => plugin_dir_path( __FILE__ ) . 'templates/page-campaigns.html',
+            'single-campaign' => plugin_dir_path( __FILE__ ) . 'templates/single-campaign.html',
+        ];
+    }
+
+    /**
+     * Khởi tạo hooks
+     */
+    public static function init(): void {
+        if ( ! wp_is_block_theme() ) return;
+
+        // 1. Cung cấp template cho renderer (slug__in query)
+        add_filter( 'get_block_templates', [ self::class, 'provide_templates' ], 10, 3 );
+
+        // 2. Cung cấp template cho FSE editor (lookup theo ID)
+        add_filter( 'get_block_template', [ self::class, 'provide_template_by_id' ], 10, 3 );
+    }
+
+    /**
+     * Hook 1: Inject template khi WordPress query theo slug__in
+     * Chạy khi: render trang + FSE editor list templates
+     */
+    public static function provide_templates( array $query_result, array $query, string $template_type ): array {
+        if ( $template_type !== 'wp_template' ) return $query_result;
+        if ( empty( $query['slug__in'] ) ) return $query_result;
+
+        $requested_slugs = $query['slug__in'];
+        $template_map    = self::get_template_map();
+
+        foreach ( $template_map as $slug => $file ) {
+            // Chỉ inject nếu WP đang hỏi slug này
+            if ( ! in_array( $slug, $requested_slugs, true ) ) continue;
+            if ( ! file_exists( $file ) ) continue;
+
+            // Tránh duplicate
+            foreach ( $query_result as $existing ) {
+                if ( $existing->slug === $slug ) continue 2;
+            }
+
+            $query_result[] = self::build_template(
+                get_stylesheet() . '//' . $slug,
+                $slug,
+                $file
+            );
+        }
+
+        return $query_result;
+    }
+
+    /**
+     * Hook 2: Inject template khi FSE editor lookup theo ID
+     * Chạy khi: save template trong FSE editor
+     */
+    public static function provide_template_by_id( $block_template, string $id, string $template_type ) {
+        if ( $template_type !== 'wp_template' ) return $block_template;
+
+        // Đã tìm thấy rồi → bỏ qua
+        if ( $block_template instanceof WP_Block_Template ) return $block_template;
+
+        $parts = explode( '//', $id );
+        if ( count( $parts ) !== 2 ) return $block_template;
+
+        $slug         = $parts[1];
+        $template_map = self::get_template_map();
+
+        if ( ! isset( $template_map[ $slug ] ) ) return $block_template;
+        if ( ! file_exists( $template_map[ $slug ] ) ) return $block_template;
+
+        return self::build_template( $id, $slug, $template_map[ $slug ] );
+    }
+
+    /**
+     * Build WP_Block_Template object
+     */
+    private static function build_template( string $id, string $slug, string $file ): WP_Block_Template {
+        $template                 = new WP_Block_Template();
+        $template->id             = $id;
+        $template->theme          = get_stylesheet();
+        $template->slug           = $slug;
+        $template->source         = 'plugin';
+        $template->origin         = 'plugin';
+        $template->type           = 'wp_template';
+        $template->title          = ucwords( str_replace( '-', ' ', $slug ) );
+        $template->status         = 'publish';
+        $template->has_theme_file = false;
+        $template->is_custom      = false;
+        $template->content        = file_get_contents( $file );
+        return $template;
+    }
+}
+
+GiftFlow_Block_Templates::init();

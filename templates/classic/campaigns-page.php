@@ -13,17 +13,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-global $post;
-
 $page_id = giftflow_get_campaigns_page();
 $page_id = is_scalar( $page_id ) ? absint( $page_id ) : 0;
 if ( $page_id <= 0 ) {
 	return;
 }
 
-$page = get_post( $page_id );
-
 get_header( 'giftflow' );
+
+$page = get_post( $page_id );
+if ( ! $page instanceof WP_Post ) {
+	return;
+}
 
 /**
  * Legacy hook before inner layout.

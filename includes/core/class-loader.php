@@ -179,7 +179,7 @@ class Loader extends Base {
 
 		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
 			// Block Theme.
-			// $this->is_block_theme_init();
+			$this->is_block_theme_init();
 		} else {
 			// Classic Theme.
 			$this->is_classic_theme_init();
@@ -216,6 +216,7 @@ class Loader extends Base {
 	 * Initialize block theme.
 	 */
 	public function is_block_theme_init() {
+		
 	}
 
 	/**
