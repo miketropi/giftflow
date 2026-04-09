@@ -31,38 +31,41 @@ function giftflow_donor_account_block() {
 add_action( 'init', 'giftflow_donor_account_block' );
 
 /**
- * Render donor account block.
+ * Render donor account UI (tabs + tab panel) or login form.
  *
- * @param array $attributes Block attributes.
- * @param string $content Block content.
- * @param WP_Block $block Block object.
- * @return string Block output.
+ * Used by the donor-account block and the classic full-page template (no blocks).
+ *
+ * @param int   $root_page_id Donor account page ID (for permalinks); 0 = use option / fallback.
+ * @param array $attributes   Optional block attributes passed to inner templates.
+ * @return void
  */
-function giftflow_donor_account_block_render( $attributes, $content, $block ) {
-	unset( $content );
-	unset( $block );
+function giftflow_render_donor_account_interface( $root_page_id = 0, $attributes = array() ) {
+	$root_page_id = absint( $root_page_id );
+	if ( $root_page_id <= 0 ) {
+		$root_page_id = absint( giftflow_get_donor_account_page() );
+	}
 
-	// get current user loggin.
 	$current_user = wp_get_current_user();
 
-	ob_start();
 	if ( $current_user->ID ) {
-
 		$tabs = giftflow_donor_account_tabs();
 
-		// load template donor account.
+		$active_tab = get_query_var( 'tab', $tabs[0]['slug'] ?? 'dashboard' );
+		if ( ! is_string( $active_tab ) || '' === $active_tab ) {
+			$active_tab = $tabs[0]['slug'] ?? 'dashboard';
+		}
+
 		giftflow_load_template(
 			'block/donor-account.php',
 			array(
 				'current_user'            => $current_user,
 				'attributes'              => $attributes,
 				'tabs'                    => $tabs,
-				'active_tab'              => get_query_var( 'tab', $tabs[0]['slug'] ),
-				'root_donor_account_page' => get_permalink( giftflow_get_donor_account_page() ),
+				'active_tab'              => $active_tab,
+				'root_donor_account_page' => get_permalink( $root_page_id ),
 			)
 		);
 	} else {
-		// load template login form.
 		giftflow_load_template(
 			'login-form.php',
 			array(
@@ -70,6 +73,21 @@ function giftflow_donor_account_block_render( $attributes, $content, $block ) {
 			)
 		);
 	}
+}
+
+/**
+ * Render donor account block.
+ *
+ * @param array    $attributes Block attributes.
+ * @param string   $content Block content.
+ * @param WP_Block $block Block object.
+ * @return string Block output.
+ */
+function giftflow_donor_account_block_render( $attributes, $content, $block ) {
+	unset( $content, $block );
+
+	ob_start();
+	giftflow_render_donor_account_interface( 0, is_array( $attributes ) ? $attributes : array() );
 	return ob_get_clean();
 }
 

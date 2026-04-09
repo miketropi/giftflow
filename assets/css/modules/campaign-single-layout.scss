@@ -1,0 +1,57 @@
+/**
+ * Layout for hook-based single campaign (no block editor columns).
+ * Loaded only on singular campaign.
+ */
+.giftflow.single-campaign {
+	box-sizing: border-box;
+}
+
+.giftflow-single-campaign__inner {
+	width: 100%;
+}
+
+.giftflow-single-campaign__grid {
+	display: grid;
+	gap: clamp(1.25rem, 3vw, 2.5rem);
+	grid-template-columns: 1fr;
+	align-items: start;
+}
+
+@media (min-width: 768px) {
+	.giftflow-single-campaign__grid {
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+	}
+}
+
+.giftflow-single-campaign__cta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 0.5rem;
+}
+
+.giftflow-single-campaign__donate {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+.giftflow-single-campaign__share {
+	flex: 1 1 14rem;
+	min-width: 0;
+}
+
+.giftflow-single-campaign__tabs {
+	margin-top: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.giftflow-single-campaign {
+
+	&__terms {
+		margin-bottom: 1rem;
+		font-size: 1rem;
+		font-size: .9rem;
+	}
+	
+}

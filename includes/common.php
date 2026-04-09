@@ -1658,3 +1658,81 @@ function giftflow_redirect_gf_direct_to() {
 		exit;
 	}
 }
+
+/**
+ * Check if the current page is the campaigns page.
+ *
+ * @return bool True if the current page is the campaigns page, false otherwise.
+ */
+function is_campaigns_page() {
+	$campaigns_page = giftflow_get_campaigns_page();
+	if ( $campaigns_page ) {
+		return is_page( $campaigns_page );
+	}
+	return false;
+}
+
+/**
+ * Check if the current page is the my account page.
+ *
+ * @return bool True if the current page is the my account page, false otherwise.
+ */
+function is_my_account_page() {
+	$my_account_page = giftflow_get_donor_account_page();
+	if ( $my_account_page ) {
+		return is_page( $my_account_page );
+	}
+	return false;
+}
+
+/**
+ * Check if the current page is the thank donor page.
+ *
+ * @return bool True if the current page is the thank donor page, false otherwise.
+ */
+function is_thank_donor_page() {
+	$thank_donor_page = giftflow_get_thank_donor_page();
+	if ( $thank_donor_page ) {
+		return is_page( $thank_donor_page );
+	}
+	return false;
+}
+
+/**
+ * Render the campaign content.
+ *
+ * @return void
+ */
+function giftflow_content() {
+	
+	// is singular campaign page.
+	if ( is_singular( 'campaign' ) ) {
+		$template = new \GiftFlow\Frontend\Template();
+		$template->load_template( 'classic/single-campaign.php' );
+	} else {
+
+		// is campaigns page.
+		if ( is_campaigns_page() ) {
+			$template = new \GiftFlow\Frontend\Template();
+			$template->load_template( 'classic/campaigns-page.php' );
+		}
+
+		// is taxonomy campaign archive page.
+		if ( is_tax( 'campaign-tax' ) ) {
+			$template = new \GiftFlow\Frontend\Template();
+			$template->load_template( 'classic/taxonomy-campaign-archive.php' );
+		}
+
+		// is my account page.
+		if ( is_my_account_page() ) {
+			$template = new \GiftFlow\Frontend\Template();
+			$template->load_template( 'classic/donor-account.php' );
+		}
+
+		// is thank donor page.
+		if ( is_thank_donor_page() ) {
+			$template = new \GiftFlow\Frontend\Template();
+			$template->load_template( 'classic/thank-donor.php' );
+		}
+	}
+}

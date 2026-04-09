@@ -182,7 +182,7 @@ class Loader extends Base {
 			// $this->is_block_theme_init();
 		} else {
 			// Classic Theme.
-			// $this->is_classic_theme_init();
+			$this->is_classic_theme_init();
 		}
 	}
 
@@ -223,14 +223,155 @@ class Loader extends Base {
 	 */
 	public function is_classic_theme_init() {
 
-		// override template of campaign details page.
-		// add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
+		// filter the_content of campaign details page.
+		if ( current_theme_supports( 'giftflow' ) ) {
+			// Run the correct template flow
+			add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );	
+		} else {
+			// Fallback unsupported theme mode - filter the_content
+			add_filter( 'the_content', array( $this, 'filter_campaign_details_page_content' ), 10, 1 );
+		}
 
-		// override template of campaign taxonomy archive page.
-		// add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
+		// filter taxonomy campaign archive page content.
+		add_action( 'template_include', array( $this, 'override_campaign_taxonomy_archive_page_template' ), 10, 1 );
 
-		// override template of my donor account page.
-		// add_action( 'template_include', array( $this, 'override_donor_account_page_template' ), 10, 1 );
+		// Campaigns page content.
+		add_action( 'template_include', array( $this, 'override_campaigns_page_template' ), 10, 1 );
+
+		// My Account page content.
+		add_action( 'template_include', array( $this, 'override_my_account_page_template' ), 10, 1 );
+
+		// Thank Donor page content.
+		add_action( 'template_include', array( $this, 'override_thank_donor_page_template' ), 10, 1 );
+	}
+
+	/**
+	 * Override the template of thank donor page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_thank_donor_page_template( $template ) {
+		if ( ! is_thank_donor_page() ) {
+			return $template;
+		}
+
+		// Check if the active theme has 'giftflow.php' and, if so, use that as the template.
+		$theme_template = locate_template( 'giftflow.php' );
+		if ( ! empty( $theme_template ) && file_exists( $theme_template ) ) {
+			return $theme_template;
+		}
+
+		$gf_template   = new \GiftFlow\Frontend\Template();
+		$template_path = $gf_template->get_template_path( 'classic/thank-donor.php' );
+
+		if ( $template_path && is_readable( $template_path ) ) {
+			return $template_path;
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Override the template of campaigns page.
+	 *
+	 * @param string $template The template file.
+	 */
+	function override_campaigns_page_template( $template ) {
+		if ( is_campaigns_page() ) {
+			// check if the active theme has 'giftflow.php' and, if so, use that as the template.
+			$theme_template = locate_template( 'giftflow.php' );
+			if ( ! empty( $theme_template ) && file_exists( $theme_template ) ) {
+				return $theme_template;
+			}
+
+			// use get_template_path of class Template.
+			$__template = new \GiftFlow\Frontend\Template();
+			$template_path = $__template->get_template_path( 'classic/campaigns-page.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+
+			// if no template found, return the default template.
+			return $template;
+		}
+
+		return $template;	
+	}
+
+	/**
+	 * Override the template of my account page.
+	 *
+	 * @param string $template The template file.
+	 */
+	public function override_my_account_page_template( $template ) {
+		if ( is_my_account_page() ) {
+
+			// Check if the active theme has 'giftflow.php' and, if so, use that as the template.
+			$theme_template = locate_template( 'giftflow.php' );
+			if ( ! empty( $theme_template ) && file_exists( $theme_template ) ) {
+				return $theme_template;
+			}
+
+			// use get_template_path of class Template.
+			$template = new \GiftFlow\Frontend\Template();
+			$template_path = $template->get_template_path( 'classic/donor-account.php' );
+
+			if ( $template_path ) {
+				return $template_path;
+			}
+
+			return $template;
+		}
+
+		return $template;
+	}
+
+	/**
+	 * Replace post content on singular campaign with the hook-based inner layout (see
+	 * campaign-single-template-hooks.php), without header/footer, for classic themes
+	 * that use the theme single template + the_content.
+	 *
+	 * @param string $content The content of the campaign details page.
+	 * @return string The filtered content.
+	 */
+	public function filter_campaign_details_page_content( $content ) {
+
+		if ( ! is_singular( 'campaign' ) ) {
+			return $content;
+		}
+
+		if ( is_feed() || is_admin() || wp_doing_ajax() ) {
+			return $content;
+		}
+
+		// Only the main query loop — avoids replacing content in secondary loops/widgets.
+		if ( ! in_the_loop() || ! is_main_query() ) {
+			return $content;
+		}
+
+		$template  = new \GiftFlow\Frontend\Template();
+		$inner_tpl = $template->get_template_path( 'classic/single-campaign-inner.php' );
+
+		if ( ! $inner_tpl || ! is_readable( $inner_tpl ) ) {
+			return $content;
+		}
+
+		ob_start();
+		$template->load_template( 'classic/single-campaign-inner.php' );
+		$html = ob_get_clean();
+
+		if ( '' === trim( (string) $html ) ) {
+			return $content;
+		}
+
+		/**
+		 * Filter HTML injected for singular campaign via the_content (classic themes).
+		 *
+		 * @param string $html    Rendered inner campaign layout.
+		 * @param string $content Original post content passed to the filter.
+		 */
+		return apply_filters( 'giftflow_campaign_single_the_content', $html, $content );
 	}
 
 	/**
@@ -241,6 +382,12 @@ class Loader extends Base {
 	public function override_campaign_details_page_template( $template ) {
 		// check is current page is campaign details page.
 		if ( is_singular( 'campaign' ) ) {
+
+			// Check if the active theme has 'giftflow.php' and, if so, use that as the template.
+			$theme_template = locate_template( 'giftflow.php' );
+			if ( ! empty( $theme_template ) && file_exists( $theme_template ) ) {
+				return $theme_template;
+			}
 
 			// use get_template_path of class Template.
 			$template = new \GiftFlow\Frontend\Template();
@@ -262,7 +409,13 @@ class Loader extends Base {
 	public function override_campaign_taxonomy_archive_page_template( $template ) {
 		// check is current page is campaign taxonomy archive page.
 		if ( is_tax( 'campaign-tax' ) ) {
-			// use get_template_path of class Template.
+
+			$theme_template = locate_template( 'giftflow.php' );
+			if ( ! empty( $theme_template ) && file_exists( $theme_template ) ) {
+				return $theme_template;
+			}
+
+			// load template of campaign taxonomy archive page.
 			$template = new \GiftFlow\Frontend\Template();
 			$template_path = $template->get_template_path( 'classic/taxonomy-campaign-archive.php' );
 
@@ -317,46 +470,15 @@ class Loader extends Base {
 		$campaigns_page = get_page_by_path( 'campaigns' );
 		if ( ! $campaigns_page ) {
 
-			$campaigns_page_block_content = '<!-- wp:group {"tagName":"main","align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
-<main class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:query {"queryId":22,"query":{"perPage":9,"pages":0,"offset":0,"postType":"campaign","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false,"parents":[],"format":[]},"metadata":{"categories":["posts"],"patternName":"core/query-grid-posts","name":"Grid"},"align":"wide"} -->
-<div class="wp-block-query alignwide"><!-- wp:post-template {"style":{"spacing":{"blockGap":"var:preset|spacing|40"}},"layout":{"type":"grid","columnCount":3,"minimumColumnWidth":null}} -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"20px","right":"20px","bottom":"20px","left":"20px"}},"border":{"color":"#e0e0e0","width":"1px","radius":"1px"}},"backgroundColor":"base","layout":{"type":"default"}} -->
-<div class="wp-block-group has-border-color has-base-background-color has-background" style="border-color:#e0e0e0;border-width:1px;border-radius:1px;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px"><!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->
-
-<!-- wp:post-terms {"term":"campaign-tax","prefix":"in ","fontSize":"small"} /-->
-
-<!-- wp:post-title {"level":4,"isLink":true,"style":{"typography":{"fontStyle":"normal","fontWeight":"600"}},"fontSize":"medium"} /-->
-
-<!-- wp:post-excerpt {"excerptLength":15,"fontSize":"medium"} /-->
-
-<!-- wp:giftflow/campaign-status-bar {"__editorPostId":150} /--></div>
-<!-- /wp:group -->
-<!-- /wp:post-template -->
-
-<!-- wp:query-pagination {"paginationArrow":"arrow","layout":{"type":"flex","justifyContent":"center","orientation":"horizontal","flexWrap":"wrap"}} -->
-<!-- wp:query-pagination-previous /-->
-
-<!-- wp:query-pagination-numbers /-->
-
-<!-- wp:query-pagination-next /-->
-<!-- /wp:query-pagination --></div>
-<!-- /wp:query --></main>
-<!-- /wp:group -->';
 
 			$campaigns_page = wp_insert_post(
 				array(
 					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
-					'post_content' => apply_filters( 'giftflow_campaigns_page_content_on_create', $campaigns_page_block_content ),
+					'post_content' => apply_filters( 'giftflow_campaigns_page_content_on_create', '' ),
 					'post_status'  => 'publish',
 					'post_type'    => 'page',
 				)
 			);
-
-			// update_post_meta(
-			// 	$campaigns_page,
-			// 	'_wp_page_template',
-			// 	'campaigns-page'
-			// );
 		}
 
 		// create 2 pages donor-account and thank-donor & set template for there.
@@ -371,12 +493,6 @@ class Loader extends Base {
 					'post_type'    => 'page',
 				)
 			);
-
-			// update_post_meta(
-			// 	$donor_account_page,
-			// 	'_wp_page_template',
-			// 	'donor-account'
-			// );
 		}
 
 		$thank_donor_page = get_page_by_path( 'thank-donor' );
@@ -390,12 +506,6 @@ class Loader extends Base {
 					'post_type'    => 'page',
 				)
 			);
-
-			// update_post_meta(
-			// 	$thank_donor_page,
-			// 	'_wp_page_template',
-			// 	'thank-donor'
-			// );
 		}
 
 		// create donation Privacy Policy page.

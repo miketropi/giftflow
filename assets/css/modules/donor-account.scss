@@ -5,11 +5,31 @@
 @import './donor-account/login-form';
 @import './donor-account/donations-filter-form';
 
+// Classic full-page donor account (templates/classic/donor-account.php)
+.gfw-donor-account-page-main {
+  max-width: 100%;
+}
+
+.gfw-donor-account-page__header {
+  // margin-bottom: 1.25rem;
+  // padding-bottom: 1rem;
+  // border-bottom: 1px solid #e8eaed;
+}
+
+.gfw-donor-account-page__title {
+  // margin: 0;
+  // font-size: clamp(1.35rem, 3vw, 1.75rem);
+  // font-weight: 600;
+  // letter-spacing: -0.02em;
+  // line-height: 1.25;
+  // color: #1a1d21;
+}
+
 .gfw-donor-account__title {
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.2rem, 2.2vw, 1.4rem);
   font-weight: 600;
-  color: #1a1a1a;
+  letter-spacing: -0.02em;
 }
 
 .giftflow-donor-account {
@@ -40,7 +60,7 @@
     border: solid #eee;
     border-width: 1px 0 0 0;
     opacity: .4;
-    font-weight: bold;
+    // font-weight: bold;
     
     &:hover {
       // color: #3b82f6;
@@ -84,12 +104,12 @@
   }
 
   &__tab-label {
-    font-weight: 500;
-    font-size: 1rem;
-    line-height: normal;
+    // font-weight: 500;
+    // font-size: 1rem;
+    // line-height: normal;
     
     @media (max-width: 768px) {
-      font-size: .9rem;
+      // font-size: .9rem;
     }
   }
 

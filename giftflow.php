@@ -95,6 +95,9 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-shortcodes.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-forms.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/class-template.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/campaign-single-template-hooks.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/campaign-taxonomy-archive-template-hooks.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'includes/frontend/campaigns-page-template-hooks.php';
 
 	// Blocks.
 

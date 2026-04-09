@@ -10,8 +10,14 @@
 @import './modules/campaign-single-images';
 @import './modules/shortcode-campaign-grid';
 
+// campaign taxonomy archive style
+@import './modules/campaign-taxonomy-archive-layout';
+
+// campaign single style
+@import './modules/campaign-single-layout';
+
 // donor account style
-@import './modules/donor-account';
+@import './modules/donor-account'; 
 
 // thank donor block
 @import './modules/thank-donor-block';

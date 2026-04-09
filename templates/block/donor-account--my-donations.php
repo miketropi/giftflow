@@ -1,6 +1,6 @@
 <?php
 /**
- * Template for my donations
+ * Template for my donations (minimal list / cards — no table).
  *
  * @package GiftFlow
  * @since 1.0.0
@@ -15,11 +15,9 @@ $donations = $donations ?? null;
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound, WordPress.WP.GlobalVariablesOverride.Prohibited
 $page = $page ?? 1;
 
-// Cache process bar by campaign_id.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $cache_process_bar = array();
 
-// Build table rows from donation query using giftflow_get_donation_data_by_id().
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donations_data = array();
 if ( $donations instanceof WP_Query && $donations->have_posts() ) {
@@ -45,23 +43,21 @@ if ( $donations instanceof WP_Query && $donations->have_posts() ) {
 		}
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		$donations_data[] = array(
-			'donation_id'       => $donation_id,
-			'campaign_id'       => $campaign_id,
-			'campaign_title'    => $d->campaign_name,
-			'campaign_url'      => $d->campaign_url,
-			'amount_formatted'  => $d->__amount_formatted,
-			'payment_status'    => $d->status,
-			'payment_method'    => $d->payment_method,
-			// donation type.
-			'donation_type'     => $d->donation_type,
-			// template for payment method + donation type.
-			'payment_template'  => giftflow_donation_payment_template_tags( $d ),
-			'date'              => $d->__date,
-			'date_gmt'          => $d->__date_gmt,
-			'date_ago'          => '<span class="gfw-donation-date-ago" title="' . esc_attr( $d->__date_gmt ) . '">' . giftflow_render_time_ago( $d->__date_gmt ) . '</span>',
-			'detail_url'        => giftflow_donor_account_page_url( 'donations?_id=' . $donation_id ),
-			'process_bar_html'  => isset( $cache_process_bar[ $campaign_id ] ) ? $cache_process_bar[ $campaign_id ] : '',
-			'sub_donations'     => giftflow_get_donations_by_parent_id( $donation_id ),
+			'donation_id'      => $donation_id,
+			'campaign_id'      => $campaign_id,
+			'campaign_title'   => $d->campaign_name,
+			'campaign_url'     => $d->campaign_url,
+			'amount_formatted' => $d->__amount_formatted,
+			'payment_status'   => $d->status,
+			'payment_method'   => $d->payment_method,
+			'donation_type'    => $d->donation_type,
+			'payment_template' => giftflow_donation_payment_template_tags( $d ),
+			'date'             => $d->__date,
+			'date_gmt'         => $d->__date_gmt,
+			'date_ago'         => '<span class="gfw-donation-date-ago" title="' . esc_attr( $d->__date_gmt ) . '">' . giftflow_render_time_ago( $d->__date_gmt ) . '</span>',
+			'detail_url'       => giftflow_donor_account_page_url( 'donations?_id=' . $donation_id ),
+			'process_bar_html' => isset( $cache_process_bar[ $campaign_id ] ) ? $cache_process_bar[ $campaign_id ] : '',
+			'sub_donations'    => giftflow_get_donations_by_parent_id( $donation_id ),
 		);
 	}
 	wp_reset_postdata();
@@ -69,215 +65,174 @@ if ( $donations instanceof WP_Query && $donations->have_posts() ) {
 
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $donations_data = apply_filters( 'giftflow_my_donations_table_data', $donations_data, $page );
-?>
-<div class="gfw-my-donations-header">
-	<h2 class="gfw-donor-account__title"><?php esc_html_e( 'My Donations', 'giftflow' ); ?></h2>
-	<p>
-	<?php esc_html_e( 'Here you can view a detailed record of your recent donations. Each contribution helps us create lasting impact and drive positive change in our community.', 'giftflow' ); ?>
-	</p>
-</div>
-<?php
+
 /*
- * Table format: array of columns. Each column is an array with:
- *   label  (string)  Header text for the column.
- *   value  (string)  Key in each row to use for this column (see $donations_data keys).
- *   format (string)  How to render: 'text' | 'html' | 'id' | 'campaign' | 'date' | 'status' | 'detail'. Default 'text'.
- *   width  (string)  Optional. e.g. '40%' for <th width="40%">.
- *   th_attrs (array) Optional. Extra attributes for <th>.
+ * Legacy column config (still filterable). Card layout uses fixed fields; use
+ * giftflow_my_donation_card_after_body to inject extra content per row.
  */
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$table_columns = array(
+$table_columns = apply_filters(
+	'giftflow_my_donations_table_columns',
 	array(
-		'label' => '',
-		'value' => 'donation_id',
-		'format' => 'id',
-	),
-	array(
-		'label' => __( 'Campaign', 'giftflow' ),
-		'value' => 'campaign_title',
-		'format' => 'campaign',
-		'width' => '25%',
-	),
-	array(
-		'label' => __( 'Amount', 'giftflow' ),
-		'value' => 'amount_formatted',
-		'format' => 'html',
-	),
-
-	// payment type.
-	array(
-		'label' => __( 'Payment', 'giftflow' ),
-		'value' => 'payment_template',
-		'format' => 'html',
-	),
-
-	array(
-		'label' => __( 'Date', 'giftflow' ),
-		'value' => 'date_ago',
-		'format' => 'html',
-	),
-	array(
-		'label' => __( 'Status', 'giftflow' ),
-		'value' => 'payment_status',
-		'format' => 'status',
-	),
-	array(
-		'label' => '',
-		'value' => 'detail_url',
-		'format' => 'detail',
-	),
+		array(
+			'label'  => '',
+			'value'  => 'donation_id',
+			'format' => 'id',
+		),
+		array(
+			'label'  => __( 'Campaign', 'giftflow' ),
+			'value'  => 'campaign_title',
+			'format' => 'campaign',
+		),
+		array(
+			'label'  => __( 'Amount', 'giftflow' ),
+			'value'  => 'amount_formatted',
+			'format' => 'html',
+		),
+		array(
+			'label'  => __( 'Payment', 'giftflow' ),
+			'value'  => 'payment_template',
+			'format' => 'html',
+		),
+		array(
+			'label'  => __( 'Date', 'giftflow' ),
+			'value'  => 'date_ago',
+			'format' => 'html',
+		),
+		array(
+			'label'  => __( 'Status', 'giftflow' ),
+			'value'  => 'payment_status',
+			'format' => 'status',
+		),
+		array(
+			'label'  => '',
+			'value'  => 'detail_url',
+			'format' => 'detail',
+		),
+	)
 );
+/**
+ * Fired after legacy column filter runs (card UI does not render columns).
+ *
+ * @param array $table_columns Column definitions.
+ */
+do_action( 'giftflow_my_donations_list_columns_resolved', $table_columns );
 
-// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$table_columns = apply_filters( 'giftflow_my_donations_table_columns', $table_columns );
+?>
+<div class="gfw-my-donations">
+	<header class="gfw-my-donations-header">
+		<h2 class="gfw-donor-account__title gfw-my-donations-header__title"><?php esc_html_e( 'My Donations', 'giftflow' ); ?></h2>
+		<p class="gfw-my-donations-header__intro">
+			<?php esc_html_e( 'A concise history of your giving. Open any entry for the full receipt and breakdown.', 'giftflow' ); ?>
+		</p>
+	</header>
+<?php if ( ! empty( $donations_data ) ) : ?>
+	<?php do_action( 'giftflow_my_donations_table_before', $current_user, $donations, $page ); ?>
+	<ul class="gfw-donations-list" role="list">
+		<?php foreach ( $donations_data as $row ) : ?>
+			<?php
+			$donation_id   = isset( $row['donation_id'] ) ? absint( $row['donation_id'] ) : 0;
+			$sub_donations = $row['sub_donations'] ?? array();
+			$status        = isset( $row['payment_status'] ) ? (string) $row['payment_status'] : '';
+			?>
+		<li class="gfw-donations-list__item" data-donation-id="<?php echo esc_attr( (string) $donation_id ); ?>">
+			<article class="gfw-donation-card" aria-labelledby="gfw-donation-title-<?php echo esc_attr( (string) $donation_id ); ?>">
+				<div class="gfw-donation-card__top">
+					<div class="gfw-donation-card__amount-wrap">
+						<span class="screen-reader-text"><?php esc_html_e( 'Amount', 'giftflow' ); ?></span>
+						<span class="gfw-donation-card__amount"><?php echo wp_kses_post( $row['amount_formatted'] ?? '' ); ?></span>
+					</div>
+					<span class="donation-status status-<?php echo esc_attr( $status ); ?>"><?php echo esc_html( ucfirst( $status ) ); ?></span>
+				</div>
 
-if ( ! empty( $donations_data ) ) :
-	?>
-	<?php
-	// Action hook: giftflow_my_donations_table_before.
-	// @since 1.0.0.
-	do_action( 'giftflow_my_donations_table_before', $current_user, $donations, $page );
-	?>
-	<div class="gfw-my-donations-table-container">
-		<table class="giftflow-table gfw-my-donations-table" style="width: 100%;">
-			<thead>
-				<tr>
-					<?php
-					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-					foreach ( $table_columns as $col ) :
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$th_attrs = $col['th_attrs'] ?? array();
-						if ( ! empty( $col['width'] ) ) {
-							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-							$th_attrs['width'] = $col['width'];
-						}
-						?>
-					<th 
-						<?php
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						foreach ( $th_attrs as $attr => $val ) {
-							echo esc_attr( $attr ) . '="' . esc_attr( $val ) . '" ';
-						}
-						?>
-					><?php echo esc_html( $col['label'] ?? '' ); ?></th>
-					<?php endforeach; ?>
-				</tr>
-			</thead>
-			<tbody>
-				<?php
-				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-				foreach ( $donations_data as $row ) :
-					?>
-				<tr class="gfw-my-donations-row">
-					<?php
-
-					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-					foreach ( $table_columns as $col ) :
-						?>
-					<td>
-						<?php
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$key    = $col['value'] ?? $col['key'] ?? '';
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$format = $col['format'] ?? $col['cell'] ?? 'text';
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$val    = isset( $row[ $key ] ) ? $row[ $key ] : '';
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						switch ( $format ) {
-							case 'id':
-								echo '<span style="font-family: monospace;">#' . esc_html( (string) $val ) . '</span>';
-								break;
-							case 'campaign':
-								if ( ! empty( $row['campaign_id'] ) ) {
-									echo wp_kses_post( $row['process_bar_html'] ?? '' );
-									// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-									echo '<b>' . esc_html( $row['campaign_title'] ?? '' ) . '</b>' . '<a class="gfw-campaign-title-link" href="' . esc_url( $row['campaign_url'] ?? '' ) . '" target="_blank">' . wp_kses( giftflow_svg_icon( 'arrow-up-right' ), giftflow_allowed_svg_tags() ) . '</a>';
-								} else {
-									echo esc_html( $row['campaign_title'] ?? '' );
-								}
-								break;
-							case 'html':
-								echo wp_kses_post( $val );
-								break;
-							case 'date':
-								echo '<span class="gfw-donation-date">' . esc_html( $val ) . '</span>';
-								break;
-							case 'status':
-								echo '<span class="donation-status status-' . esc_attr( $val ) . '">' . esc_html( ucfirst( $val ) ) . '</span>';
-								break;
-							case 'detail':
-								echo '<a class="gfw-view-detail-link" href="' . esc_url( $val ) . '" style="white-space: nowrap;">';
-								echo esc_html__( 'Detail →', 'giftflow' );
-								echo '</a>';
-								break;
-							default:
-								echo esc_html( $val );
-						}
-						?>
-					</td>
-					<?php endforeach; ?>
-				</tr>
-					<?php
-					// Sub-donations: toggle show/hide via <details>.
-					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-					$sub_donations = $row['sub_donations'] ?? array();
-					if ( ! empty( $sub_donations ) && is_array( $sub_donations ) ) :
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$col_count = count( $table_columns );
-						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-						$sub_count = count( $sub_donations );
-						?>
-				<tr class="gfw-my-donations-sub-row">
-					<td colspan="<?php echo (int) $col_count; ?>" class="gfw-my-donations-sub-cell">
-						<details class="gfw-my-donations-sub-details">
-							<summary class="gfw-my-donations-sub-summary">
-								<span class="gfw-my-donations-sub-summary-text"><?php esc_html_e( 'Recurring payments', 'giftflow' ); ?></span>
-							</summary>
-							<ul class="gfw-my-donations-sub-list">
-								<?php
-								// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-								foreach ( $sub_donations as $sub_post ) :
-									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-									$sub_id = $sub_post->ID;
-									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-									$sub_d  = giftflow_get_donation_data_by_id( $sub_id );
-									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-									if ( ! $sub_d ) {
-										continue;
-									}
-									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-									$sub_detail_url = giftflow_donor_account_page_url( 'donations?_id=' . $sub_id );
-									// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-									$sub_date_ago = '<span class="gfw-donation-date-ago" title="' . esc_attr( $sub_d->__date_gmt ) . '">' . giftflow_render_time_ago( $sub_d->__date_gmt ) . '</span>';
-									?>
-									<li class="gfw-my-donations-sub-item">
-										<span class="gfw-my-donations-sub-id">#<?php echo esc_html( (string) $sub_id ); ?></span>
-										<span class="gfw-my-donations-sub-amount"><?php echo wp_kses_post( $sub_d->__amount_formatted ?? '' ); ?></span>
-										<span class="gfw-my-donations-sub-date"><?php echo wp_kses_post( $sub_date_ago ?? '—' ); ?></span>
-										<span class="donation-status status-<?php echo esc_attr( $sub_d->status ?? '' ); ?>"><?php echo esc_html( ucfirst( $sub_d->status ?? '' ) ); ?></span>
-										<a class="gfw-view-detail-link" href="<?php echo esc_url( $sub_detail_url ); ?>"><?php esc_html_e( 'Detail →', 'giftflow' ); ?></a>
-									</li>
-								<?php endforeach; ?>
-							</ul>
-						</details>
-					</td>
-				</tr>
+				<div class="gfw-donation-card__campaign" id="gfw-donation-title-<?php echo esc_attr( (string) $donation_id ); ?>">
+					<?php if ( ! empty( $row['campaign_id'] ) ) : ?>
+						<?php if ( ! empty( $row['process_bar_html'] ) ) : ?>
+					<div class="gfw-donation-card__progress">
+							<?php echo wp_kses_post( $row['process_bar_html'] ); ?>
+					</div>
+						<?php endif; ?>
+					<div class="gfw-donation-card__campaign-line">
+						<span class="gfw-donation-card__campaign-name"><?php echo esc_html( $row['campaign_title'] ?? '' ); ?></span>
+						<a class="gfw-donation-card__campaign-link" href="<?php echo esc_url( $row['campaign_url'] ?? '' ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Open campaign in new tab', 'giftflow' ); ?>">
+							<?php echo wp_kses( giftflow_svg_icon( 'arrow-up-right' ), giftflow_allowed_svg_tags() ); ?>
+						</a>
+					</div>
+					<?php else : ?>
+					<p class="gfw-donation-card__campaign-name"><?php echo esc_html( $row['campaign_title'] ?? '' ); ?></p>
 					<?php endif; ?>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-	</div>
+				</div>
+
+				<div class="gfw-donation-card__meta" role="group" aria-label="<?php esc_attr_e( 'Donation details', 'giftflow' ); ?>">
+					<span class="gfw-donation-card__meta-item gfw-donation-card__meta-item--payment">
+						<span class="gfw-donation-card__meta-key"><?php esc_html_e( 'Payment', 'giftflow' ); ?></span>
+						<span class="gfw-donation-card__meta-val"><?php echo wp_kses_post( $row['payment_template'] ?? '' ); ?></span>
+					</span>
+					<span class="gfw-donation-card__meta-item gfw-donation-card__meta-item--when">
+						<span class="gfw-donation-card__meta-key"><?php esc_html_e( 'When', 'giftflow' ); ?></span>
+						<span class="gfw-donation-card__meta-val"><?php echo wp_kses_post( $row['date_ago'] ?? '' ); ?></span>
+					</span>
+					<span class="gfw-donation-card__meta-item gfw-donation-card__meta-item--ref">
+						<span class="gfw-donation-card__meta-key"><?php esc_html_e( 'Ref.', 'giftflow' ); ?></span>
+						<span class="gfw-donation-card__meta-val gfw-donation-card__ref">#<?php echo esc_html( (string) $donation_id ); ?></span>
+					</span>
+				</div>
+
+				<?php do_action( 'giftflow_my_donation_card_after_meta', $row ); ?>
+
+				<div class="gfw-donation-card__foot">
+					<a class="gfw-donation-card__detail" href="<?php echo esc_url( $row['detail_url'] ?? '' ); ?>">
+						<span><?php esc_html_e( 'View details', 'giftflow' ); ?></span>
+						<?php echo wp_kses( giftflow_svg_icon( 'arrow-up-right' ), giftflow_allowed_svg_tags() ); ?>
+					</a>
+				</div>
+
+				<?php if ( ! empty( $sub_donations ) && is_array( $sub_donations ) ) : ?>
+				<details class="gfw-donation-card__subs">
+					<summary class="gfw-donation-card__subs-summary">
+						<span><?php esc_html_e( 'Recurring payments', 'giftflow' ); ?></span>
+						<span class="gfw-donation-card__subs-badge"><?php echo esc_html( (string) count( $sub_donations ) ); ?></span>
+					</summary>
+					<ul class="gfw-donation-card__subs-list" role="list">
+						<?php
+						foreach ( $sub_donations as $sub_post ) :
+							$sub_id = $sub_post->ID;
+							$sub_d  = giftflow_get_donation_data_by_id( $sub_id );
+							if ( ! $sub_d ) {
+								continue;
+							}
+							$sub_detail_url = giftflow_donor_account_page_url( 'donations?_id=' . $sub_id );
+							$sub_date_ago   = '<span class="gfw-donation-date-ago" title="' . esc_attr( $sub_d->__date_gmt ) . '">' . giftflow_render_time_ago( $sub_d->__date_gmt ) . '</span>';
+							$sub_status     = (string) ( $sub_d->status ?? '' );
+							?>
+						<li class="gfw-donation-card__subs-item">
+							<span class="gfw-donation-card__subs-line">
+								<span class="gfw-donation-card__subs-amount"><?php echo wp_kses_post( $sub_d->__amount_formatted ?? '' ); ?></span>
+								<span class="donation-status status-<?php echo esc_attr( $sub_status ); ?>"><?php echo esc_html( ucfirst( $sub_status ) ); ?></span>
+							</span>
+							<span class="gfw-donation-card__subs-meta">
+								<span class="gfw-donation-card__subs-ref">#<?php echo esc_html( (string) $sub_id ); ?></span>
+								<span class="gfw-donation-card__subs-when"><?php echo wp_kses_post( $sub_date_ago ); ?></span>
+							</span>
+							<a class="gfw-donation-card__subs-link" href="<?php echo esc_url( $sub_detail_url ); ?>"><?php esc_html_e( 'Details', 'giftflow' ); ?></a>
+						</li>
+						<?php endforeach; ?>
+					</ul>
+				</details>
+				<?php endif; ?>
+
+				<?php do_action( 'giftflow_my_donation_card_after_body', $row ); ?>
+			</article>
+		</li>
+		<?php endforeach; ?>
+	</ul>
 
 	<?php
-	// Comment: Pagination (if needed).
 	if ( isset( $donations->max_num_pages ) && $donations->max_num_pages > 1 ) :
-	  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-		$big = 999999999; // need an unlikely integer.
-	  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		$big          = 999999999;
 		$current_page = max( 1, $page );
-
 		?>
-	<div class="gfw-pagination">
+	<nav class="gfw-pagination" aria-label="<?php esc_attr_e( 'Donations list pagination', 'giftflow' ); ?>">
 		<?php
 		echo wp_kses_post(
 			paginate_links(
@@ -288,14 +243,17 @@ if ( ! empty( $donations_data ) ) :
 					'total'     => $donations->max_num_pages,
 					'prev_text' => esc_html__( 'Previous', 'giftflow' ),
 					'next_text' => esc_html__( 'Next', 'giftflow' ),
+					'type'      => 'list',
 				)
 			)
 		);
 		?>
-	</div>
+	</nav>
 	<?php endif; ?>
 <?php else : ?>
-	<div class="gfw-no-donations">
-	<?php esc_html_e( 'You have not made any donations yet.', 'giftflow' ); ?>
+	<div class="gfw-no-donations" role="status">
+		<p class="gfw-no-donations__title"><?php esc_html_e( 'No donations yet', 'giftflow' ); ?></p>
+		<p class="gfw-no-donations__hint"><?php esc_html_e( 'When you support a campaign, your receipts and history will appear here.', 'giftflow' ); ?></p>
 	</div>
 <?php endif; ?>
+</div>

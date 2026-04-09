@@ -1,366 +1,425 @@
-// Donation detail page (single donation view in donor account)
-// Scoped under .gfw-donation-detail-page
+// Donation detail (single) — aligned with my-donations card style
 
-// -----------------------------------------------------------------------------
-// Variables
-// -----------------------------------------------------------------------------
-$gfw-detail-border: 1px solid #e5e7eb;
-$gfw-detail-border-light: 1px solid #f1f5f9;
-$gfw-detail-radius: 8px;
-$gfw-detail-radius-sm: 6px;
-$gfw-detail-bg: #f8fafc;
-$gfw-detail-bg-card: #ffffff;
-$gfw-detail-text: #1e293b;
-$gfw-detail-text-muted: #64748b;
-$gfw-detail-link: #0f172a;
-$gfw-detail-primary: #0f172a;
-$gfw-detail-primary-hover: #334155;
-$gfw-detail-success: #15803d;
-$gfw-detail-success-bg: #dcfce7;
-$gfw-detail-warning: #b45309;
-$gfw-detail-warning-bg: #fef3c7;
-$gfw-detail-pending: #6366f1;
-$gfw-detail-pending-bg: #e0e7ff;
-$gfw-detail-failed: #b91c1c;
-$gfw-detail-failed-bg: #fee2e2;
-$gfw-detail-refunded: #b45309;
-$gfw-detail-refunded-bg: #fef3c7;
-$gfw-detail-cancelled: #64748b;
-$gfw-detail-cancelled-bg: #f1f5f9;
+$gfw-dd-border: #e8eaed;
+$gfw-dd-surface: #ffffff;
+$gfw-dd-surface-subtle: #f6f7f9;
+$gfw-dd-text: black;
+$gfw-dd-text-muted: #333;
+$gfw-dd-radius: 4px;
+$gfw-dd-radius-sm: 3px;
 
-// -----------------------------------------------------------------------------
-// Layout
-// -----------------------------------------------------------------------------
 .gfw-donation-detail-page {
-  // max-width: 640px;
   margin: 0 auto;
-  padding: 0 1rem 2rem;
-  color: $gfw-detail-text;
-  font-size: 1rem;
+  padding: 0 0 2rem;
+  color: $gfw-dd-text;
+  font-size: 0.9375rem;
   line-height: 1.5;
+  max-width: 42rem;
 }
 
 // -----------------------------------------------------------------------------
-// Nav / Back link
+// Back link
 // -----------------------------------------------------------------------------
 .gfw-donation-detail-nav {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .gfw-donation-detail-back {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  color: $gfw-detail-text-muted;
+  gap: 0.4rem;
+  padding: 0.35rem 0;
+  // font-size: 0.8125rem;
+  // font-weight: 600;
+  // color: $gfw-dd-text-muted;
   text-decoration: none;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  // border-radius: $gfw-dd-radius-sm;
   transition: color 0.15s ease;
 
-  &:hover {
-    color: $gfw-detail-text;
+  svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    opacity: 0.75;
   }
+
+  &:hover,
+  &:focus-visible {
+    color: $gfw-dd-text;
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Hero card (summary)
+// -----------------------------------------------------------------------------
+.gfw-donation-detail-hero {
+  margin-bottom: 1.25rem;
+  padding: 1.125rem 1.25rem;
+  background: $gfw-dd-surface;
+  border: 1px solid $gfw-dd-border;
+  border-radius: $gfw-dd-radius;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (hover: hover) {
+  .gfw-donation-detail-hero:hover {
+    border-color: darken($gfw-dd-border, 6%);
+    // box-shadow: 0 2px 8px rgba(26, 29, 33, 0.06);
+  }
+}
+
+.gfw-donation-detail-hero__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $gfw-dd-border;
+}
+
+.gfw-donation-detail-hero__title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: $gfw-dd-text;
+}
+
+.gfw-donation-detail-hero__id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  font-size: 0.9em;
+  color: $gfw-dd-text-muted;
+}
+
+.gfw-donation-detail-hero__campaign {
+  margin-bottom: 1rem;
+}
+
+.gfw-donation-detail-hero__campaign-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $gfw-dd-text-muted;
+}
+
+.gfw-donation-detail-hero__campaign-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.gfw-donation-detail-hero__campaign-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: $gfw-dd-text;
+  text-decoration: none;
+  border-radius: $gfw-dd-radius-sm;
+  transition: color 0.15s ease;
 
   svg {
-    width: 1em;
-    height: 1em;
+    width: 1rem;
+    height: 1rem;
     flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
-}
 
-// -----------------------------------------------------------------------------
-// Header (title, campaign, date)
-// -----------------------------------------------------------------------------
-.gfw-donation-detail-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.25rem;
-  border-bottom: $gfw-detail-border;
-}
+  &:hover,
+  &:focus-visible {
+    color: $primary-color;
+    outline: none;
 
-.gfw-donation-detail-title {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: $gfw-detail-text;
-  line-height: 1.3;
-}
-
-.gfw-donation-detail-id {
-  font-family: ui-monospace, monospace;
-  font-size: 0.95em;
-  font-weight: 500;
-  color: $gfw-detail-text-muted;
-}
-
-.gfw-donation-detail-campaign {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9375rem;
-  color: $gfw-detail-text-muted;
-
-  .gfw-donation-detail-campaign-link {
-    color: $gfw-detail-link;
-    font-weight: 500;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.15s ease;
-
-    &:hover {
-      color: $gfw-detail-primary-hover;
+    svg {
+      opacity: 1;
+      transform: translate(0.06rem, -0.06rem);
     }
   }
 }
 
-.gfw-donation-detail-meta {
+.gfw-donation-detail-hero__campaign-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: $gfw-dd-text;
+}
+
+.gfw-donation-detail-hero__amount-block {
+  margin-bottom: 1rem;
+}
+
+.gfw-donation-detail-hero__amount {
   margin: 0;
-  font-size: 0.875rem;
-  color: $gfw-detail-text-muted;
-}
-
-.gfw-donation-detail-date {
-  font-family: ui-monospace, monospace;
-}
-
-// -----------------------------------------------------------------------------
-// Summary card (amount + status)
-// -----------------------------------------------------------------------------
-.gfw-donation-detail-summary {
-  margin-bottom: 1.5rem;
-  padding: 1.25rem 1.5rem;
-  background: $gfw-detail-bg;
-  border: $gfw-detail-border-light;
-  border-radius: $gfw-detail-radius;
-}
-
-.gfw-donation-detail-amount-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.gfw-donation-detail-amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-family: ui-monospace, monospace;
-  color: $gfw-detail-text;
+  font-size: clamp(1.45rem, 4vw, 1.75rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: $gfw-dd-text;
+
+  .giftflow-currency-formatted-amount {
+    font-weight: inherit;
+    color: inherit;
+  }
 }
 
-.gfw-donation-detail-status {
+.gfw-donation-detail-hero__meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid $gfw-dd-border;
+}
+
+@media (min-width: 480px) {
+  .gfw-donation-detail-hero__meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.gfw-donation-detail-hero__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.gfw-donation-detail-hero__meta-key {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $gfw-dd-text-muted;
+}
+
+.gfw-donation-detail-hero__meta-val {
+  font-size: 0.8125rem;
+  color: $gfw-dd-text;
+  word-break: break-word;
+}
+
+.gfw-donation-detail-hero__type {
+  text-transform: capitalize;
+}
+
+// Status pills (match my-donations)
+.gfw-donation-detail-page .donation-status {
   display: inline-flex;
   align-items: center;
-  padding: 0.25em 0.75em;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
   border-radius: 9999px;
   text-transform: capitalize;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 
   &.status-completed {
-    background: $gfw-detail-success-bg;
-    color: $gfw-detail-success;
-  }
-
-  &.status-pending {
-    background: $gfw-detail-pending-bg;
-    color: $gfw-detail-pending;
-  }
-
-  &.status-failed {
-    background: $gfw-detail-failed-bg;
-    color: $gfw-detail-failed;
+    background: #e8f5e9;
+    color: #1b5e20;
   }
 
   &.status-refunded {
-    background: $gfw-detail-refunded-bg;
-    color: $gfw-detail-refunded;
+    background: #fff8e1;
+    color: #e65100;
+  }
+
+  &.status-pending {
+    background: #e8eaf6;
+    color: #3949ab;
+  }
+
+  &.status-failed {
+    background: #ffebee;
+    color: #c62828;
   }
 
   &.status-cancelled {
-    background: $gfw-detail-cancelled-bg;
-    color: $gfw-detail-cancelled;
+    background: $gfw-dd-surface-subtle;
+    color: $gfw-dd-text-muted;
   }
-}
-
-.gfw-donation-detail-summary-meta {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: $gfw-detail-border-light;
-  font-size: 0.875rem;
-  color: $gfw-detail-text-muted;
-
-  span + span::before {
-    content: " · ";
-    margin: 0 0.25rem;
-  }
-}
-
-.gfw-donation-detail-type {
-  text-transform: capitalize;
 }
 
 // -----------------------------------------------------------------------------
-// Details section + table
+// Details section + definition list
 // -----------------------------------------------------------------------------
 .gfw-donation-detail-section {
   margin-bottom: 1.5rem;
 }
 
-.gfw-donation-detail-section-title {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
+.gfw-donation-detail-section__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: $gfw-detail-text;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $gfw-dd-text-muted;
 }
 
-.gfw-donation-detail-table {
-  width: 100%;
-  // border-collapse: collapse;
-  font-size: 0.9375rem;
-  // background: $gfw-detail-bg-card;
-  // border: $gfw-detail-border-light;
-  border-radius: $gfw-detail-radius;
-  overflow: hidden;
+.gfw-donation-detail-card {
+  padding: 0.25rem 1.125rem 0.5rem;
+  background: $gfw-dd-surface;
+  border: 1px solid $gfw-dd-border;
+  border-radius: $gfw-dd-radius;
+}
 
-  th,
-  td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid #f3f3f3 !important;
-    vertical-align: top;
-  }
+.gfw-donation-detail-fields {
+  margin: 0;
+}
 
-  tr:last-child th,
-  tr:last-child td {
+.gfw-donation-detail-field {
+  display: grid;
+  grid-template-columns: minmax(0, 8.5rem) 1fr;
+  gap: 0.35rem 1.25rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid $gfw-dd-border;
+
+  &:last-child {
     border-bottom: none;
+    padding-bottom: 0.35rem;
   }
+}
 
-  .gfw-donation-detail-label {
-    width: 40%;
-    max-width: 160px;
-    font-weight: 500;
-    color: $gfw-detail-text-muted;
-    // background: $gfw-detail-bg;
+@media (max-width: 520px) {
+  .gfw-donation-detail-field {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
+}
 
-  .gfw-donation-detail-value {
-    font-weight: 400;
-    color: $gfw-detail-text;
-    word-break: break-word;
-  }
+.gfw-donation-detail-field__label {
+  // margin: 0;
+  // font-size: 0.6875rem;
+  // font-weight: 600;
+  // text-transform: uppercase;
+  // letter-spacing: 0.06em;
+  // color: $gfw-dd-text-muted;
+  // line-height: 1.4;
+}
 
-  .gfw-donation-detail-email {
-    font-family: ui-monospace, monospace;
-    font-size: 0.9em;
-  }
+.gfw-donation-detail-field__value {
+  // margin: 0;
+  // font-size: 0.875rem;
+  // font-weight: 400;
+  color: $gfw-dd-text;
+  // word-break: break-word;
 
-  .gfw-donation-detail-message {
-    white-space: pre-wrap;
-    max-width: 100%;
-    font-family: serif;
-    font-size: 1rem;
-  }
+  margin-inline-start: 0 !important;
+  margin-block: 0 !important;
+}
 
-  .gfw-donation-detail-date {
-    font-family: ui-monospace, monospace;
-    font-size: 0.9em;
-  }
+.gfw-donation-detail-field__value.gfw-donation-detail-email {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: $gfw-dd-text;
+}
+
+.gfw-donation-detail-field__value.gfw-donation-detail-message {
+  // white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: $gfw-dd-text;
+}
+
+.gfw-donation-detail-field__value.gfw-donation-detail-date {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
 }
 
 // -----------------------------------------------------------------------------
-// Actions (footer)
+// Footer actions
 // -----------------------------------------------------------------------------
 .gfw-donation-detail-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.65rem 1rem;
   align-items: center;
   justify-content: space-between;
-  padding-top: 1.5rem;
-  border-top: $gfw-detail-border;
+  padding-top: 1.25rem;
+  border-top: 1px solid $gfw-dd-border;
 }
 
-.gfw-donation-detail-btn {
+.gfw-donation-detail-action {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 0;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-decoration: none;
-  // border-radius: $gfw-detail-radius-sm;
-  font-weight: bold;
-  font-size: .8rem;
-  transition: background 0.15s ease, color 0.15s ease;
+  justify-content: center;
+  gap: 0.4rem;
 
   svg {
-    width: 1em;
-    height: 1em;
+    width: 1rem;
+    height: 1rem;
     flex-shrink: 0;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
   }
 }
 
-// .gfw-donation-detail-btn-back {
-//   color: $gfw-detail-text-muted;
-//   background: transparent;
+.gfw-donation-detail-action--ghost {
+  color: $gfw-dd-text-muted;
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0.75rem;
 
-//   &:hover {
-//     color: $gfw-detail-text;
-//     background: $gfw-detail-bg;
-//   }
-// }
+  &:hover {
+    color: $gfw-dd-text;
+  }
+}
 
-// .gfw-donation-detail-btn-primary {
-//   color: #fff;
-//   background: $gfw-detail-primary;
+.gfw-donation-detail-action--primary {
+  // color: $gfw-dd-text;
+  // background: $gfw-dd-surface-subtle;
+  // border-color: $gfw-dd-border;
 
-//   &:hover {
-//     background: $gfw-detail-primary-hover;
-//     color: #fff;
-//   }
-// }
-
-// -----------------------------------------------------------------------------
-// Responsive
-// -----------------------------------------------------------------------------
-@media (max-width: 600px) {
-  .gfw-donation-detail-page {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+  svg {
+    opacity: 0.55;
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
 
-  .gfw-donation-detail-title {
-    font-size: 1.25rem;
-  }
+  &:hover {
+    border-color: $primary-color;
+    color: $primary-color;
 
-  .gfw-donation-detail-summary {
-    padding: 1rem 1.25rem;
-  }
-
-  .gfw-donation-detail-amount {
-    font-size: 1.25rem;
-  }
-
-  .gfw-donation-detail-table {
-    font-size: 0.875rem;
-
-    th,
-    td {
-      padding: 0.6rem 0.75rem;
-    }
-
-    .gfw-donation-detail-label {
-      max-width: 120px;
+    svg {
+      opacity: 1;
+      transform: translate(0.06rem, -0.06rem);
     }
   }
+}
 
+@media (max-width: 520px) {
   .gfw-donation-detail-actions {
     flex-direction: column;
     align-items: stretch;
+  }
 
-    .gfw-donation-detail-btn {
-      justify-content: center;
-    }
+  .gfw-donation-detail-action {
+    width: 100%;
+  }
+
+  .gfw-donation-detail-action--ghost {
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    border: 1px solid $gfw-dd-border;
+    background: $gfw-dd-surface;
+    box-sizing: border-box;
   }
 }

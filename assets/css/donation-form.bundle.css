@@ -71,7 +71,7 @@
      object-fit: cover;
 }
 .donation-form__campaign-title {
-  font-weight: 600;
+  font-weight: bold;
   color: var(--giftflow-text-color);
   margin: 0 0 0.5rem 0;
 }

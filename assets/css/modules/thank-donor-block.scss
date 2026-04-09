@@ -185,3 +185,21 @@ $thank-donor-text-max: 34rem;
 		transition: none;
 	}
 }
+
+// Classic full-page wrapper (templates/classic/thank-donor.php)
+.gfw-thank-donor-page-main {
+	max-width: 100%;
+}
+
+.gfw-thank-donor-page__header {
+	margin-bottom: 0.5rem;
+}
+
+.gfw-thank-donor-page__title {
+	margin: 0 0 1rem;
+	font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+	color: #1a1d21;
+}
