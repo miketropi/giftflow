@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.12
+Stable tag: 1.0.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,15 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.14 =
+* New: Native support for block themes – automatically registers block-based templates for campaigns, donor accounts, and thank-you pages.
+* New: Added "Thank Donor" page template and corresponding block for post-donation messaging.
+* Improvement: Enhanced admin dashboard UX with improved onboarding notice and help page links.
+* Improvement: Updated translation strings for greater internationalization coverage.
+* Fix: Improved compatibility with WordPress 6.9 and third-party caching plugins.
+* Fix: Resolved potential PHP notices/warnings in admin and AJAX handlers.
+* Dev: Streamlined main plugin loader for reliability and forward compatibility.
 
 = 1.0.12 =
 * Feature: Added field type "Pro Only" handling in admin and form builder.
