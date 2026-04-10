@@ -46,6 +46,10 @@ function giftflow_campaigns_grid_block() {
 					'type'    => 'string',
 					'default' => '',
 				),
+				'inheritCampaignTaxonomy' => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
 			),
 			'supports'        => array(
 				'align' => array( 'wide', 'full' ),
@@ -66,7 +70,7 @@ add_action( 'init', 'giftflow_campaigns_grid_block' );
  * @return string
  */
 function giftflow_campaigns_grid_block_render( $attributes, $content, $block ) {
-	unset( $content, $block );
+	unset( $content );
 
 	$per_page = isset( $attributes['perPage'] ) ? max( 1, (int) $attributes['perPage'] ) : 9;
 	$orderby  = isset( $attributes['orderby'] ) ? sanitize_text_field( $attributes['orderby'] ) : 'date';
@@ -75,10 +79,40 @@ function giftflow_campaigns_grid_block_render( $attributes, $content, $block ) {
 		$order = 'DESC';
 	}
 
-	$category    = isset( $attributes['category'] ) ? sanitize_text_field( $attributes['category'] ) : '';
+	$inherit_tax = (bool) ( $attributes['inheritCampaignTaxonomy'] ?? true );
+	$category    = isset( $attributes['category'] ) ? sanitize_text_field( (string) $attributes['category'] ) : '';
 	$search      = isset( $attributes['search'] ) ? sanitize_text_field( $attributes['search'] ) : '';
-	$custom_raw  = isset( $attributes['customClass'] ) ? $attributes['customClass'] : '';
+	$custom_raw   = isset( $attributes['customClass'] ) ? $attributes['customClass'] : '';
 	$custom_class = is_string( $custom_raw ) ? sanitize_html_class( $custom_raw ) : '';
+
+	// On campaign-tax term archives, use the viewed term when no category is set in the block.
+	if ( '' === $category && $inherit_tax && ! wp_is_serving_rest_request() && is_tax( 'campaign-tax' ) ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term && 'campaign-tax' === $term->taxonomy ) {
+			$category = $term->slug;
+		}
+	}
+
+	// Optional: resolve from block template context (e.g. FSE) when main query is not the archive.
+	if ( '' === $category && $inherit_tax && $block instanceof WP_Block ) {
+		$ctx_tax = isset( $block->context['taxonomy'] ) ? (string) $block->context['taxonomy'] : '';
+		$ctx_id  = isset( $block->context['termId'] ) ? absint( $block->context['termId'] ) : 0;
+		if ( 'campaign-tax' === $ctx_tax && $ctx_id > 0 ) {
+			$t = get_term( $ctx_id, 'campaign-tax' );
+			if ( $t instanceof WP_Term && ! is_wp_error( $t ) ) {
+				$category = $t->slug;
+			}
+		}
+	}
+
+	/**
+	 * Final campaign category for the grid (slug, term ID string, or empty = all).
+	 *
+	 * @param string   $category   Resolved value.
+	 * @param array    $attributes Block attributes.
+	 * @param WP_Block $block      Block instance.
+	 */
+	$category = apply_filters( 'giftflow_campaigns_grid_resolved_category', $category, $attributes, $block );
 
 	$atts = array(
 		'per_page'     => $per_page,

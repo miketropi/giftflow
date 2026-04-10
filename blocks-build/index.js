@@ -366,6 +366,10 @@ function _objectSpread(e) {
     customClass: {
       type: 'string',
       "default": ''
+    },
+    inheritCampaignTaxonomy: {
+      type: 'boolean',
+      "default": true
     }
   },
   edit: function edit(props) {
@@ -450,6 +454,15 @@ function _objectSpread(e) {
                 order: order
               });
             }
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.ToggleControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Match archive category', 'giftflow'),
+            checked: attributes.inheritCampaignTaxonomy !== false,
+            onChange: function onChange(inheritCampaignTaxonomy) {
+              return setAttributes({
+                inheritCampaignTaxonomy: inheritCampaignTaxonomy
+              });
+            },
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('When this block is on a campaign category archive and no category is selected above, the grid shows campaigns for that category.', 'giftflow')
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.SelectControl, {
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Campaign category', 'giftflow'),
             value: attributes.category,
@@ -459,7 +472,7 @@ function _objectSpread(e) {
                 category: category
               });
             },
-            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Filter by a single campaign category.', 'giftflow')
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Leave as “All categories” to use the archive term when “Match archive category” is on.', 'giftflow')
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_6__.TextControl, {
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_7__.__)('Search', 'giftflow'),
             value: attributes.search,

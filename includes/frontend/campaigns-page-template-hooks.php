@@ -179,24 +179,3 @@ function giftflow_template_campaigns_page_loop( int $page_id ): void {
 	giftflow_load_template( 'campaign-grid.php', apply_filters( 'giftflow_form_campaign_grid_atts', $atts ) );
 	do_action( 'giftflow_after_campaigns_page_grid', $page_id, $atts );
 }
-
-/**
- * Layout CSS for campaigns page.
- */
-function giftflow_enqueue_campaigns_page_layout_styles(): void {
-	if ( ! is_campaigns_page() ) {
-		return;
-	}
-	$rel = 'assets/css/campaigns-page-layout.css';
-	$dir = GIFTFLOW_PLUGIN_DIR . $rel;
-	if ( ! is_readable( $dir ) ) {
-		return;
-	}
-	wp_enqueue_style(
-		'giftflow-campaigns-page-layout',
-		GIFTFLOW_PLUGIN_URL . $rel,
-		array(),
-		(string) filemtime( $dir )
-	);
-}
-add_action( 'wp_enqueue_scripts', 'giftflow_enqueue_campaigns_page_layout_styles', 25 );

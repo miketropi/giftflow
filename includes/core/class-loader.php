@@ -429,27 +429,6 @@ class Loader extends Base {
 	}
 
 	/**
-	 * Override the template of my donor account page.
-	 *
-	 * @param string $template The template file.
-	 */
-	public function override_donor_account_page_template( $template ) {
-		// check is current page is my donor account page.
-		if ( is_page( giftflow_get_donor_account_page() ) ) {
-
-			// use get_template_path of class Template.
-			$template = new \GiftFlow\Frontend\Template();
-			$template_path = $template->get_template_path( 'classic/donor-account.php' );
-
-			if ( $template_path ) {
-				return $template_path;
-			}
-		}
-
-		return $template;
-	}
-
-	/**
 	 * Activate the plugin
 	 */
 	public function activate() {
@@ -470,8 +449,7 @@ class Loader extends Base {
 		// create page campaigns.
 		$campaigns_page = get_page_by_path( 'campaigns' );
 		if ( ! $campaigns_page ) {
-
-
+			
 			$campaigns_page = wp_insert_post(
 				array(
 					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
@@ -534,6 +512,7 @@ class Loader extends Base {
 				)
 			);
 		}
+
 	}
 
 	/**

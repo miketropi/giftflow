@@ -1,7 +1,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import ServerSideRender from '@wordpress/server-side-render';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { Disabled, PanelBody, SelectControl, TextControl, RangeControl } from '@wordpress/components';
+import { Disabled, PanelBody, SelectControl, TextControl, RangeControl, ToggleControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
@@ -36,6 +36,10 @@ registerBlockType('giftflow/campaigns-grid', {
         customClass: {
             type: 'string',
             default: '',
+        },
+        inheritCampaignTaxonomy: {
+            type: 'boolean',
+            default: true,
         },
     },
     edit: (props) => {
@@ -95,12 +99,24 @@ registerBlockType('giftflow/campaigns-grid', {
                             ]}
                             onChange={(order) => setAttributes({ order })}
                         />
+                        <ToggleControl
+                            label={__('Match archive category', 'giftflow')}
+                            checked={attributes.inheritCampaignTaxonomy !== false}
+                            onChange={(inheritCampaignTaxonomy) => setAttributes({ inheritCampaignTaxonomy })}
+                            help={__(
+                                'When this block is on a campaign category archive and no category is selected above, the grid shows campaigns for that category.',
+                                'giftflow',
+                            )}
+                        />
                         <SelectControl
                             label={__('Campaign category', 'giftflow')}
                             value={attributes.category}
                             options={categoryOptions}
                             onChange={(category) => setAttributes({ category })}
-                            help={__('Filter by a single campaign category.', 'giftflow')}
+                            help={__(
+                                'Leave as “All categories” to use the archive term when “Match archive category” is on.',
+                                'giftflow',
+                            )}
                         />
                         <TextControl
                             label={__('Search', 'giftflow')}

@@ -271,61 +271,6 @@
 		}
 	}
 
-	// Pagination
-	// &__pagination {
-	// 	margin-top: 2rem;
-	// 	text-align: center;
-
-	// 	.page-numbers {
-	// 		display: inline-flex;
-	// 		flex-wrap: wrap;
-	// 		justify-content: center;
-	// 		align-items: center;
-	// 		gap: 0.5rem;
-	// 		list-style: none;
-	// 		margin: 0;
-	// 		padding: 0;
-
-	// 		li {
-	// 			margin: 0;
-	// 		}
-
-	// 		a,
-	// 		span {
-	// 			display: inline-block;
-	// 			padding: 0.5rem 0.75rem;
-	// 			min-width: 40px;
-	// 			text-align: center;
-	// 			text-decoration: none;
-	// 			border: 1px solid $border-color;
-	// 			border-radius: $border-radius;
-	// 			color: $text-color;
-	// 			background: #fff;
-	// 			transition: $transition;
-	// 			font-size: 0.95rem;
-	// 		}
-
-	// 		a:hover {
-	// 			background: $background-color;
-	// 			border-color: $primary-color;
-	// 			color: $primary-color;
-	// 		}
-
-	// 		.current {
-	// 			background: $primary-color;
-	// 			color: #fff;
-	// 			border-color: $primary-color;
-	// 			font-weight: 600;
-	// 		}
-
-	// 		.dots {
-	// 			border: none;
-	// 			background: transparent;
-	// 			cursor: default;
-	// 		}
-	// 	}
-	// }
-
 	// Responsive adjustments
 	@media (max-width: 768px) {
 		margin: 1.5rem 0;
@@ -352,7 +297,7 @@
 		}
 
 		&__title {
-			font-size: 1rem;
+			// font-size: 1rem;
 		}
 
 		&__button {
