@@ -55,27 +55,6 @@ function giftflow_register_default_campaign_single_template_hooks(): void {
 add_action( 'init', 'giftflow_register_default_campaign_single_template_hooks', 30 );
 
 /**
- * Front-end layout CSS for PHP/hook single campaign template.
- */
-function giftflow_enqueue_campaign_single_layout_styles(): void {
-	if ( ! is_singular( 'campaign' ) ) {
-		return;
-	}
-	$rel = 'assets/css/campaign-single-layout.css';
-	$dir = GIFTFLOW_PLUGIN_DIR . $rel;
-	if ( ! is_readable( $dir ) ) {
-		return;
-	}
-	wp_enqueue_style(
-		'giftflow-campaign-single-layout',
-		GIFTFLOW_PLUGIN_URL . $rel,
-		array(),
-		(string) filemtime( $dir )
-	);
-}
-//  add_action( 'wp_enqueue_scripts', 'giftflow_enqueue_campaign_single_layout_styles', 25 );
-
-/**
  * Locate a campaign-single PHP template (child/theme override support).
  *
  * @param string $template Relative to templates/, e.g. campaign-single/content-single-campaign.php.
@@ -102,13 +81,18 @@ function giftflow_single_campaign_open_wrapper( int $campaign_id ): void {
 }
 
 /**
+ * Close the wrapper.
+ *
  * @param int $campaign_id Campaign post ID.
  */
 function giftflow_single_campaign_close_wrapper( int $campaign_id ): void {
+	unset( $campaign_id );
 	echo '</div>';
 }
 
 /**
+ * Open the CTA row.
+ *
  * @param int $campaign_id Campaign post ID.
  */
 function giftflow_template_single_campaign_open_cta_row( int $campaign_id ): void {
@@ -120,9 +104,12 @@ function giftflow_template_single_campaign_open_cta_row( int $campaign_id ): voi
 }
 
 /**
+ * Close the CTA row.
+ *
  * @param int $campaign_id Campaign post ID.
  */
 function giftflow_template_single_campaign_close_cta_row( int $campaign_id ): void {
+	unset( $campaign_id );
 	echo '</div>';
 }
 

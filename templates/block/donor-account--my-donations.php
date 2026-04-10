@@ -133,6 +133,8 @@ do_action( 'giftflow_my_donations_list_columns_resolved', $table_columns );
 			<?php
 			$donation_id   = isset( $row['donation_id'] ) ? absint( $row['donation_id'] ) : 0;
 			$sub_donations = $row['sub_donations'] ?? array();
+
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			$status        = isset( $row['payment_status'] ) ? (string) $row['payment_status'] : '';
 			?>
 		<li class="gfw-donations-list__item" data-donation-id="<?php echo esc_attr( (string) $donation_id ); ?>">

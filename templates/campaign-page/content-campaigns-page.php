@@ -20,12 +20,15 @@ if ( $page_id <= 0 ) {
 	return;
 }
 
-$page = isset( $page ) && $page instanceof WP_Post ? $page : get_post( $page_id );
-if ( ! $page instanceof WP_Post || 'publish' !== $page->post_status ) {
+// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+$__page = isset( $page ) && $page instanceof WP_Post ? $page : get_post( $page_id );
+if ( ! $__page instanceof WP_Post || 'publish' !== $__page->post_status ) {
 	return;
 }
 
 /**
+ * Fires at the very start of the campaigns page inner template.
+ *
  * @param int $page_id Campaigns page ID.
  */
 do_action( 'giftflow_before_campaigns_page', $page_id );
@@ -63,6 +66,8 @@ $outer = apply_filters( 'giftflow_campaigns_page_outer_classes', 'giftflow campa
 </div>
 <?php
 /**
+ * Fires at the very end of the campaigns page inner template.
+ *
  * @param int $page_id Campaigns page ID.
  */
 do_action( 'giftflow_after_campaigns_page', $page_id );

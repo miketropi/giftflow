@@ -23,6 +23,8 @@ if ( $page_id <= 0 ) {
 }
 
 /**
+ * Fires at the very start of the thank donor inner template.
+ *
  * @param int $page_id Thank donor page ID.
  */
 do_action( 'giftflow_thank_donor_inner_before', $page_id );
@@ -38,6 +40,8 @@ $attributes = apply_filters( 'giftflow_thank_donor_classic_attributes', array(),
 giftflow_render_thank_donor_content( is_array( $attributes ) ? $attributes : array() );
 
 /**
+ * Fires at the very end of the thank donor inner template.
+ *
  * @param int $page_id Thank donor page ID.
  */
 do_action( 'giftflow_thank_donor_inner_after', $page_id );

@@ -22,12 +22,15 @@ if ( $page_id <= 0 ) {
 
 get_header( 'giftflow' );
 
-$page = get_post( $page_id );
-if ( ! $page instanceof WP_Post ) {
+// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+$__page = get_post( $page_id );
+if ( ! $__page instanceof WP_Post ) {
 	return;
 }
 
 /**
+ * Fires at the very start of the thank donor inner template.
+ *
  * @param int $page_id Thank donor page ID.
  */
 do_action( 'giftflow_thank_donor_before_content', $page_id );
@@ -56,7 +59,7 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 		$template_rel,
 		array(
 			'page_id' => $page_id,
-			'page'    => $page,
+			'page'    => $__page,
 		)
 	);
 	?>
@@ -64,6 +67,8 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 <?php
 
 /**
+ * Fires at the very end of the thank donor inner template.
+ *
  * @param int $page_id Thank donor page ID.
  */
 do_action( 'giftflow_thank_donor_after_content', $page_id );

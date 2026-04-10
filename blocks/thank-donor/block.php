@@ -108,7 +108,10 @@ function giftflow_thank_donor_build_template_data( $attributes = array() ) {
 	}
 
 	$heading_allowed = array(
-		'span'   => array( 'class' => true, 'style' => true ),
+		'span'   => array(
+			'class' => true,
+			'style' => true,
+		),
 		'em'     => array(),
 		'strong' => array(),
 	);

@@ -21,8 +21,8 @@ if ( $page_id <= 0 ) {
 
 get_header( 'giftflow' );
 
-$page = get_post( $page_id );
-if ( ! $page instanceof WP_Post ) {
+$__page = get_post( $page_id );
+if ( ! $__page instanceof WP_Post ) {
 	return;
 }
 
@@ -49,7 +49,7 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 		$template_rel,
 		array(
 			'page_id' => $page_id,
-			'page'    => $page,
+			'page'    => $__page,
 		)
 	);
 	?>

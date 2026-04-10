@@ -90,6 +90,7 @@ function giftflow_template_campaign_taxonomy_archive_title( WP_Term $term ): voi
 		'<%1$s class="%2$s">%3$s%4$s</%1$s>',
 		esc_attr( $tag ),
 		esc_attr( is_string( $classes ) ? $classes : 'giftflow-campaign-tax-archive__title' ),
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$prefix_html,
 		esc_html( is_string( $name ) ? $name : '' )
 	);
@@ -104,7 +105,7 @@ function giftflow_template_campaign_taxonomy_archive_description( WP_Term $term 
 	if ( ! apply_filters( 'giftflow_campaign_taxonomy_archive_show_description', true, $term ) ) {
 		return;
 	}
-	$desc = term_description( $term->term_id, $term->taxonomy );
+	$desc = term_description( $term->term_id );
 	if ( ! is_string( $desc ) || '' === trim( $desc ) ) {
 		return;
 	}
@@ -190,27 +191,6 @@ function giftflow_template_campaign_taxonomy_archive_loop( WP_Term $term ): void
 	giftflow_load_template( 'campaign-grid.php', apply_filters( 'giftflow_form_campaign_grid_atts', $atts ) );
 	do_action( 'giftflow_after_campaign_taxonomy_archive_grid', $term, $atts );
 }
-
-/**
- * Enqueue layout helpers for taxonomy archive.
- */
-function giftflow_enqueue_campaign_taxonomy_archive_layout_styles(): void {
-	if ( ! is_tax( 'campaign-tax' ) ) {
-		return;
-	}
-	$rel = 'assets/css/campaign-taxonomy-archive-layout.css';
-	$dir = GIFTFLOW_PLUGIN_DIR . $rel;
-	if ( ! is_readable( $dir ) ) {
-		return;
-	}
-	wp_enqueue_style(
-		'giftflow-campaign-taxonomy-archive-layout',
-		GIFTFLOW_PLUGIN_URL . $rel,
-		array(),
-		(string) filemtime( $dir )
-	);
-}
-// add_action( 'wp_enqueue_scripts', 'giftflow_enqueue_campaign_taxonomy_archive_layout_styles', 25 );
 
 /**
  * Locate a campaign-archive PHP template.

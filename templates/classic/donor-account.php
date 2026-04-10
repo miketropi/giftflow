@@ -22,12 +22,14 @@ if ( $page_id <= 0 ) {
 
 get_header( 'giftflow' );
 
-$page = get_post( $page_id );
-if ( ! $page instanceof WP_Post ) {
+$__page = get_post( $page_id );
+if ( ! $__page instanceof WP_Post ) {
 	return;
 }
 
 /**
+ * Fires at the very start of the donor account inner template.
+ *
  * @param int $page_id Donor account page ID.
  */
 do_action( 'giftflow_donor_account_before_content', $page_id );
@@ -56,7 +58,7 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 		$template_rel,
 		array(
 			'page_id' => $page_id,
-			'page'    => $page,
+			'page'    => $__page,
 		)
 	);
 	?>
@@ -64,6 +66,8 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 <?php
 
 /**
+ * Fires at the very end of the donor account inner template.
+ *
  * @param int $page_id Donor account page ID.
  */
 do_action( 'giftflow_donor_account_after_content', $page_id );

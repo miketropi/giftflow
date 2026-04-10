@@ -216,7 +216,6 @@ class Loader extends Base {
 	 * Initialize block theme.
 	 */
 	public function is_block_theme_init() {
-		
 	}
 
 	/**
@@ -226,10 +225,10 @@ class Loader extends Base {
 
 		// filter the_content of campaign details page.
 		if ( current_theme_supports( 'giftflow' ) ) {
-			// Run the correct template flow
-			add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );	
+			// Run the correct template flow.
+			add_action( 'template_include', array( $this, 'override_campaign_details_page_template' ), 10, 1 );
 		} else {
-			// Fallback unsupported theme mode - filter the_content
+			// Fallback unsupported theme mode - filter the_content.
 			add_filter( 'the_content', array( $this, 'filter_campaign_details_page_content' ), 10, 1 );
 		}
 
@@ -277,7 +276,7 @@ class Loader extends Base {
 	 *
 	 * @param string $template The template file.
 	 */
-	function override_campaigns_page_template( $template ) {
+	public function override_campaigns_page_template( $template ) {
 		if ( is_campaigns_page() ) {
 			// check if the active theme has 'giftflow.php' and, if so, use that as the template.
 			$theme_template = locate_template( 'giftflow.php' );
@@ -297,7 +296,7 @@ class Loader extends Base {
 			return $template;
 		}
 
-		return $template;	
+		return $template;
 	}
 
 	/**
@@ -449,7 +448,7 @@ class Loader extends Base {
 		// create page campaigns.
 		$campaigns_page = get_page_by_path( 'campaigns' );
 		if ( ! $campaigns_page ) {
-			
+
 			$campaigns_page = wp_insert_post(
 				array(
 					'post_title'   => esc_html__( 'Campaigns', 'giftflow' ),
@@ -512,7 +511,6 @@ class Loader extends Base {
 				)
 			);
 		}
-
 	}
 
 	/**

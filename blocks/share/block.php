@@ -92,7 +92,7 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 			$share_url = home_url( add_query_arg( array() ) );
 		}
 	}
-	
+
 	// Get title and description for sharing.
 	if ( is_singular() ) {
 		global $post;
@@ -123,7 +123,7 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 		$share_title       = get_bloginfo( 'name' );
 		$share_description = get_bloginfo( 'description' );
 	}
-	
+
 	// Default social platforms (Facebook, X/Twitter, LinkedIn).
 	$social_platforms = array( 'twitter', 'facebook', 'linkedin' );
 

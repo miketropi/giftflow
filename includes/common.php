@@ -1704,7 +1704,7 @@ function is_thank_donor_page() {
  * @return void
  */
 function giftflow_content() {
-	
+
 	// is singular campaign page.
 	if ( is_singular( 'campaign' ) ) {
 		$template = new \GiftFlow\Frontend\Template();

@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 $term = isset( $term ) ? $term : get_queried_object();
 if ( ! $term instanceof WP_Term || 'campaign-tax' !== $term->taxonomy ) {
 	return;

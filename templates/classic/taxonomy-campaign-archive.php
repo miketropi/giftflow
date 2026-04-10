@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$term = get_queried_object();
-if ( ! $term instanceof WP_Term || 'campaign-tax' !== $term->taxonomy ) {
+$__term = get_queried_object();
+if ( ! $__term instanceof WP_Term || 'campaign-tax' !== $__term->taxonomy ) {
 	return;
 }
 
@@ -27,12 +27,12 @@ get_header( 'giftflow' );
  *
  * @param WP_Term $term Current term.
  */
-do_action( 'giftflow_campaign_taxonomy_archive_before_content', $term );
+do_action( 'giftflow_campaign_taxonomy_archive_before_content', $__term );
 
 $template_rel = apply_filters(
 	'giftflow_campaign_taxonomy_archive_content_template',
 	'campaign-archive/content-taxonomy-campaign-archive.php',
-	$term
+	$__term
 );
 $template_rel = is_string( $template_rel ) && '' !== $template_rel
 	? $template_rel
@@ -44,7 +44,7 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
 	giftflow_load_template(
 		$template_rel,
 		array(
-			'term' => $term,
+			'term' => $__term,
 		)
 	);
 	?>
@@ -56,6 +56,6 @@ $template_rel = is_string( $template_rel ) && '' !== $template_rel
  *
  * @param WP_Term $term Current term.
  */
-do_action( 'giftflow_campaign_taxonomy_archive_after_content', $term );
+do_action( 'giftflow_campaign_taxonomy_archive_after_content', $__term );
 
 get_footer( 'giftflow' );
