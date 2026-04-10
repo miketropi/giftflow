@@ -39,31 +39,31 @@ class Block_Template {
 
 		return array(
 			'page-campaigns'        => array(
-				'file'    => $base . 'templates/page-campaigns.html',
+				'file'    => $base . 'block-templates/page-campaigns.html',
 				'context' => static function () {
 					return is_campaigns_page();
 				},
 			),
 			'taxonomy-campaign-tax' => array(
-				'file'    => $base . 'templates/taxonomy-campaign-tax.html',
+				'file'    => $base . 'block-templates/taxonomy-campaign-tax.html',
 				'context' => static function () {
 					return is_tax( 'campaign-tax' );
 				},
 			),
 			'single-campaign'       => array(
-				'file'    => $base . 'templates/single-campaign.html',
+				'file'    => $base . 'block-templates/single-campaign.html',
 				'context' => static function () {
 					return is_singular( 'campaign' );
 				},
 			),
 			'page-donor-account'    => array(
-				'file'    => $base . 'templates/page-donor-account.html',
+				'file'    => $base . 'block-templates/page-donor-account.html',
 				'context' => static function () {
 					return is_my_account_page();
 				},
 			),
 			'page-thank-donor'      => array(
-				'file'    => $base . 'templates/page-thank-donor.html',
+				'file'    => $base . 'block-templates/page-thank-donor.html',
 				'context' => static function () {
 					return is_thank_donor_page();
 				},
