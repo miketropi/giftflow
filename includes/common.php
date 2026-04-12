@@ -1652,6 +1652,11 @@ function giftflow_redirect_gf_direct_to() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$page_slug = isset( $_GET['gf-direct-to'] ) ? sanitize_text_field( wp_unslash( $_GET['gf-direct-to'] ) ) : '';
 
+	// validate the page slug.
+	if ( empty( $page_slug ) ) {
+		return;
+	}
+
 	$page = get_page_by_path( $page_slug );
 	if ( $page && is_a( $page, 'WP_Post' ) ) {
 		wp_safe_redirect( get_permalink( $page->ID ) );
