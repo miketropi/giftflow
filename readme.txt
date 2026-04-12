@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.14
+Stable tag: 1.0.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,9 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.15 =
+* Fix: Resolved an issue with the redirect function that could prevent correct navigation when using donation-related pages or custom redirects.
 
 = 1.0.14 =
 * New: Native support for block themes – automatically registers block-based templates for campaigns, donor accounts, and thank-you pages.
