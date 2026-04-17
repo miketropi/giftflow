@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.15
+Stable tag: 1.0.16
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,11 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.0.16 =
+* Fix: Resolved JavaScript conflicts between PhotoSwipe library and WooCommerce by removing PhotoSwipe from the plugin.
+* Improvement: Developed and integrated a custom lightbox library for handling image galleries and campaign media.
+* Dev: Migrated all image/lightbox display functionality to the new GiftFlow lightbox implementation for maximum compatibility and smoother user experience.
 
 = 1.0.15 =
 * Fix: Resolved an issue with the redirect function that could prevent correct navigation when using donation-related pages or custom redirects.
