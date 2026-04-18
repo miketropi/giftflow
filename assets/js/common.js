@@ -9,10 +9,7 @@ import './util/campaign-images-gallery.js';
 
 import { replaceContentBySelector, initClickToCopyByClass } from './util/helpers.js';
 import donationButton_Handle from './util/donation-button.js';
-import PhotoSwipeLightbox from 'photoswipe/lightbox';
-import PhotoSwipe from 'photoswipe';
-
-import 'photoswipe/style.css';
+import { createGiftflowLightbox } from './util/gfw-image-lightbox.js';
 
 ((w, $) => { 
   "use strict"
@@ -65,31 +62,31 @@ import 'photoswipe/style.css';
 
   gfw.donationButton_Handle = donationButton_Handle;
 
-  // lightbox
+  // lightbox (vanilla overlay — avoids PhotoSwipe globals / `.pswp` clashes with other plugins)
   gfw.lightbox_initialize = function() {
     const galleryElements = document.querySelector('.giftflow-campaign-single-images:not(.giftflow-campaign-single-images--placeholder)');
 
-    if(!galleryElements || galleryElements.length === 0) {
+    if (!galleryElements) {
       return;
     }
 
-    const sourceData = Array.from(galleryElements.querySelectorAll('.giftflow-campaign-single-images-image')).map(element => {
+    const openBtn = galleryElements.querySelector('.giftflow-campaign-single-images-lightbox-open-btn');
+    if (!openBtn) {
+      return;
+    }
+
+    const sourceData = Array.from(galleryElements.querySelectorAll('.giftflow-campaign-single-images-image')).map((element) => {
       return {
         src: element.dataset.pswpSrc,
         width: element.dataset.pswpWidth,
         height: element.dataset.pswpHeight,
-      }
-    });
+      };
+    }).filter((item) => item.src);
 
-    const lightbox = new PhotoSwipeLightbox({
-      dataSource: sourceData,
-      pswpModule: PhotoSwipe
-    });
+    const lightbox = createGiftflowLightbox({ items: sourceData });
 
-    lightbox.init(); 
-
-    galleryElements.querySelector('.giftflow-campaign-single-images-lightbox-open-btn').addEventListener('click', function() {
-      lightbox.loadAndOpen(); 
+    openBtn.addEventListener('click', function () {
+      lightbox.open(0);
     });
   }
 

@@ -1,37 +1,75 @@
 <?php
 /**
- * Donor account template
+ * Donor account page (full document — header/footer, no block editor / do_blocks).
+ *
+ * Inner layout: templates/donor-account/content-donor-account.php
+ * Hooks: giftflow_donor_account_before_content, giftflow_donor_account_after_content
+ * Filter: giftflow_donor_account_content_template
  *
  * @package GiftFlow
  * @subpackage Templates
- * @since 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+	exit;
+}
+
+$page_id = giftflow_get_donor_account_page();
+$page_id = is_scalar( $page_id ) ? absint( $page_id ) : 0;
+if ( $page_id <= 0 ) {
+	return;
 }
 
 get_header( 'giftflow' );
 
-// do_blocks the block content.
-// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$block_content = '
-<!-- wp:group {"tagName":"main","align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
-<main class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:post-title /-->
+$__page = get_post( $page_id );
+if ( ! $__page instanceof WP_Post ) {
+	return;
+}
 
-<!-- wp:spacer {"height":"25px"} -->
-<div style="height:25px" aria-hidden="true" class="wp-block-spacer"></div>
-<!-- /wp:spacer -->
+/**
+ * Fires at the very start of the donor account inner template.
+ *
+ * @param int $page_id Donor account page ID.
+ */
+do_action( 'giftflow_donor_account_before_content', $page_id );
 
-<!-- wp:giftflow/donor-account /--></main>
-<!-- /wp:group -->';
+$template_rel = apply_filters(
+	'giftflow_donor_account_content_template',
+	'donor-account/content-donor-account.php',
+	$page_id
+);
+$template_rel = is_string( $template_rel ) && '' !== $template_rel
+	? $template_rel
+	: 'donor-account/content-donor-account.php';
 
-do_action( 'giftflow_donor_account_before_content' );
+?>
+<main id="primary" class="gfw-donor-account-page-main" role="main">
+	<?php
+	if ( apply_filters( 'giftflow_donor_account_show_page_title', true, $page_id ) ) {
+		?>
+	<header class="gfw-donor-account-page__header">
+		<h1 class="gfw-donor-account-page__title entry-title"><?php echo esc_html( get_the_title( $page_id ) ); ?></h1>
+	</header>
+		<?php
+	}
 
-// print the block content.
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-echo do_blocks( apply_filters( 'giftflow_donor_account_block_content', $block_content ) );
+	giftflow_load_template(
+		$template_rel,
+		array(
+			'page_id' => $page_id,
+			'page'    => $__page,
+		)
+	);
+	?>
+</main>
+<?php
 
-do_action( 'giftflow_donor_account_after_content' );
+/**
+ * Fires at the very end of the donor account inner template.
+ *
+ * @param int $page_id Donor account page ID.
+ */
+do_action( 'giftflow_donor_account_after_content', $page_id );
 
 get_footer( 'giftflow' );

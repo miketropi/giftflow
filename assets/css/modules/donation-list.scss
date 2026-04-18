@@ -77,7 +77,7 @@ $dl-mobile: 480px;
   gap: 1rem 1.5rem;
   align-items: start;
   padding: 1rem 0;
-  background: #fff;
+  // background: #fff;
   border-bottom: 1px solid $dl-row-border;
   min-height: 4rem;
 
@@ -187,12 +187,13 @@ $dl-mobile: 480px;
 
 .gfw-donation-list__message {
   // color: black;
-  line-height: 1.35;
+  // line-height: 1.35;
   margin-top: 0.25rem;
   padding: 1em;
   border-radius: 0 1.5em 1.5em 1.5em;
   border: solid 1px #eee;
-  font-family: serif;
+  // font-family: serif;
+  background: white;
 }
 
 // Amount as pill/badge
@@ -224,34 +225,26 @@ $dl-mobile: 480px;
   gap: 0.5rem;
   padding: 0.75rem 0;
   border-top: 1px solid $dl-row-border;
-  background: #fff;
-  font-size: 0.8125rem;
-  color: $dl-muted;
+  // background: #fff;
+  // font-size: 0.8125rem;
+  // color: $dl-muted;
 }
 
 .gfw-donation-list-pagination__buttons {
   display: flex;
-  gap: 0.35rem;
+  gap: .5rem;
 }
 
 .gfw-donation-list-pagination__btn {
   padding: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--giftflow-text-color);
-  background: #fff;
-  cursor: pointer;
-  opacity: 1;
+  margin: 0;
+  background: none;
   border: none;
+  font-size: 1rem;
+  border-bottom: solid 2px;
 
   &:hover {
-    opacity: 0.7;
-    background: none;
-  }
-
-  &:focus {
-    outline: 2px solid $primary-color;
-    outline-offset: 2px;
+    opacity: .8;
   }
 }
 

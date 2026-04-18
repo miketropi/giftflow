@@ -7,11 +7,24 @@
 @import './modules/donation-button';
 @import './modules/share';
 @import './modules/modal';
+@import './modules/gfw-lightbox';
 @import './modules/campaign-single-images';
 @import './modules/shortcode-campaign-grid';
 
+// campaign taxonomy archive style
+@import './modules/campaign-taxonomy-archive-layout';
+
+// campaign single style
+@import './modules/campaign-single-layout';
+
 // donor account style
-@import './modules/donor-account';
+@import './modules/donor-account'; 
+
+// campaigns page style
+@import './modules/campaigns-page-layout';
+
+// thank donor block
+@import './modules/thank-donor-block';
 
 // giftflow-table style
 @import './modules/giftflow-table';

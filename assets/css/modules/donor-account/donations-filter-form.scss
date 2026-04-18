@@ -11,17 +11,36 @@ $gfw-filter-primary: #0f172a;
 $gfw-filter-primary-hover: #334155;
 
 .gfw-donations-filter-form {
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.25rem;
-  background: $gfw-filter-bg;
-  border: $gfw-filter-border;
-  border-radius: $gfw-filter-radius;
-  font-size: 0.9375rem;
+  margin: 1.5rem 0;
+  padding: 1.5rem 0;
+}
+
+.gfw-donations-filter-form__header {
+  margin-bottom: 1.25rem;
+}
+
+.gfw-donations-filter-form__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding-bottom: .2rem;
+  margin-block-end: 0 !important;
+  // text-transform: uppercase;
+  // letter-spacing: 0.06em;
+  // color: $gfw-filter-text-muted;
+}
+
+.gfw-donations-filter-form__description {
+  margin: 0;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  // color: $gfw-filter-text-muted;
 }
 
 .gfw-donations-filter-form__fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem 1.25rem;
   margin-bottom: 1rem;
 }
@@ -33,9 +52,11 @@ $gfw-filter-primary-hover: #334155;
 }
 
 .gfw-donations-filter-form__label {
-  font-weight: 500;
-  color: $gfw-filter-text-muted;
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  // letter-spacing: 0.05em;
+  // color: $gfw-filter-text-muted;
 }
 
 .gfw-donations-filter-form__input,
@@ -48,7 +69,7 @@ $gfw-filter-primary-hover: #334155;
   color: $gfw-filter-text;
   background: $gfw-filter-input-bg;
   border: $gfw-filter-border;
-  border-radius: 4px;
+  // border-radius: 4px;
   transition: border-color 0.15s ease;
   box-sizing: border-box;
   margin-bottom: 0;
@@ -72,31 +93,22 @@ $gfw-filter-primary-hover: #334155;
 }
 
 .gfw-donations-filter-form__submit {
-  padding: 0.45rem 1rem;
-  font-size: 0.9375rem;
-  color: #fff;
-  background: $gfw-filter-primary;
   border: none;
+  background: $primary-color;
+  color: #fff;
+  padding: 1rem;
+  // border-radius: $gfw-filter-radius;
   cursor: pointer;
-  transition: background 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  letter-spacing: 0;
-  text-transform: none;
-  border-radius: 4px;
-
-  svg {
-    width: 1em;
-    height: 1em;
-    flex-shrink: 0;
-    color: #fff;
-  }
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+  // font-size: 0.875rem;
+  // font-weight: 600;
+  margin-left: auto;
+  width: 100%;
+  font-size: 1rem;
 
   &:hover {
-    background: $gfw-filter-primary-hover;
+    opacity: 0.9;
   }
 }
 

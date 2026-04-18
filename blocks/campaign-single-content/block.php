@@ -140,7 +140,7 @@ function giftflow_campaign_single_content_tab_campaign( $post_id ) {
 		 */
 		do_action( 'giftflow_campaign_single_content_tab_campaign_before', $post_id );
 	?>
-	<div class="campaign-post-content">
+	<div class="campaign-post-content theme-global-prose">
 		<!-- Campaign post content by id. -->
 		<?php echo wp_kses_post( get_the_content( $post_id ) ); ?>
 	</div>

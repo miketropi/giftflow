@@ -95,8 +95,9 @@ function giftflow_share_block_render( $attributes, $content, $block ) {
 
 	// Get title and description for sharing.
 	if ( is_singular() ) {
-		$share_title       = get_the_title();
-		$share_description = get_the_excerpt() ? get_the_excerpt() : get_bloginfo( 'description' );
+		global $post;
+		$share_title       = $post->post_title;
+		$share_description = $post->post_excerpt;
 	} elseif ( is_home() || is_front_page() ) {
 		$share_title       = get_bloginfo( 'name' );
 		$share_description = get_bloginfo( 'description' );
