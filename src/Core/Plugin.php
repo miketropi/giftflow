@@ -126,7 +126,7 @@ class Plugin {
 				'description' => 'Max recurring donation cycles.',
 			),
 			'_preset_donation_amounts'      => array(
-				'type'        => 'array',
+				'type'        => 'string',
 				'description' => 'Preset donation amount choices.',
 				'single'      => true,
 			),
@@ -139,7 +139,7 @@ class Plugin {
 				'description' => 'Campaign physical location.',
 			),
 			'_gallery'                      => array(
-				'type'        => 'array',
+				'type'        => 'string',
 				'description' => 'Campaign gallery image IDs.',
 				'single'      => true,
 			),
