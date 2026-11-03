@@ -110,21 +110,31 @@ if ( isset( $gf_icons_svg[ $gf_icon ] ) ) {
 	$gf_icon_html = $gf_icons_svg[ $gf_icon ];
 }
 
+// Anchor by default: the campaign permalink stays reachable (new tab, middle-click,
+// no-JS, crawlers) while the inline handler keeps opening the donation modal.
+$gf_button_tag = $gf_is_disabled ? 'span' : 'a';
+
+$gf_button_attrs = array(
+	'class'               => implode( ' ', $gf_button_classes ),
+	'style'               => implode( ';', $gf_vars ),
+	'data-campaign-id'    => $gf_campaign_id,
+	'data-campaign-title' => get_the_title( $gf_campaign_id ),
+);
+
+if ( $gf_is_disabled ) {
+	// Nothing to link to — inert markup instead of a disabled control.
+	$gf_button_attrs['aria-disabled'] = 'true';
+} else {
+	$gf_button_attrs['href']    = (string) get_permalink( $gf_campaign_id );
+	$gf_button_attrs['onclick'] = 'if(window.giftflow&&window.giftflow.donationButton_Handle){window.giftflow.donationButton_Handle(this);return false;}';
+}
+
 $block_wrapper_attrs = get_block_wrapper_attributes(
 	array( 'class' => implode( ' ', $gf_wrapper_classes ) )
 );
 ?>
 <div <?php echo $block_wrapper_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-	<button
-		class="<?php echo esc_attr( implode( ' ', $gf_button_classes ) ); ?>"
-		style="<?php echo esc_attr( implode( ';', $gf_vars ) ); ?>"
-		data-campaign-id="<?php echo esc_attr( $gf_campaign_id ); ?>"
-		data-campaign-title="<?php echo esc_attr( get_the_title( $gf_campaign_id ) ); ?>"
-		<?php echo $gf_is_disabled ? 'disabled' : ''; ?>
-		<?php if ( ! $gf_is_disabled ) : ?>
-			onclick="giftflow.donationButton_Handle(this)"
-		<?php endif; ?>
-	>
+	<<?php echo esc_html( $gf_button_tag ); ?> <?php echo giftflow_render_attributes( $gf_button_attrs ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- attribute values are escaped by the helper. ?>>
 		<?php if ( 'before' === $gf_icon_pos && $gf_icon_html ) : ?>
 			<span class="giftflow-donation-button__icon"><?php echo $gf_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 		<?php endif; ?>
@@ -132,5 +142,5 @@ $block_wrapper_attrs = get_block_wrapper_attributes(
 		<?php if ( 'after' === $gf_icon_pos && $gf_icon_html ) : ?>
 			<span class="giftflow-donation-button__icon"><?php echo $gf_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 		<?php endif; ?>
-	</button>
+	</<?php echo esc_html( $gf_button_tag ); ?>>
 </div>

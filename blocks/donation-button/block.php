@@ -81,7 +81,8 @@ function giftflow_donation_button_block_render( $attributes, $content, $block ) 
 		ob_start();
 		?>
 		<div class="giftflow-donation-button">
-			<button class="donation-btn donation-btn--disabled--" disabled-- style="
+			<span class="donation-btn donation-btn--disabled" aria-disabled="true" style="
+				text-decoration: none;
 				background-color: <?php echo esc_attr( $attributes['backgroundColor'] ?? '#000000' ); ?>;
 				color: <?php echo esc_attr( $attributes['textColor'] ?? '#ffffff' ); ?>;
 				border-radius: <?php echo esc_attr( $attributes['borderRadius'] ?? 0 ); ?>px;
@@ -90,10 +91,10 @@ function giftflow_donation_button_block_render( $attributes, $content, $block ) 
 				<?php
 				if ( $attributes['fullWidth'] ?? false ) :
 					?>
-					width: 100%;<?php endif; ?>
+				width: 100%;<?php endif; ?>
 			">
 				<?php echo esc_html( $attributes['buttonText'] ?? 'Donate Now' ); ?>
-			</button>
+			</span>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -132,6 +133,7 @@ function giftflow_donation_button_block_render( $attributes, $content, $block ) 
 
 	// Build inline styles for the button.
 	$button_styles = array(
+		'text-decoration: none',
 		'background-color: ' . esc_attr( $background_color ),
 		'color: ' . esc_attr( $text_color ),
 		'border-radius: ' . esc_attr( $border_radius ) . 'px',
@@ -151,19 +153,29 @@ function giftflow_donation_button_block_render( $attributes, $content, $block ) 
 
 	$button_style_string = implode( '; ', $button_styles );
 
+	// Anchor when the campaign is published, inert span otherwise (nothing to link to).
+	$button_tag = $is_active ? 'a' : 'span';
+
+	$button_attrs = array(
+		'class'               => $button_class_string,
+		'style'               => $button_style_string,
+		'data-campaign-id'    => $campaign_id,
+		'data-campaign-title' => $campaign_title,
+	);
+
+	if ( $is_active ) {
+		$button_attrs['href']    = (string) get_permalink( $campaign_id );
+		$button_attrs['onclick'] = 'if(window.giftflow&&window.giftflow.donationButton_Handle){window.giftflow.donationButton_Handle(this);return false;}';
+	} else {
+		$button_attrs['aria-disabled'] = 'true';
+	}
+
 	ob_start();
 	?>
 	<div class="giftflow-donation-button" data-campaign-id="<?php echo esc_attr( $campaign_id ); ?>">
-		<button 
-			class="<?php echo esc_attr( $button_class_string ); ?>"
-			style="<?php echo esc_attr( $button_style_string ); ?>"
-			<?php echo $is_active ? '' : 'disabled'; ?>
-			data-campaign-id="<?php echo esc_attr( $campaign_id ); ?>"
-			data-campaign-title="<?php echo esc_attr( $campaign_title ); ?>"
-			onclick="giftflow.donationButton_Handle(this)"
-		>
+		<<?php echo esc_html( $button_tag ); ?> <?php echo giftflow_render_attributes( $button_attrs ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- attribute values are escaped by the helper. ?>>
 			<?php echo esc_html( $button_text ); ?>
-		</button>
+		</<?php echo esc_html( $button_tag ); ?>>
 	</div>
 	<?php
 	return ob_get_clean();

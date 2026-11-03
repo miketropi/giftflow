@@ -10,6 +10,7 @@ A customizable WordPress block for displaying donation buttons with campaign int
 - **Full Width Option**: Toggle to make button span full container width
 - **Campaign Integration**: Automatically displays campaign progress and status
 - **Mobile Optimized**: Touch-friendly design with responsive breakpoints
+- **Link Semantics**: Renders an `<a href>` pointing at the campaign permalink; JavaScript upgrades the click to an in-page modal, so middle-click, "open in new tab", and no-JS visitors still reach the campaign page
 - **Accessibility**: Proper focus states, ARIA labels, and keyboard navigation
 
 ## Usage
@@ -58,12 +59,42 @@ The block includes organized controls in the WordPress editor sidebar:
 - **Text Color**: Color picker for button text
 - **Border Radius**: Slider to adjust button corner roundness (0-20px)
 
+## Rendered Markup
+
+`blocks/donation-button/render.php` (registered via `block.json` → `render`) outputs an anchor, not a `<button>`:
+
+```html
+<div class="giftflow-donation-button wp-block-giftflow-donation-button">
+  <a class="giftflow-donation-button__btn"
+     style="--gf-btn-bg:…;--gf-btn-fg:…;…"
+     data-campaign-id="123"
+     data-campaign-title="Clean Water"
+     href="https://example.com/campaign/clean-water/"
+     onclick="if(window.giftflow&amp;&amp;window.giftflow.donationButton_Handle){window.giftflow.donationButton_Handle(this);return false;}">
+    <span class="giftflow-donation-button__label">Donate Now</span>
+  </a>
+</div>
+```
+
+- `href` = `get_permalink( $campaign_id )`; the inline handler opens the donation modal and cancels the navigation (`return false`).
+- Non-published campaigns render an inert `<span class="…__btn …__btn--disabled" aria-disabled="true">` with no `href` and no handler.
+- The legacy PHP renderer `giftflow_donation_button_block_render()` (`block.php`, used by the classic single-campaign template hooks) mirrors this behaviour with the `.donation-btn` classes.
+
 ## CSS Classes
 
 The block generates the following CSS classes for styling:
 
 ```css
+/* Modern renderer (render.php) */
 .giftflow-donation-button                    /* Main container */
+.giftflow-donation-button__btn               /* Base styles (works on <a> or <span>) */
+.giftflow-donation-button__btn--disabled     /* Non-published campaign (inert) */
+.giftflow-donation-button__btn--full-width   /* Full width */
+.giftflow-donation-button__btn--has-hover-color
+.giftflow-donation-button__btn--hover-lift | --hover-scale | --hover-glow
+.giftflow-donation-button__icon | __label
+
+/* Legacy renderer (block.php) */
 .donation-btn                                  /* Base button styles */
 .donation-btn--disabled                        /* Disabled state */
 .donation-btn--full-width                     /* Full width button */
