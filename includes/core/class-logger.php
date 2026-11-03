@@ -179,9 +179,15 @@ class Logger {
 		global $wpdb;
 
 		$table_name = self::get_table_name();
-		$now_ts     = current_time( 'mysql' );
-		$deleted    = 0;
-		$by_level   = array();
+
+		// Unix timestamp: wp_date() expects one, and arithmetic on the
+		// 'Y-m-d H:i:s' string previously returned by current_time( 'mysql' )
+		// raised "A non-numeric value encountered" and produced a 1970 cutoff.
+		// created_at is stored via current_time( 'mysql' ), so format the cutoffs
+		// in the site timezone (wp_date() default) to compare like with like.
+		$now_ts   = time();
+		$deleted  = 0;
+		$by_level = array();
 
 		foreach ( self::RETENTION_DAYS as $level => $days ) {
 			$cutoff = wp_date( 'Y-m-d H:i:s', $now_ts - ( $days * DAY_IN_SECONDS ) );
