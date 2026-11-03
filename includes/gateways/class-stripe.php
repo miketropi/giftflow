@@ -276,7 +276,7 @@ class Stripe_Gateway extends Gateway_Base {
 						'description' => sprintf(
 							// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
 							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events: <strong>payment_intent.succeeded</strong>, <strong>payment_intent.payment_failed</strong>, <strong>charge.refunded</strong>, <strong>payment_intent.canceled</strong>; for recurring: <strong>invoice.paid</strong> or <strong>invoice_payment.paid</strong> (new API), <strong>invoice.payment_failed</strong>, <strong>customer.subscription.deleted</strong>, <strong>customer.subscription.updated</strong>.', 'giftflow' )
+							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events: charge.refunded, customer.subscription.deleted, customer.subscription.updated, invoice.paid, invoice.payment_failed, invoice_payment.paid, payment_intent.canceled, payment_intent.payment_failed, payment_intent.succeeded.', 'giftflow' )
 						),
 					),
 					// stripe_sandbox_webhook_secret.
