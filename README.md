@@ -14,7 +14,7 @@ A comprehensive WordPress plugin for managing donations, donors, and campaigns w
 
 == Description ==
 
-[Landing Page](https://giftflow.beplus-agency.cloud/) | [Live Demo](https://giftflow.beplusthemes.com/)
+[Landing Page](https://giftflow.beplus-agency.cloud/) | [Live Demo](https://giftflow.beplusthemes.com/) | [GiftFlow Pro](https://beplusthemes.com/products/giftflow-donation-fundraising/)
 
 GiftFlow is a powerful WordPress plugin designed to help organizations manage donations, donors, and fundraising campaigns efficiently. Built with modern WordPress standards and an extensible architecture, GiftFlow provides everything you need to accept donations, track campaigns, and manage donor relationships.
 
@@ -151,7 +151,7 @@ Yes, GiftFlow can send email notifications for donations, campaign updates, and 
 
 = What are the system requirements? =
 
-GiftFlow requires WordPress 6.0 or higher, PHP 8.2 or higher, and an SSL certificate for secure payment processing.
+GiftFlow requires WordPress 6.0 or higher, PHP 7.4 or higher, and an SSL certificate for secure payment processing.
 
 == Screenshots ==
 

@@ -166,7 +166,7 @@ class Loader extends Base {
 	public function giftflow_get_pro_page() {
 		?>
 		<script>
-			window.location.href = 'https://giftflow.beplus-agency.cloud/pro';
+			window.location.href = 'https://beplusthemes.com/products/giftflow-donation-fundraising/';
 		</script>
 		<?php
 	}

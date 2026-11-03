@@ -629,7 +629,7 @@ class Plugin {
 					'manage_options',
 					'giftflow-get-pro',
 					function () {
-						echo '<script>window.location.href = \'https://giftflow.beplus-agency.cloud/pro\';</script>';
+						echo '<script>window.location.href = \'https://beplusthemes.com/products/giftflow-donation-fundraising/\';</script>';
 					},
 					99
 				);
