@@ -214,7 +214,7 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 
 		<div class="giftflow-stripe-modal-body">
 
-			<div class="notice notice-info inline giftflow-stripe-notice">
+			<div class="notice notice-info inline giftflow-stripe-notice giftflow-stripe-connect-hint">
 				<p><?php echo esc_html( $giftflow_panel_string( $strings, 'connect_hint' ) ); ?></p>
 			</div>
 
