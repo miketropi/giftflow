@@ -1,0 +1,436 @@
+/**
+ * Stripe connection panel
+ *
+ * Environment-scoped setup panel rendered inside the Stripe settings accordion.
+ */
+
+.giftflow-stripe-panel {
+  max-width: 100%;
+
+  // Admin styles set `display` on `.description` inside form tables, which would
+  // defeat the `hidden` attribute the panel uses to toggle states.
+  [hidden] {
+    display: none !important;
+  }
+
+  .giftflow-stripe-summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $spacing-sm $spacing-md;
+    margin: 1rem 0 $spacing-md;
+
+    .giftflow-stripe-open {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 $spacing-lg;
+    }
+  }
+
+  .giftflow-stripe-summary-states {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+  }
+
+  .giftflow-stripe-modal {
+    width: min(920px, 94vw);
+    max-width: 94vw;
+    max-height: 88vh;
+    padding: 0;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
+    background: #fff;
+    color: $text-color;
+
+    &::backdrop {
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    &[open] {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .giftflow-stripe-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-md;
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid $border-color;
+    background: #f6f7f7;
+
+    h2 {
+      margin: 0;
+      font-size: $font-size-lg;
+      line-height: 1.3;
+    }
+
+    .giftflow-stripe-modal-close {
+      min-height: 44px;
+      padding: 0 $spacing-md;
+      flex: 0 0 auto;
+    }
+  }
+
+  .giftflow-stripe-modal-body {
+    padding: $spacing-md $spacing-lg $spacing-lg;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  @media (max-width: 782px) {
+    .giftflow-stripe-modal {
+      width: 100%;
+      max-width: 100%;
+      max-height: 100vh;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+    }
+
+    .giftflow-stripe-modal-header,
+    .giftflow-stripe-modal-body {
+      padding-left: $spacing-md;
+      padding-right: $spacing-md;
+    }
+  }
+
+  .giftflow-stripe-helper {
+    margin: $spacing-sm 0 $spacing-md;
+    color: $text-light;
+    font-size: $font-size-sm;
+  }
+
+  .giftflow-stripe-notice {
+    margin: 0 0 $spacing-md;
+  }
+
+  .giftflow-stripe-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+    margin-bottom: $spacing-md;
+    border-bottom: 1px solid $border-color;
+
+    .giftflow-stripe-tab {
+      min-height: 44px;
+      padding: 0 $spacing-lg;
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: $border-radius $border-radius 0 0;
+      color: $text-color;
+      font-size: $font-size-md;
+      cursor: pointer;
+
+      &:hover {
+        border-color: $border-color;
+      }
+
+      &:focus {
+        outline: 2px solid $primary-color;
+        outline-offset: -2px;
+      }
+
+      &.is-active {
+        background: #fff;
+        border-color: $border-color;
+        border-bottom-color: #fff;
+        font-weight: 600;
+        margin-bottom: -1px;
+      }
+    }
+  }
+
+  .giftflow-stripe-tabpanel {
+    padding: $spacing-md 0;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .giftflow-stripe-status-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $spacing-sm;
+    margin: 0 0 $spacing-md;
+  }
+
+  .giftflow-stripe-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 $spacing-sm;
+    border: 1px solid $border-color;
+    border-radius: 999px;
+    background: #f6f7f7;
+    font-size: $font-size-sm;
+    font-weight: 600;
+
+    &[data-tone="success"] {
+      border-color: #1a7f37;
+      color: #0f4a20;
+      background: #e6f4ea;
+    }
+
+    // Verified earns a filled chip so it reads as proven, not just configured.
+    &[data-tone="success"][data-state="verified"] {
+      background: #1a7f37;
+      color: #fff;
+    }
+
+    &[data-tone="warning"] {
+      border-color: #b26a00;
+      color: #6b4200;
+      background: #fdf3e2;
+    }
+
+    &[data-tone="danger"] {
+      border-color: $error-color;
+      color: #7a1c1c;
+      background: #fdecea;
+    }
+  }
+
+  .giftflow-stripe-status-text {
+    color: $text-light;
+    font-size: $font-size-sm;
+  }
+
+  // One shared style for both summary tables (primary + details) so the two
+  // blocks read as a single table split by the details toggle. Row padding comes
+  // from the admin form-table styles, which already apply to both tables.
+  .giftflow-stripe-summary {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    th,
+    td {
+      border-bottom: 1px solid #f0f0f1;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      width: 40%;
+      font-weight: 600;
+      color: $text-color;
+    }
+
+    tr:last-child > th,
+    tr:last-child > td {
+      border-bottom: none;
+    }
+
+    code {
+      background: #f6f7f7;
+      padding: 0 4px;
+    }
+  }
+
+  .giftflow-stripe-details-toggle {
+    margin: $spacing-sm 0 $spacing-md;
+
+    .giftflow-stripe-details-toggle-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 $spacing-sm 0 0;
+      background: transparent;
+      border: none;
+      color: $primary-color;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .giftflow-stripe-details-caret {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid currentColor;
+      transition: transform $transition-speed ease;
+    }
+
+    [aria-expanded="true"] .giftflow-stripe-details-caret {
+      transform: rotate(180deg);
+    }
+  }
+
+  .giftflow-stripe-details {
+    margin: 0 0 $spacing-md;
+  }
+
+  .giftflow-stripe-events {
+    margin: $spacing-xs 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      margin: 0 0 2px;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .giftflow-stripe-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $spacing-sm;
+    margin: 0 0 $spacing-md;
+
+    .button,
+    .button-link {
+      min-height: 44px;
+      padding: 0 $spacing-lg;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .button-link {
+      background: transparent;
+      border: none;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  .giftflow-stripe-diff {
+    margin: 0 0 $spacing-md;
+    padding: $spacing-md;
+    border: 1px solid $border-color;
+    border-left: 4px solid $primary-color;
+    background: #fff;
+
+    h4 {
+      margin: 0 0 $spacing-sm;
+      font-size: $font-size-md;
+    }
+
+    &:focus {
+      outline: 2px solid $primary-color;
+      outline-offset: 2px;
+    }
+  }
+
+  .giftflow-stripe-diff-list {
+    margin: 0 0 $spacing-sm;
+    padding-left: $spacing-lg;
+
+    code {
+      background: #f6f7f7;
+      padding: 0 4px;
+      word-break: break-word;
+    }
+  }
+
+  .giftflow-stripe-credential {
+    .giftflow-stripe-credential-view {
+      display: inline-flex;
+      align-items: center;
+      gap: $spacing-xs;
+      flex-wrap: wrap;
+    }
+
+    .giftflow-stripe-credential-value {
+      word-break: break-word;
+    }
+
+    .giftflow-stripe-icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: $border-radius;
+      color: $text-light;
+      cursor: pointer;
+
+      &:hover,
+      &:focus {
+        color: $primary-color;
+        border-color: $border-color;
+      }
+
+      &:focus {
+        outline: 2px solid $primary-color;
+        outline-offset: 1px;
+      }
+    }
+
+    .giftflow-stripe-credential-edit {
+      display: block;
+      padding: $spacing-sm 0;
+
+      .description {
+        display: block;
+        margin-top: $spacing-xs;
+        color: $text-light;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+
+  .giftflow-stripe-input-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+
+    input {
+      flex: 1 1 200px;
+      min-width: 0;
+      min-height: 36px;
+    }
+
+    .button {
+      min-height: 44px;
+      flex: 0 0 auto;
+    }
+  }
+
+  .giftflow-stripe-operation-status {
+    margin: $spacing-md 0 0;
+    min-height: 1.5em;
+    color: $text-light;
+  }
+
+  @media (max-width: 480px) {
+    .giftflow-stripe-summary {
+      table-layout: auto;
+
+      th {
+        width: 45%;
+      }
+    }
+
+    .giftflow-stripe-tabs .giftflow-stripe-tab {
+      flex: 1 1 auto;
+      padding: 0 $spacing-md;
+    }
+
+    .giftflow-stripe-actions {
+      .button,
+      .button-link {
+        width: 100%;
+      }
+    }
+  }
+}

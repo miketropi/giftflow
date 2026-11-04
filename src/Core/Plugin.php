@@ -202,6 +202,19 @@ class Plugin {
 		Logger::create_table();
 		Donation_Event_History::create_table();
 		$this->schedule_logs_cleanup();
+
+		$migrator = new \GiftFlow\Stripe\StripeConnectionMigrator();
+
+		if ( $migrator->needs_migration() ) {
+			$migrator->run();
+		}
+
+		$paypal_migrator = new \GiftFlow\PayPal\PayPalConnectionMigrator();
+
+		if ( $paypal_migrator->needs_migration() ) {
+			$paypal_migrator->run();
+		}
+
 		flush_rewrite_rules();
 	}
 
@@ -282,6 +295,12 @@ class Plugin {
 
 				$campaign_ctrl = new \GiftFlow\REST\CampaignController();
 				$campaign_ctrl->register_routes();
+
+				$stripe_ctrl = new \GiftFlow\REST\StripeConnectionController();
+				$stripe_ctrl->register_routes();
+
+				$paypal_ctrl = new \GiftFlow\REST\PayPalConnectionController();
+				$paypal_ctrl->register_routes();
 			}
 		);
 
@@ -291,6 +310,25 @@ class Plugin {
 			function ( Container $c ) {
 				return new \GiftFlow\Services\CurrencyService( $c );
 			}
+		);
+
+		// Create environment-scoped payment profile state from legacy manual settings.
+		add_action(
+			'admin_init',
+			function () {
+				$migrator = new \GiftFlow\Stripe\StripeConnectionMigrator();
+
+				if ( $migrator->needs_migration() ) {
+					$migrator->run();
+				}
+
+				$paypal_migrator = new \GiftFlow\PayPal\PayPalConnectionMigrator();
+
+				if ( $paypal_migrator->needs_migration() ) {
+					$paypal_migrator->run();
+				}
+			},
+			5
 		);
 	}
 

@@ -5,51 +5,73 @@
  * This class implements Stripe payment processing using Stripe PHP SDK
  * with support for Payment Intents, 3D Secure (SCA), and webhooks.
  *
+ * Every Stripe operation runs against an explicit environment resolved from the
+ * stored donation (see GiftFlow\Stripe\StripeDonationBinding) rather than a
+ * single mutable client.
+ *
  * @package GiftFlow
  * @subpackage Gateways
  * @since 1.0.0
- * @version 2.0.0
+ * @version 3.0.0
  */
 
 namespace GiftFlow\Gateways;
 
-use GiftFlow\Vendor\Stripe\Stripe;
 use GiftFlow\Vendor\Stripe\PaymentIntent;
 use GiftFlow\Vendor\Stripe\StripeClient;
 use GiftFlow\Vendor\Stripe\Exception\ApiErrorException;
-use GiftFlow\Vendor\Stripe\Webhook;
 use GiftFlow\Core\Donations;
 use GiftFlow\Core\Logger as Giftflow_Logger;
 use GiftFlow\Core\Donation_Event_History;
+use GiftFlow\Stripe\StripeClientConfigurationException;
+use GiftFlow\Stripe\StripeClientFactory;
+use GiftFlow\Stripe\StripeConnectionPanel;
+use GiftFlow\Stripe\StripeConnectionRepository;
+use GiftFlow\Stripe\StripeDonationBinding;
+use GiftFlow\Stripe\StripeEnvironment;
+use GiftFlow\Stripe\StripeWebhookDispatcher;
+use GiftFlow\Stripe\StripeWebhookEventRegistry;
+use GiftFlow\Stripe\StripeWebhookProvisioner;
+use GiftFlow\Stripe\StripeWebhookReceiver;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Stripe SDK service accessors are camelCase by design.
+
 /**
  * Stripe Gateway Class
  */
 class Stripe_Gateway extends Gateway_Base {
+
 	/**
-	 * Stripe Client instance.
+	 * Stripe client for the active payment environment.
 	 *
-	 * @var StripeClient
+	 * @var StripeClient|null
 	 */
 	private $stripe;
 
 	/**
-	 * API Secret Key.
+	 * Connection repository.
 	 *
-	 * @var string
+	 * @var StripeConnectionRepository|null
 	 */
-	private $api_key;
+	private $repository;
 
 	/**
-	 * Webhook Secret.
+	 * Donation binding helper.
 	 *
-	 * @var string
+	 * @var StripeDonationBinding|null
 	 */
-	private $webhook_secret;
+	private $binding;
+
+	/**
+	 * Shared webhook receiver.
+	 *
+	 * @var StripeWebhookReceiver|null
+	 */
+	private $webhook_receiver;
 
 	/**
 	 * Initialize gateway properties
@@ -80,74 +102,111 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return void
 	 */
 	protected function ready() {
-		// Initialize Stripe SDK.
 		$this->init_stripe_sdk();
-
-		// Add Stripe-specific assets.
 		$this->add_stripe_assets();
 	}
 
 	/**
-	 * Initialize Stripe SDK
+	 * Connection repository.
+	 *
+	 * @return StripeConnectionRepository
+	 */
+	public function get_repository(): StripeConnectionRepository {
+		if ( null === $this->repository ) {
+			$this->repository = new StripeConnectionRepository();
+		}
+
+		return $this->repository;
+	}
+
+	/**
+	 * Donation binding helper.
+	 *
+	 * @return StripeDonationBinding
+	 */
+	private function binding(): StripeDonationBinding {
+		if ( null === $this->binding ) {
+			$this->binding = new StripeDonationBinding( $this->get_repository() );
+		}
+
+		return $this->binding;
+	}
+
+	/**
+	 * Active payment environment.
+	 *
+	 * Only donor payments use this value; profile editing never writes it.
+	 *
+	 * @return string
+	 */
+	public function get_active_environment(): string {
+		return $this->get_repository()->get_active_environment();
+	}
+
+	/**
+	 * Initialize the Stripe client for the active payment environment.
 	 *
 	 * @return void
 	 */
 	private function init_stripe_sdk() {
-		$this->api_key = $this->get_api_key();
-		$this->webhook_secret = $this->get_webhook_secret();
+		$environment = $this->get_active_environment();
+		$credentials = $this->get_repository()->get_credentials( $environment );
 
-		if ( ! empty( $this->api_key ) ) {
-			// Set the API key globally.
-			Stripe::setApiKey( $this->api_key );
+		try {
+			$this->stripe = StripeClientFactory::create( $environment, $credentials['secret_key'] );
+		} catch ( StripeClientConfigurationException $e ) {
+			$this->stripe = null;
 
-			// Create Stripe client instance.
-			$this->stripe = new StripeClient( $this->api_key );
+			if ( '' !== $credentials['secret_key'] ) {
+				Giftflow_Logger::error(
+					'stripe.client.unavailable',
+					array(
+						'environment' => $environment,
+						'message'     => $e->getMessage(),
+						'gateway'     => 'stripe',
+					),
+					'stripe'
+				);
+			}
 		}
 	}
 
 	/**
-	 * Get API key based on mode
+	 * Stripe client for one environment.
 	 *
+	 * @param string $environment Environment id.
+	 * @return StripeClient|null Null when the environment is not configured.
+	 */
+	public function client_for_environment( string $environment ): ?StripeClient {
+		$environment = StripeEnvironment::assert_valid( $environment );
+		$credentials = $this->get_repository()->get_credentials( $environment );
+
+		try {
+			return StripeClientFactory::create( $environment, $credentials['secret_key'] );
+		} catch ( StripeClientConfigurationException $e ) {
+			return null;
+		}
+	}
+
+	/**
+	 * Resolve the environment a donation belongs to, recording legacy records.
+	 *
+	 * @param int $donation_id Donation post id.
 	 * @return string
 	 */
-	private function get_api_key() {
-		$mode = $this->get_setting( 'stripe_mode', 'sandbox' );
-
-		if ( 'live' === $mode ) {
-			return $this->get_setting( 'stripe_live_secret_key' );
-		}
-
-		return $this->get_setting( 'stripe_sandbox_secret_key' );
+	public function resolve_donation_environment( int $donation_id ): string {
+		return $this->binding()->resolve_environment( $donation_id );
 	}
 
 	/**
-	 * Get publishable key based on mode
+	 * Get publishable key for the active payment environment.
 	 *
 	 * @return string
 	 */
 	public function get_publishable_key() {
-		$mode = $this->get_setting( 'stripe_mode', 'sandbox' );
+		$credentials = $this->get_repository()->get_credentials( $this->get_active_environment() );
 
-		if ( 'live' === $mode ) {
-			return $this->get_setting( 'stripe_live_publishable_key' );
-		}
-
-		return $this->get_setting( 'stripe_sandbox_publishable_key' );
-	}
-
-	/**
-	 * Get webhook secret based on mode
-	 *
-	 * @return string
-	 */
-	private function get_webhook_secret() {
-		$mode = $this->get_setting( 'stripe_mode', 'sandbox' );
-
-		if ( 'live' === $mode ) {
-			return $this->get_setting( 'stripe_live_webhook_secret', '' );
-		}
-
-		return $this->get_setting( 'stripe_sandbox_webhook_secret', '' );
+		return $credentials['publishable_key'];
 	}
 
 	/**
@@ -184,7 +243,7 @@ class Stripe_Gateway extends Gateway_Base {
 			return array(
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'stripe_publishable_key' => $this->get_publishable_key(),
-				'mode' => $this->get_setting( 'stripe_mode', 'sandbox' ),
+				'mode' => $this->get_active_environment(),
 				'nonce' => wp_create_nonce( 'giftflow_stripe_nonce' ),
 				'return_url' => add_query_arg( 'giftflow_stripe_return', '1', home_url() ),
 				'currency' => $this->get_currency(),
@@ -204,17 +263,28 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Get gateway settings fields
 	 *
+	 * Credential and environment fields live in the Stripe connection panel
+	 * rendered by {@see self::render_connection_settings()}; the accordion keeps
+	 * only the shared feature toggles.
+	 *
 	 * @param array $payment_fields Existing payment fields.
 	 * @return array
 	 */
 	public function register_settings_fields( $payment_fields = array() ) {
 		$payment_options = get_option( 'giftflow_payment_options' );
+		$stripe_options  = isset( $payment_options['stripe'] ) && is_array( $payment_options['stripe'] )
+			? $payment_options['stripe']
+			: array();
+		$repository      = $this->get_repository();
+		$events          = StripeWebhookEventRegistry::required_events( $repository->is_recurring_enabled() );
+
 		$payment_fields['stripe'] = array(
 			'id' => 'giftflow_stripe',
 			'name' => 'giftflow_payment_options[stripe]',
 			'type' => 'accordion',
 			'label' => __( 'Stripe (Credit Card)', 'giftflow' ),
 			'description' => __( 'Configure Stripe payment settings', 'giftflow' ),
+			'content' => array( $this, 'render_connection_settings' ),
 			'accordion_settings' => array(
 				'label' => __( 'Stripe Settings', 'giftflow' ),
 				'is_open' => true,
@@ -223,86 +293,26 @@ class Stripe_Gateway extends Gateway_Base {
 						'id' => 'giftflow_stripe_enabled',
 						'type' => 'switch',
 						'label' => __( 'Enable Stripe', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_enabled'] ) ? $payment_options['stripe']['stripe_enabled'] : false,
+						'value' => isset( $stripe_options['stripe_enabled'] ) ? $stripe_options['stripe_enabled'] : false,
 						'description' => __( 'Enable Stripe as a payment method', 'giftflow' ),
 					),
-					'stripe_mode' => array(
-						'id' => 'giftflow_stripe_mode',
-						'type' => 'select',
-						'label' => __( 'Stripe Mode', 'giftflow' ),
-						'value' => isset( $payment_options['stripe_mode'] ) ? $payment_options['stripe_mode'] : 'sandbox',
-						'options' => array(
-							'sandbox' => __( 'Sandbox (Test Mode)', 'giftflow' ),
-							'live' => __( 'Live (Production Mode)', 'giftflow' ),
-						),
-						'description' => __( 'Select Stripe environment mode', 'giftflow' ),
-					),
-					'stripe_sandbox_publishable_key' => array(
-						'id' => 'giftflow_stripe_sandbox_publishable_key',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Sandbox Publishable Key', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_sandbox_publishable_key'] ) ? $payment_options['stripe']['stripe_sandbox_publishable_key'] : '',
-						'description' => __( 'Enter your Stripe sandbox publishable key', 'giftflow' ),
-					),
-					'stripe_sandbox_secret_key' => array(
-						'id' => 'giftflow_stripe_sandbox_secret_key',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Sandbox Secret Key', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_sandbox_secret_key'] ) ? $payment_options['stripe']['stripe_sandbox_secret_key'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe sandbox secret key', 'giftflow' ),
-					),
-					'stripe_live_publishable_key' => array(
-						'id' => 'giftflow_stripe_live_publishable_key',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Live Publishable Key', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_live_publishable_key'] ) ? $payment_options['stripe']['stripe_live_publishable_key'] : '',
-						'description' => __( 'Enter your Stripe live publishable key', 'giftflow' ),
-					),
-					'stripe_live_secret_key' => array(
-						'id' => 'giftflow_stripe_live_secret_key',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Live Secret Key', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_live_secret_key'] ) ? $payment_options['stripe']['stripe_live_secret_key'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe live secret key', 'giftflow' ),
-					),
-					// stripe_webhook_enabled.
 					'stripe_webhook_enabled' => array(
 						'id' => 'giftflow_stripe_webhook_enabled',
 						'type' => 'switch',
 						'label' => __( 'Enable Webhook', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_webhook_enabled'] ) ? $payment_options['stripe']['stripe_webhook_enabled'] : false,
+						'value' => isset( $stripe_options['stripe_webhook_enabled'] ) ? $stripe_options['stripe_webhook_enabled'] : false,
 						'description' => sprintf(
-							// translators: This is the label for enabling the Stripe webhook option in the payment gateway settings.
-							__( 'Enable webhooks for payment status updates. Webhook URL: %s', 'giftflow' ),
-							'<code>' . admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' ) . '</code><br>' . __( 'Recommended Stripe events: charge.refunded, customer.subscription.deleted, customer.subscription.updated, invoice.paid, invoice.payment_failed, invoice_payment.paid, payment_intent.canceled, payment_intent.payment_failed, payment_intent.succeeded.', 'giftflow' )
+							// translators: 1: webhook URL, 2: comma separated event names.
+							__( 'Enable webhooks for payment status updates. Webhook URL: %1$s<br>Recommended Stripe events: %2$s', 'giftflow' ),
+							'<code>' . esc_html( $this->get_webhook_url() ) . '</code>',
+							esc_html( implode( ', ', $events ) )
 						),
 					),
-					// stripe_sandbox_webhook_secret.
-					'stripe_sandbox_webhook_secret' => array(
-						'id' => 'giftflow_stripe_sandbox_webhook_secret',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Sandbox Webhook Secret', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_sandbox_webhook_secret'] ) ? $payment_options['stripe']['stripe_sandbox_webhook_secret'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe sandbox webhook secret', 'giftflow' ),
-					),
-					// stripe_live_webhook_secret.
-					'stripe_live_webhook_secret' => array(
-						'id' => 'giftflow_stripe_live_webhook_secret',
-						'type' => 'textfield',
-						'label' => __( 'Stripe Live Webhook Secret', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_live_webhook_secret'] ) ? $payment_options['stripe']['stripe_live_webhook_secret'] : '',
-						'input_type' => 'password',
-						'description' => __( 'Enter your Stripe live webhook secret', 'giftflow' ),
-					),
-					// support Apple Pay + Google Pay.
 					'stripe_apple_pay_google_pay_enabled' => array(
 						'id' => 'giftflow_stripe_apple_pay_google_pay_enabled',
 						'type' => 'switch',
 						'label' => __( 'Enable Apple Pay + Google Pay', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] ) ? $payment_options['stripe']['stripe_apple_pay_google_pay_enabled'] : false,
+						'value' => isset( $stripe_options['stripe_apple_pay_google_pay_enabled'] ) ? $stripe_options['stripe_apple_pay_google_pay_enabled'] : false,
 						'description' => __( 'Enable Apple Pay + Google Pay as a payment method (Stripe automatically detects your device and browser to display the most suitable payment method, ensuring a smooth checkout experience)', 'giftflow' ) . ' <a href="https://stripe.com/docs/testing/wallets" target="_blank">' . __( 'read more Documentation', 'giftflow' ) . '</a>',
 						'pro_only'    => true,
 					),
@@ -310,7 +320,7 @@ class Stripe_Gateway extends Gateway_Base {
 						'id' => 'giftflow_stripe_recurring_enabled',
 						'type' => 'switch',
 						'label' => __( 'Enable Recurring Donations', 'giftflow' ),
-						'value' => isset( $payment_options['stripe']['stripe_recurring_enabled'] ) ? $payment_options['stripe']['stripe_recurring_enabled'] : false,
+						'value' => isset( $stripe_options['stripe_recurring_enabled'] ) ? $stripe_options['stripe_recurring_enabled'] : false,
 						'description' => __( 'Allow donors to set up recurring donations via Stripe Subscriptions. Per-campaign recurring options are in Campaign Details.', 'giftflow' ),
 						'pro_only'    => true,
 					),
@@ -319,6 +329,16 @@ class Stripe_Gateway extends Gateway_Base {
 		);
 
 		return $payment_fields;
+	}
+
+	/**
+	 * Render the environment-scoped connection panel inside the accordion.
+	 *
+	 * @return void
+	 */
+	public function render_connection_settings(): void {
+		$panel = new StripeConnectionPanel( $this->get_repository(), $this->get_active_environment(), $this->get_webhook_url() );
+		$panel->render();
 	}
 
 	/**
@@ -334,7 +354,7 @@ class Stripe_Gateway extends Gateway_Base {
 					'id' => $this->id,
 					'title' => $this->title,
 					'icon' => $this->icon,
-					'mode' => $this->get_setting( 'stripe_mode' ),
+					'mode' => $this->get_active_environment(),
 				)
 			);
 	}
@@ -362,26 +382,32 @@ class Stripe_Gateway extends Gateway_Base {
 	 * @return mixed
 	 */
 	public function process_payment( $data, $donation_id = 0 ) {
-		if ( ! $this->stripe ) {
-			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
-		}
-
 		if ( ! $donation_id ) {
 			return new \WP_Error( 'stripe_error', __( 'Donation ID is required', 'giftflow' ) );
+		}
+
+		$environment = $this->resolve_donation_environment( (int) $donation_id );
+		$client      = $this->client_for_environment( $environment );
+
+		if ( ! $client ) {
+			return new \WP_Error( 'stripe_error', __( 'Stripe is not properly configured', 'giftflow' ) );
 		}
 
 		$is_recurring = $this->is_recurring_donation( $data );
 
 		try {
 			if ( $is_recurring ) {
-				return $this->process_recurring_payment( $data, $donation_id );
+				return $this->process_recurring_payment( $data, $donation_id, $environment, $client );
 			}
 
 			// One-time flow.
-			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id );
-			$payment_intent      = $this->stripe->paymentIntents->create( $payment_intent_data );
+			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id, $environment );
+			$payment_intent      = $client->paymentIntents->create( $payment_intent_data );
+
 			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
-			return $this->handle_payment_intent_response( $payment_intent, $donation_id );
+			$this->binding()->persist( (int) $donation_id, $environment );
+
+			return $this->handle_payment_intent_response( $payment_intent, $donation_id, $environment );
 		} catch ( ApiErrorException $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id, $e->getStripeCode() );
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
@@ -394,11 +420,12 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Prepare payment intent data for Stripe API
 	 *
-	 * @param array $data Payment data.
-	 * @param int $donation_id Donation ID.
+	 * @param array  $data Payment data.
+	 * @param int    $donation_id Donation ID.
+	 * @param string $environment Environment id.
 	 * @return array
 	 */
-	private function prepare_payment_intent_data( $data, $donation_id ) {
+	private function prepare_payment_intent_data( $data, $donation_id, $environment ) {
 		$statement_descriptor = $this->get_setting( 'statement_descriptor', get_bloginfo( 'name' ) );
 		$statement_descriptor = substr( $statement_descriptor, 0, 22 ); // Stripe limit.
 
@@ -414,12 +441,15 @@ class Stripe_Gateway extends Gateway_Base {
 			'return_url' => $this->get_return_url( $donation_id ),
 			// translators: 1: donor name, 2: campaign id or name.
 			'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
-			'metadata' => array(
-				'donation_id' => (string) $donation_id,
-				'campaign_id' => (string) $data['campaign_id'],
-				'donor_email' => sanitize_email( $data['donor_email'] ),
-				'donor_name' => sanitize_text_field( $data['donor_name'] ),
-				'site_url' => home_url(),
+			'metadata' => array_merge(
+				array(
+					'donation_id' => (string) $donation_id,
+					'campaign_id' => (string) $data['campaign_id'],
+					'donor_email' => sanitize_email( $data['donor_email'] ),
+					'donor_name' => sanitize_text_field( $data['donor_name'] ),
+					'site_url' => home_url(),
+				),
+				$this->binding()->resource_metadata( $environment )
 			),
 		);
 
@@ -469,12 +499,14 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Process recurring (subscription) payment via Stripe.
 	 *
-	 * @param array $data        Donation form data.
-	 * @param int   $donation_id Donation post ID.
+	 * @param array        $data        Donation form data.
+	 * @param int          $donation_id Donation post ID.
+	 * @param string       $environment Environment id.
+	 * @param StripeClient $client      Environment-bound Stripe client.
 	 * @return array|\WP_Error
 	 */
-	private function process_recurring_payment( $data, $donation_id ) {
-		$customer_id = $this->get_or_create_stripe_customer( $data, $donation_id );
+	private function process_recurring_payment( $data, $donation_id, $environment, $client ) {
+		$customer_id = $this->get_or_create_stripe_customer( $data, $donation_id, $environment, $client );
 		if ( is_wp_error( $customer_id ) ) {
 			return $customer_id;
 		}
@@ -485,12 +517,12 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		try {
-			$this->stripe->paymentMethods->attach( $pm_id, array( 'customer' => $customer_id ) );
+			$client->paymentMethods->attach( $pm_id, array( 'customer' => $customer_id ) );
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		}
 
-		$this->stripe->customers->update(
+		$client->customers->update(
 			$customer_id,
 			array(
 				'invoice_settings' => array(
@@ -518,7 +550,7 @@ class Stripe_Gateway extends Gateway_Base {
 		);
 
 		try {
-			$price = $this->stripe->prices->create( $price_params );
+			$price = $client->prices->create( $price_params );
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		}
@@ -527,17 +559,20 @@ class Stripe_Gateway extends Gateway_Base {
 			'customer'             => $customer_id,
 			'items'                => array( array( 'price' => $price->id ) ),
 			'expand'               => array( 'latest_invoice.payment_intent' ),
-			'metadata'             => array(
-				'donation_id' => (string) $donation_id,
-				'campaign_id' => (string) ( isset( $data['campaign_id'] ) ? $data['campaign_id'] : '' ),
-				'donor_email' => sanitize_email( $data['donor_email'] ),
-				'donor_name' => sanitize_text_field( $data['donor_name'] ),
-				'site_url'   => home_url(),
+			'metadata'             => array_merge(
+				array(
+					'donation_id' => (string) $donation_id,
+					'campaign_id' => (string) ( isset( $data['campaign_id'] ) ? $data['campaign_id'] : '' ),
+					'donor_email' => sanitize_email( $data['donor_email'] ),
+					'donor_name' => sanitize_text_field( $data['donor_name'] ),
+					'site_url'   => home_url(),
+				),
+				$this->binding()->resource_metadata( $environment )
 			),
 		);
 
 		try {
-			$subscription = $this->stripe->subscriptions->create( $subscription_params );
+			$subscription = $client->subscriptions->create( $subscription_params );
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		}
@@ -552,6 +587,7 @@ class Stripe_Gateway extends Gateway_Base {
 		update_post_meta( $donation_id, '_recurring_status', 'active' );
 		update_post_meta( $donation_id, '_recurring_number_of_times', $recurring_number_of_times );
 		update_post_meta( $donation_id, '_is_subscription_parent', '1' );
+		$this->binding()->persist( (int) $donation_id, $environment );
 
 		if ( isset( $subscription->current_period_end ) ) {
 			update_post_meta( $donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $subscription->current_period_end ) );
@@ -576,11 +612,16 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Get existing Stripe Customer for this donor or create a new one.
 	 *
-	 * @param array $data        Donation form data.
-	 * @param int   $donation_id Donation post ID.
+	 * Customer lookups are filtered by environment so a Sandbox customer id can
+	 * never be reused against Live (or the other way round).
+	 *
+	 * @param array        $data        Donation form data.
+	 * @param int          $donation_id Donation post ID.
+	 * @param string       $environment Environment id.
+	 * @param StripeClient $client      Environment-bound Stripe client.
 	 * @return string|\WP_Error Stripe Customer ID or WP_Error.
 	 */
-	private function get_or_create_stripe_customer( $data, $donation_id ) {
+	private function get_or_create_stripe_customer( $data, $donation_id, $environment, $client ) {
 		$email = sanitize_email( $data['donor_email'] );
 
 		$existing = get_posts(
@@ -589,13 +630,17 @@ class Stripe_Gateway extends Gateway_Base {
 				'posts_per_page' => 1,
 				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 					array(
-			'key' => '_stripe_customer_id',
-			'compare' => 'EXISTS',
-				),
+						'key' => '_stripe_customer_id',
+						'compare' => 'EXISTS',
+					),
 					array(
-				'key' => '_payment_method',
-				'value' => 'stripe',
-				),
+						'key' => '_payment_method',
+						'value' => 'stripe',
+					),
+					array(
+						'key' => StripeDonationBinding::META_ENVIRONMENT,
+						'value' => $environment,
+					),
 				),
 			)
 		);
@@ -618,9 +663,12 @@ class Stripe_Gateway extends Gateway_Base {
 			$customer_data = array(
 				'email'    => $email,
 				'name'     => sanitize_text_field( $data['donor_name'] ),
-				'metadata' => array(
-					'site_url'    => home_url(),
-					'donation_id' => (string) $donation_id,
+				'metadata' => array_merge(
+					array(
+						'site_url'    => home_url(),
+						'donation_id' => (string) $donation_id,
+					),
+					$this->binding()->resource_metadata( $environment )
 				),
 			);
 
@@ -635,7 +683,7 @@ class Stripe_Gateway extends Gateway_Base {
 			 */
 			$customer_data = apply_filters( 'giftflow_stripe_customer_data', $customer_data, $data, $donation_id );
 
-			$customer = $this->stripe->customers->create( $customer_data );
+			$customer = $client->customers->create( $customer_data );
 			return $customer->id;
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_customer_error', $e->getMessage() );
@@ -646,32 +694,33 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Handle payment intent response
 	 *
 	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
-	 * @param int $donation_id Donation ID.
+	 * @param int           $donation_id Donation ID.
+	 * @param string        $environment Environment id.
 	 * @return array|\WP_Error
 	 */
-	private function handle_payment_intent_response( $payment_intent, $donation_id ) {
+	private function handle_payment_intent_response( $payment_intent, $donation_id, $environment ) {
 		$status = $payment_intent->status;
 
 		switch ( $status ) {
 			case 'succeeded':
-				return $this->handle_successful_payment_intent( $payment_intent, $donation_id );
+				return $this->handle_successful_payment_intent( $payment_intent, $donation_id, $environment );
 
 			case 'requires_action':
 			case 'requires_source_action':
-				return $this->handle_action_required_intent( $payment_intent, $donation_id );
+				return $this->handle_action_required_intent( $payment_intent, $donation_id, $environment );
 
 			case 'requires_payment_method':
 			case 'requires_source':
-				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment method was declined', 'giftflow' ) );
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment method was declined', 'giftflow' ), $environment );
 
 			case 'processing':
-				return $this->handle_processing_intent( $payment_intent, $donation_id );
+				return $this->handle_processing_intent( $payment_intent, $donation_id, $environment );
 
 			case 'canceled':
-				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment was canceled', 'giftflow' ) );
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment was canceled', 'giftflow' ), $environment );
 
 			default:
-				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment could not be processed', 'giftflow' ) );
+				return $this->handle_failed_payment_intent( $payment_intent, $donation_id, __( 'Payment could not be processed', 'giftflow' ), $environment );
 		}
 	}
 
@@ -679,10 +728,11 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Handle successful payment intent
 	 *
 	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
-	 * @param int $donation_id Donation ID.
+	 * @param int           $donation_id Donation ID.
+	 * @param string        $environment Environment id.
 	 * @return array
 	 */
-	private function handle_successful_payment_intent( $payment_intent, $donation_id ) {
+	private function handle_successful_payment_intent( $payment_intent, $donation_id, $environment ) {
 		$transaction_id = $payment_intent->id;
 		$charge_id = ! empty( $payment_intent->charges->data ) ? $payment_intent->charges->data[0]->id : '';
 
@@ -691,6 +741,7 @@ class Stripe_Gateway extends Gateway_Base {
 		update_post_meta( $donation_id, '_stripe_charge_id', $charge_id );
 		update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $payment_intent->toArray() ) );
 		update_post_meta( $donation_id, '_payment_method', 'stripe' );
+		$this->binding()->persist( (int) $donation_id, $environment );
 
 		// Use centralized Donations class to update status.
 		$donations_class = new Donations();
@@ -705,6 +756,7 @@ class Stripe_Gateway extends Gateway_Base {
 				'transaction_id' => $transaction_id,
 				'charge_id' => $charge_id,
 				'gateway' => 'stripe',
+				'environment' => $environment,
 			)
 		);
 		$this->log_success( $transaction_id, $donation_id );
@@ -724,10 +776,11 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Handle action required payment intent (3D Secure / SCA)
 	 *
 	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
-	 * @param int $donation_id Donation ID.
+	 * @param int           $donation_id Donation ID.
+	 * @param string        $environment Environment id.
 	 * @return array
 	 */
-	private function handle_action_required_intent( $payment_intent, $donation_id ) {
+	private function handle_action_required_intent( $payment_intent, $donation_id, $environment ) {
 		// Store payment intent for later verification.
 		update_post_meta( $donation_id, '_payment_status', 'processing' );
 		Donation_Event_History::add(
@@ -738,6 +791,7 @@ class Stripe_Gateway extends Gateway_Base {
 			array(
 				'payment_intent_id' => $payment_intent->id,
 				'gateway' => 'stripe',
+				'environment' => $environment,
 			)
 		);
 
@@ -755,10 +809,11 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Handle processing payment intent
 	 *
 	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
-	 * @param int $donation_id Donation ID.
+	 * @param int           $donation_id Donation ID.
+	 * @param string        $environment Environment id.
 	 * @return array
 	 */
-	private function handle_processing_intent( $payment_intent, $donation_id ) {
+	private function handle_processing_intent( $payment_intent, $donation_id, $environment ) {
 		update_post_meta( $donation_id, '_payment_status', 'processing' );
 		Donation_Event_History::add(
 			$donation_id,
@@ -768,6 +823,7 @@ class Stripe_Gateway extends Gateway_Base {
 			array(
 				'payment_intent_id' => $payment_intent->id,
 				'gateway' => 'stripe',
+				'environment' => $environment,
 			)
 		);
 
@@ -784,11 +840,12 @@ class Stripe_Gateway extends Gateway_Base {
 	 * Handle failed payment intent
 	 *
 	 * @param PaymentIntent $payment_intent Payment Intent from Stripe.
-	 * @param int $donation_id Donation ID.
-	 * @param string $default_message Default error message.
+	 * @param int           $donation_id Donation ID.
+	 * @param string        $default_message Default error message.
+	 * @param string        $environment Environment id.
 	 * @return \WP_Error
 	 */
-	private function handle_failed_payment_intent( $payment_intent, $donation_id, $default_message = '' ) {
+	private function handle_failed_payment_intent( $payment_intent, $donation_id, $default_message = '', $environment = '' ) {
 		$error_message = $default_message;
 		$error_code = '';
 
@@ -812,6 +869,7 @@ class Stripe_Gateway extends Gateway_Base {
 			array(
 				'error_code' => $error_code,
 				'gateway' => 'stripe',
+				'environment' => $environment,
 			)
 		);
 
@@ -826,93 +884,30 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
-	 * Handle webhook notifications
+	 * Handle webhook notifications.
+	 *
+	 * The shared receiver verifies the signature against every stored
+	 * environment secret, enforces livemode and donation binding, claims the
+	 * event id atomically and only then dispatches side effects.
+	 *
+	 * @return void
 	 */
 	public function handle_webhook() {
-		if ( ! $this->get_setting( 'stripe_webhook_enabled', '1' ) ) {
-			status_header( 200 );
-			exit;
+		$this->webhook_receiver()->handle_request();
+	}
+
+	/**
+	 * Shared webhook receiver instance.
+	 *
+	 * @return StripeWebhookReceiver
+	 */
+	private function webhook_receiver(): StripeWebhookReceiver {
+		if ( null === $this->webhook_receiver ) {
+			$repository             = $this->get_repository();
+			$this->webhook_receiver = new StripeWebhookReceiver( $repository, new StripeWebhookDispatcher( $repository ) );
 		}
 
-		// Reviewer Note: Stripe webhooks POST raw JSON data and Stripe's signature verification requires access to this exact, unmodified request body.
-		// As such, we intentionally do not sanitize or alter the raw input at this stage—this is critical for validating webhook authenticity.
-		// The webhook_secret value will be verified in the following logic below .
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$payload = file_get_contents( 'php://input' );
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$sig_header = isset( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_STRIPE_SIGNATURE'] ) ) : '';
-
-		try {
-			// Verify webhook signature if webhook secret is configured.
-			if ( ! empty( $this->webhook_secret ) ) {
-				$event = Webhook::constructEvent(
-					$payload,
-					$sig_header,
-					$this->webhook_secret
-				);
-			} else {
-
-				// If the webhook secret is not configured, we need to log an error and exit.
-				$this->log_error( 'webhook_error', 'Stripe webhook: webhook secret is not configured.', 0 );
-				status_header( 400 );
-				exit;
-			}
-
-			// Handle different event types.
-			switch ( $event->type ) {
-				case 'payment_intent.succeeded':
-					$this->handle_payment_intent_succeeded( $event->data->object );
-					break;
-
-				case 'payment_intent.payment_failed':
-					$this->handle_payment_intent_failed( $event->data->object );
-					break;
-
-				case 'charge.refunded':
-					$this->handle_payment_charge_refunded( $event->data->object );
-					break;
-
-				case 'payment_intent.canceled':
-					$this->handle_payment_intent_canceled( $event->data->object );
-					break;
-
-				case 'invoice.paid':
-					$this->handle_invoice_paid( $event->data->object );
-					break;
-
-				case 'invoice_payment.paid':
-					break;
-
-				case 'invoice.payment_failed':
-					$this->handle_invoice_payment_failed( $event->data->object );
-					break;
-
-				case 'customer.subscription.deleted':
-					$this->handle_subscription_deleted( $event->data->object );
-					break;
-
-				case 'customer.subscription.updated':
-					$this->handle_subscription_updated( $event->data->object );
-					break;
-			}
-
-			status_header( 200 );
-			echo 'OK';
-
-		} catch ( \UnexpectedValueException $e ) {
-			// Invalid payload.
-			$this->log_error( 'webhook_error', 'Invalid webhook payload: ' . $e->getMessage(), 0 );
-			status_header( 400 );
-		} catch ( \Stripe\Exception\SignatureVerificationException $e ) {
-			// Invalid signature.
-			$this->log_error( 'webhook_error', 'Invalid webhook signature: ' . $e->getMessage(), 0 );
-			status_header( 400 );
-		} catch ( \Exception $e ) {
-			$this->log_error( 'webhook_error', $e->getMessage(), 0 );
-			status_header( 500 );
-		}
-
-		exit;
+		return $this->webhook_receiver;
 	}
 
 	/**
@@ -945,23 +940,25 @@ class Stripe_Gateway extends Gateway_Base {
 		if ( ! empty( $donations ) ) {
 			$donation_id = $donations[0]->ID;
 
-			// Retrieve and verify payment intent status.
 			try {
-				if ( ! $this->stripe ) {
+				$environment = $this->resolve_donation_environment( (int) $donation_id );
+				$client      = $this->client_for_environment( $environment );
+
+				if ( ! $client ) {
 					throw new \Exception( __( 'Stripe is not configured', 'giftflow' ) );
 				}
 
-				$payment_intent = $this->stripe->paymentIntents->retrieve( $payment_intent_id );
+				$payment_intent = $client->paymentIntents->retrieve( $payment_intent_id );
 
 				if ( 'succeeded' === $payment_intent->status ) {
-					$this->handle_successful_payment_intent( $payment_intent, $donation_id );
+					$this->handle_successful_payment_intent( $payment_intent, $donation_id, $environment );
 					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'success', home_url() ) ) );
 				} elseif ( in_array( $payment_intent->status, array( 'processing', 'requires_capture' ), true ) ) {
 					// Payment is processing.
 					update_post_meta( $donation_id, '_payment_status', 'processing' );
 					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'processing', home_url() ) ) );
 				} else {
-					$this->handle_failed_payment_intent( $payment_intent, $donation_id );
+					$this->handle_failed_payment_intent( $payment_intent, $donation_id, '', $environment );
 					wp_safe_redirect( esc_url( add_query_arg( 'payment_status', 'failed', home_url() ) ) );
 				}
 			} catch ( \Exception $e ) {
@@ -971,547 +968,6 @@ class Stripe_Gateway extends Gateway_Base {
 
 			exit;
 		}
-	}
-
-	/**
-	 * Handle successful payment intent webhook
-	 *
-	 * @param object $payment_intent Payment intent object from webhook.
-	 */
-	private function handle_payment_intent_succeeded( $payment_intent ) {
-		$donation_id = isset( $payment_intent->metadata->donation_id )
-			? intval( $payment_intent->metadata->donation_id )
-			: 0;
-
-		if ( $donation_id ) {
-			$transaction_id = $payment_intent->id;
-			$charge_id = ! empty( $payment_intent->charges->data ) ? $payment_intent->charges->data[0]->id : '';
-
-			// Update donation meta.
-			update_post_meta( $donation_id, '_transaction_id', $transaction_id );
-			update_post_meta( $donation_id, '_stripe_charge_id', $charge_id );
-			update_post_meta( $donation_id, '_payment_status', 'completed' );
-
-			// Use centralized Donations class to update status.
-			$donations_class = new Donations();
-			$donations_class->update_status( $donation_id, 'completed' );
-
-			Donation_Event_History::add(
-				$donation_id,
-				'payment_succeeded',
-				'completed',
-				__( 'Webhook: payment_intent.succeeded', 'giftflow' ),
-				array(
-					'transaction_id' => $transaction_id,
-					'charge_id' => $charge_id,
-					'gateway' => 'stripe',
-					'source' => 'webhook',
-				)
-			);
-			Giftflow_Logger::info(
-				'stripe.webhook.payment_intent.succeeded',
-				array(
-					'donation_id'    => $donation_id,
-					'transaction_id' => $transaction_id,
-					'charge_id'     => $charge_id,
-					'gateway'       => 'stripe',
-				),
-				'stripe'
-			);
-
-			do_action( 'giftflow_stripe_webhook_payment_completed', $donation_id, $payment_intent );
-		}
-	}
-
-	/**
-	 * Handle failed payment intent webhook
-	 *
-	 * @param object $payment_intent Payment intent object from webhook.
-	 */
-	private function handle_payment_intent_failed( $payment_intent ) {
-		$donation_id = isset( $payment_intent->metadata->donation_id )
-			? intval( $payment_intent->metadata->donation_id )
-			: 0;
-
-		if ( $donation_id ) {
-			$error_message = isset( $payment_intent->last_payment_error->message )
-				? $payment_intent->last_payment_error->message
-				: __( 'Payment failed', 'giftflow' );
-
-			Donation_Event_History::add(
-				$donation_id,
-				'payment_failed',
-				'failed',
-				$error_message,
-				array(
-					'gateway' => 'stripe',
-					'source' => 'webhook',
-				)
-			);
-			Giftflow_Logger::error(
-				'stripe.webhook.payment_intent.failed',
-				array(
-					'donation_id'    => $donation_id,
-					'error_message' => $error_message,
-					'gateway'       => 'stripe',
-				),
-				'stripe'
-			);
-
-			// Use centralized Donations class to update status.
-			$donations_class = new Donations();
-			$donations_class->update_status( $donation_id, 'failed' );
-			update_post_meta( $donation_id, '_payment_error', $error_message );
-			update_post_meta( $donation_id, '_payment_status', 'failed' );
-
-			do_action( 'giftflow_stripe_webhook_payment_failed', $donation_id, $payment_intent );
-		}
-	}
-
-	/**
-	 * Handle canceled payment intent webhook
-	 *
-	 * @param object $payment_intent Payment intent object from webhook.
-	 */
-	private function handle_payment_intent_canceled( $payment_intent ) {
-		$donation_id = isset( $payment_intent->metadata->donation_id )
-			? intval( $payment_intent->metadata->donation_id )
-			: 0;
-
-		if ( $donation_id ) {
-			Donation_Event_History::add(
-				$donation_id,
-				'payment_canceled',
-				'cancelled',
-				__( 'Webhook: payment_intent.canceled', 'giftflow' ),
-				array(
-					'gateway' => 'stripe',
-					'source' => 'webhook',
-				)
-			);
-			Giftflow_Logger::info(
-				'stripe.webhook.payment_intent.canceled',
-				array(
-					'donation_id' => $donation_id,
-					'gateway'     => 'stripe',
-				),
-				'stripe'
-			);
-
-			// Use centralized Donations class to update status.
-			$donations_class = new Donations();
-			$donations_class->update_status( $donation_id, 'cancelled' );
-			update_post_meta( $donation_id, '_payment_status', 'canceled' );
-
-			do_action( 'giftflow_stripe_webhook_payment_canceled', $donation_id, $payment_intent );
-		}
-	}
-
-	/**
-	 * Handle payment charge refunded
-	 *
-	 * @param object $charge Charge object from webhook.
-	 */
-	private function handle_payment_charge_refunded( $charge ) {
-		$donation_id = isset( $charge->metadata->donation_id )
-			? intval( $charge->metadata->donation_id )
-			: 0;
-
-		if ( $donation_id ) {
-			$charge_id = isset( $charge->id ) ? $charge->id : '';
-			Donation_Event_History::add(
-				$donation_id,
-				'payment_refunded',
-				'refunded',
-				__( 'Webhook: charge.refunded', 'giftflow' ),
-				array(
-					'charge_id' => $charge_id,
-					'gateway' => 'stripe',
-					'source' => 'webhook',
-				)
-			);
-			Giftflow_Logger::info(
-				'stripe.webhook.charge.refunded',
-				array(
-					'donation_id' => $donation_id,
-					'charge_id'   => $charge_id,
-					'gateway'     => 'stripe',
-				),
-				'stripe'
-			);
-
-			// Use centralized Donations class to update status.
-			$donations_class = new Donations();
-			$donations_class->update_status( $donation_id, 'refunded' );
-			update_post_meta( $donation_id, '_payment_status', 'refunded' );
-
-			do_action( 'giftflow_stripe_webhook_charge_refunded', $donation_id, $charge );
-		}
-	}
-
-	/**
-	 * Handle Stripe invoice_payment.paid webhook event (new API: 2025+).
-	 *
-	 * Event sends an invoice_payment object with invoice id and payment.payment_intent.
-	 * Fetch the full Invoice and reuse handle_invoice_paid().
-	 *
-	 * @param object $invoice_payment Stripe invoice_payment object from webhook (object.invoice, object.payment.payment_intent).
-	 */
-	private function handle_invoice_payment_paid( $invoice_payment ) {
-		$invoice_id = isset( $invoice_payment->invoice ) ? $invoice_payment->invoice : '';
-		if ( empty( $invoice_id ) || ! $this->stripe ) {
-			return;
-		}
-		try {
-			$invoice = $this->stripe->invoices->retrieve(
-				$invoice_id,
-				array( 'expand' => array( 'subscription', 'lines.data' ) )
-			);
-		} catch ( ApiErrorException $e ) {
-			$this->log_error( 'webhook_error', 'invoice_payment.paid: failed to retrieve invoice ' . $invoice_id . ' - ' . $e->getMessage(), 0 );
-			return;
-		}
-		// Ensure payment_intent is set (invoice_payment has it; Invoice may have it or we can set from event).
-		$pi_id = isset( $invoice_payment->payment->payment_intent ) ? $invoice_payment->payment->payment_intent : null;
-		if ( $pi_id && ( ! isset( $invoice->payment_intent ) || empty( $invoice->payment_intent ) ) ) {
-			$invoice->payment_intent = $pi_id;
-		}
-		// Normalize subscription to id string when expanded as object.
-		if ( is_object( $invoice->subscription ) && isset( $invoice->subscription->id ) ) {
-			$invoice->subscription = $invoice->subscription->id;
-		}
-		$this->handle_invoice_paid( $invoice );
-	}
-
-	/**
-	 * Handle Stripe invoice.paid webhook event.
-	 *
-	 * @param object $invoice Stripe Invoice object from webhook.
-	 */
-	private function handle_invoice_paid( $invoice ) {
-		// Subscription ID: top-level (old API) or parent.subscription_details.subscription (2025+ API).
-		$subscription_id = isset( $invoice->subscription ) ? $invoice->subscription : '';
-		if ( empty( $subscription_id ) && isset( $invoice->parent->subscription_details->subscription ) ) {
-			$subscription_id = $invoice->parent->subscription_details->subscription;
-		}
-		if ( empty( $subscription_id ) ) {
-			return;
-		}
-
-		$parent_donations = get_posts(
-			array(
-				'post_type'      => 'donation',
-				'posts_per_page' => 1,
-				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-			'key' => '_is_subscription_parent',
-			'value' => '1',
-				),
-				),
-			)
-		);
-
-		if ( empty( $parent_donations ) ) {
-			$this->log_error( 'webhook_error', 'invoice.paid: parent donation not found for subscription ' . $subscription_id, 0 );
-			return;
-		}
-
-		$parent_donation_id = $parent_donations[0]->ID;
-		$invoice_id         = isset( $invoice->id ) ? $invoice->id : '';
-		$payment_intent_id  = isset( $invoice->payment_intent ) ? $invoice->payment_intent : '';
-		if ( is_object( $payment_intent_id ) && isset( $payment_intent_id->id ) ) {
-			$payment_intent_id = $payment_intent_id->id;
-		}
-		// 2025+ API: invoice webhook payload may omit payment_intent. Try retrieve with expand, then fall back to charge.
-		if ( empty( $payment_intent_id ) && ! empty( $invoice_id ) && $this->stripe ) {
-			try {
-				$invoice_full = $this->stripe->invoices->retrieve( $invoice_id, array( 'expand' => array( 'payment_intent' ) ) );
-				if ( isset( $invoice_full->payment_intent ) ) {
-					$payment_intent_id = is_object( $invoice_full->payment_intent ) ? $invoice_full->payment_intent->id : $invoice_full->payment_intent;
-				}
-			// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-			} catch ( ApiErrorException $e ) {
-				// Continue to charge fallback.
-			}
-			// Fallback: charge.succeeded has payment_intent; list charges for this invoice to get it.
-			if ( empty( $payment_intent_id ) ) {
-				$charges = $this->stripe->charges->all(
-					array(
-						'invoice' => $invoice_id,
-						'limit' => 1,
-					)
-				);
-				if ( ! empty( $charges->data[0]->payment_intent ) ) {
-					$payment_intent_id = is_object( $charges->data[0]->payment_intent ) ? $charges->data[0]->payment_intent->id : $charges->data[0]->payment_intent;
-				}
-			}
-		}
-
-		$existing = get_posts(
-			array(
-				'post_type'      => 'donation',
-				'posts_per_page' => 1,
-				'meta_key'       => '_stripe_invoice_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'     => $invoice_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-
-		if ( ! empty( $existing ) ) {
-			$this->update_parent_after_renewal( $parent_donation_id, $invoice );
-			return;
-		}
-
-		$is_first_invoice = ( isset( $invoice->billing_reason ) && 'subscription_create' === $invoice->billing_reason );
-
-		if ( $is_first_invoice ) {
-			update_post_meta( $parent_donation_id, '_transaction_id', $payment_intent_id );
-			update_post_meta( $parent_donation_id, '_stripe_payment_intent_id', $payment_intent_id );
-			update_post_meta( $parent_donation_id, '_stripe_invoice_id', $invoice_id );
-			update_post_meta( $parent_donation_id, '_transaction_raw_data', wp_json_encode( (array) $invoice ) );
-
-			$donations_class = new Donations();
-			$donations_class->update_status( $parent_donation_id, 'completed' );
-
-			Donation_Event_History::add(
-				$parent_donation_id,
-				'recurring_payment_first',
-				'completed',
-				__( 'Webhook: invoice.paid (first charge)', 'giftflow' ),
-				array(
-					'invoice_id'      => $invoice_id,
-					'subscription_id' => $subscription_id,
-					'gateway'         => 'stripe',
-					'source'          => 'webhook',
-				)
-			);
-		} else {
-			$meta = get_post_meta( $parent_donation_id );
-
-			$renewal_id = wp_insert_post(
-				array(
-					'post_title'  => sprintf(
-						/* translators: %s: parent donation ID */
-						__( 'Recurring Donation (renewal of #%s)', 'giftflow' ),
-						$parent_donation_id
-					),
-					'post_type'   => 'donation',
-					'post_status' => 'publish',
-				)
-			);
-
-			if ( is_wp_error( $renewal_id ) ) {
-				$this->log_error( 'webhook_error', 'invoice.paid: failed to create renewal donation for ' . $subscription_id, $parent_donation_id );
-				return;
-			}
-
-			$copy_keys = array( '_amount', '_campaign_id', '_donor_id', '_payment_method', '_donation_type', '_recurring_interval' );
-			foreach ( $copy_keys as $key ) {
-				if ( isset( $meta[ $key ][0] ) ) {
-					update_post_meta( $renewal_id, $key, $meta[ $key ][0] );
-				}
-			}
-
-			update_post_meta( $renewal_id, '_status', 'completed' );
-			update_post_meta( $renewal_id, '_parent_donation_id', $parent_donation_id );
-			update_post_meta( $renewal_id, '_stripe_invoice_id', $invoice_id );
-			update_post_meta( $renewal_id, '_stripe_subscription_id', $subscription_id );
-			update_post_meta( $renewal_id, '_stripe_customer_id', isset( $meta['_stripe_customer_id'][0] ) ? $meta['_stripe_customer_id'][0] : '' );
-			update_post_meta( $renewal_id, '_transaction_id', $payment_intent_id );
-			update_post_meta( $renewal_id, '_stripe_payment_intent_id', $payment_intent_id );
-			update_post_meta( $renewal_id, '_transaction_raw_data', wp_json_encode( (array) $invoice ) );
-			update_post_meta( $renewal_id, '_is_subscription_renewal', '1' );
-			update_post_meta( $renewal_id, '_payment_status', 'completed' );
-
-			Donation_Event_History::add(
-				$renewal_id,
-				'recurring_payment_renewal',
-				'completed',
-				__( 'Webhook: invoice.paid (renewal)', 'giftflow' ),
-				array(
-					'invoice_id'         => $invoice_id,
-					'subscription_id'    => $subscription_id,
-					'parent_donation_id' => $parent_donation_id,
-					'gateway'            => 'stripe',
-					'source'             => 'webhook',
-				)
-			);
-
-			do_action( 'giftflow_stripe_recurring_renewal_created', $renewal_id, $parent_donation_id, $subscription_id, (array) $invoice );
-
-			// Cancel subscription after N payments if set on parent.
-			$number_of_times = (int) get_post_meta( $parent_donation_id, '_recurring_number_of_times', true );
-			if ( $number_of_times > 0 ) {
-				$renewals = get_posts(
-					array(
-						'post_type'      => 'donation',
-						'posts_per_page' => -1,
-						'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-						'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-							array(
-					'key' => '_is_subscription_renewal',
-					'value' => '1',
-						),
-						),
-					)
-				);
-				if ( count( $renewals ) >= $number_of_times && $this->stripe ) {
-					try {
-						$this->stripe->subscriptions->cancel( $subscription_id );
-					} catch ( ApiErrorException $e ) {
-						$this->log_error( 'webhook_error', 'Failed to cancel subscription after N payments: ' . $e->getMessage(), $parent_donation_id );
-					}
-				}
-			}
-		}
-
-		$this->update_parent_after_renewal( $parent_donation_id, $invoice );
-
-		Giftflow_Logger::info(
-			'stripe.webhook.invoice.paid',
-			array(
-				'parent_donation_id' => $parent_donation_id,
-				'invoice_id'         => $invoice_id,
-				'subscription_id'    => $subscription_id,
-				'is_first'           => $is_first_invoice,
-				'gateway'            => 'stripe',
-			),
-			'stripe'
-		);
-	}
-
-	/**
-	 * Update parent donation recurring status and next payment date after a renewal.
-	 *
-	 * @param int    $parent_donation_id Parent donation post ID.
-	 * @param object $invoice            Stripe Invoice object.
-	 */
-	private function update_parent_after_renewal( $parent_donation_id, $invoice ) {
-		update_post_meta( $parent_donation_id, '_recurring_status', 'active' );
-		if ( ! empty( $invoice->lines->data ) ) {
-			foreach ( $invoice->lines->data as $line ) {
-				if ( isset( $line->period->end ) ) {
-					update_post_meta( $parent_donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $line->period->end ) );
-					break;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Handle Stripe invoice.payment_failed webhook.
-	 *
-	 * @param object $invoice Stripe Invoice object.
-	 */
-	private function handle_invoice_payment_failed( $invoice ) {
-		$subscription_id = isset( $invoice->subscription ) ? $invoice->subscription : '';
-		$parent_donations = get_posts(
-			array(
-				'post_type'      => 'donation',
-				'posts_per_page' => 1,
-				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-		if ( empty( $parent_donations ) ) {
-			return;
-		}
-		$parent_donation_id = $parent_donations[0]->ID;
-		update_post_meta( $parent_donation_id, '_recurring_status', 'past_due' );
-		Donation_Event_History::add(
-			$parent_donation_id,
-			'recurring_payment_failed',
-			'failed',
-			__( 'Webhook: invoice.payment_failed', 'giftflow' ),
-			array(
-				'invoice_id'      => isset( $invoice->id ) ? $invoice->id : '',
-				'subscription_id' => $subscription_id,
-				'gateway'         => 'stripe',
-				'source'          => 'webhook',
-			)
-		);
-		Giftflow_Logger::error(
-			'stripe.webhook.invoice.payment_failed',
-			array(
-				'parent_donation_id' => $parent_donation_id,
-				'subscription_id' => $subscription_id,
-				'gateway' => 'stripe',
-			),
-			'stripe'
-		);
-		do_action( 'giftflow_stripe_recurring_payment_failed', $parent_donation_id, $subscription_id, (array) $invoice );
-	}
-
-	/**
-	 * Handle Stripe customer.subscription.deleted webhook.
-	 *
-	 * @param object $subscription Stripe Subscription object.
-	 */
-	private function handle_subscription_deleted( $subscription ) {
-		$subscription_id = isset( $subscription->id ) ? $subscription->id : '';
-		$parent_donations = get_posts(
-			array(
-				'post_type'      => 'donation',
-				'posts_per_page' => 1,
-				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-		if ( empty( $parent_donations ) ) {
-			return;
-		}
-		$parent_donation_id = $parent_donations[0]->ID;
-		update_post_meta( $parent_donation_id, '_recurring_status', 'cancelled' );
-		Donation_Event_History::add(
-			$parent_donation_id,
-			'recurring_subscription_cancelled',
-			'cancelled',
-			__( 'Webhook: customer.subscription.deleted', 'giftflow' ),
-			array(
-				'subscription_id' => $subscription_id,
-				'gateway' => 'stripe',
-				'source' => 'webhook',
-			)
-		);
-		do_action( 'giftflow_stripe_subscription_cancelled', $parent_donation_id, $subscription_id, (array) $subscription );
-	}
-
-	/**
-	 * Handle Stripe customer.subscription.updated webhook.
-	 *
-	 * @param object $subscription Stripe Subscription object.
-	 */
-	private function handle_subscription_updated( $subscription ) {
-		$subscription_id = isset( $subscription->id ) ? $subscription->id : '';
-		$parent_donations = get_posts(
-			array(
-				'post_type'      => 'donation',
-				'posts_per_page' => 1,
-				'meta_key'       => '_stripe_subscription_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'     => $subscription_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-		if ( empty( $parent_donations ) ) {
-			return;
-		}
-		$parent_donation_id = $parent_donations[0]->ID;
-		$new_status         = isset( $subscription->status ) ? $subscription->status : '';
-		$status_map         = array(
-			'active' => 'active',
-			'past_due' => 'past_due',
-			'unpaid' => 'unpaid',
-			'canceled' => 'cancelled',
-			'trialing' => 'active',
-		);
-		if ( isset( $status_map[ $new_status ] ) ) {
-			update_post_meta( $parent_donation_id, '_recurring_status', $status_map[ $new_status ] );
-		}
-		if ( isset( $subscription->current_period_end ) ) {
-			update_post_meta( $parent_donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $subscription->current_period_end ) );
-		}
-		do_action( 'giftflow_stripe_subscription_updated', $parent_donation_id, $subscription_id, (array) $subscription );
 	}
 
 	/**
@@ -1535,10 +991,14 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		try {
-			if ( ! $this->stripe ) {
+			$environment = $this->resolve_donation_environment( (int) $donation_id );
+			$client      = $this->client_for_environment( $environment );
+
+			if ( ! $client ) {
 				throw new \Exception( __( 'Stripe is not configured', 'giftflow' ) );
 			}
-			$this->stripe->subscriptions->cancel( $subscription_id );
+
+			$client->subscriptions->cancel( $subscription_id );
 			update_post_meta( $donation_id, '_recurring_status', 'cancelled' );
 			Donation_Event_History::add(
 				$donation_id,
@@ -1548,6 +1008,7 @@ class Stripe_Gateway extends Gateway_Base {
 				array(
 					'subscription_id' => $subscription_id,
 					'gateway' => 'stripe',
+					'environment' => $environment,
 				)
 			);
 			wp_send_json_success( array( 'message' => __( 'Subscription cancelled successfully.', 'giftflow' ) ) );
@@ -1595,17 +1056,22 @@ class Stripe_Gateway extends Gateway_Base {
 	/**
 	 * Get webhook URL
 	 *
+	 * Kept on the historical shared route, with the scheme normalized to HTTPS
+	 * whenever the site itself is served over HTTPS.
+	 *
 	 * @return string
 	 */
 	public function get_webhook_url() {
-		return admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' );
+		$url = admin_url( 'admin-ajax.php?action=giftflow_stripe_webhook' );
+
+		return StripeWebhookProvisioner::normalize_url( $url );
 	}
 
 	/**
 	 * Log successful payment
 	 *
 	 * @param string $transaction_id Transaction ID.
-	 * @param int $donation_id Donation ID.
+	 * @param int    $donation_id Donation ID.
 	 */
 	private function log_success( $transaction_id, $donation_id ) {
 		Giftflow_Logger::info(
@@ -1624,7 +1090,7 @@ class Stripe_Gateway extends Gateway_Base {
 	 *
 	 * @param string $type Type of error.
 	 * @param string $message Message of error.
-	 * @param int $donation_id Donation ID.
+	 * @param int    $donation_id Donation ID.
 	 * @param string $code Code of error.
 	 */
 	private function log_error( $type, $message, $donation_id, $code = '' ) {
