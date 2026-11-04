@@ -64,7 +64,7 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 			<span class="giftflow-stripe-credential-view" data-role="credential-view">
 				<span class="giftflow-stripe-credential-value" data-role="<?php echo esc_attr( $role ); ?>"><?php echo '' !== $masked ? esc_html( $masked ) : esc_html( $giftflow_panel_string( $strings, 'secret_missing' ) ); ?></span>
 				<button type="button"
-					class="giftflow-stripe-icon-button giftflow-stripe-action"
+					class="giftflow-stripe-icon-button giftflow-stripe-edit-button giftflow-stripe-action"
 					data-action="edit-credential"
 					data-environment="<?php echo esc_attr( $environment ); ?>"
 					data-credential="<?php echo esc_attr( $field ); ?>"
@@ -73,6 +73,7 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 					aria-label="<?php echo esc_attr( sprintf( /* translators: %s: credential label */ __( 'Edit %s', 'giftflow' ), $label ) ); ?>"
 					title="<?php echo esc_attr( $giftflow_panel_string( $strings, 'edit' ) ); ?>">
 					<?php echo wp_kses( giftflow_svg_icon( 'pencil' ), giftflow_allowed_svg_tags() ); ?>
+					<span class="giftflow-stripe-edit-hint"><?php echo esc_html( $giftflow_panel_string( $strings, 'click_to_edit' ) ); ?></span>
 				</button>
 			</span>
 

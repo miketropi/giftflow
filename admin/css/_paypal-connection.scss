@@ -382,6 +382,21 @@
       }
     }
 
+    // Turn the pencil into a labelled control so the inline editing is
+    // discoverable: icon + "Click to edit", still a 44px target.
+    .giftflow-paypal-edit-button {
+      width: auto;
+      min-width: 44px;
+      padding: 0 $spacing-sm;
+      gap: $spacing-xs;
+    }
+
+    .giftflow-paypal-edit-hint {
+      font-size: $font-size-sm;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
     .giftflow-paypal-credential-edit {
       display: block;
       padding: $spacing-sm 0;

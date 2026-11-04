@@ -126,6 +126,7 @@ final class PayPalConnectionPanel {
 			'keys_helper'        => __( 'Keys stay on this WordPress server and are used directly with PayPal.', 'giftflow' ),
 			'connect_hint'       => __( 'Enter the client ID and client secret for this profile below, then click Connect & Auto Configure to finish the setup.', 'giftflow' ),
 			'edit'               => __( 'Edit', 'giftflow' ),
+			'click_to_edit'      => __( 'Click to edit', 'giftflow' ),
 			'update'             => __( 'Update', 'giftflow' ),
 			'value_required'     => __( 'Enter a value before updating.', 'giftflow' ),
 			'credential_hint'    => __( 'Only this value is replaced; the saved value is never shown again.', 'giftflow' ),

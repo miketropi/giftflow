@@ -66,7 +66,7 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 					<?php echo '' !== $masked ? esc_html( $masked ) : esc_html( $giftflow_panel_string( $strings, 'secret_missing' ) ); ?>
 				</span>
 				<button type="button"
-					class="giftflow-paypal-icon-button giftflow-paypal-action"
+					class="giftflow-paypal-icon-button giftflow-paypal-edit-button giftflow-paypal-action"
 					data-action="edit-credential"
 					data-environment="<?php echo esc_attr( $environment ); ?>"
 					data-credential="<?php echo esc_attr( $field ); ?>"
@@ -75,6 +75,7 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 					aria-label="<?php echo esc_attr( sprintf( /* translators: %s: credential label */ __( 'Edit %s', 'giftflow' ), $label ) ); ?>"
 					title="<?php echo esc_attr( $giftflow_panel_string( $strings, 'edit' ) ); ?>">
 					<?php echo wp_kses( giftflow_svg_icon( 'pencil' ), giftflow_allowed_svg_tags() ); ?>
+					<span class="giftflow-paypal-edit-hint"><?php echo esc_html( $giftflow_panel_string( $strings, 'click_to_edit' ) ); ?></span>
 				</button>
 			</span>
 
