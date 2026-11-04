@@ -45,6 +45,58 @@ final class PayPalHttpTest extends PayPalUnitTestCase {
 	}
 
 	/**
+	 * Body-less writes keep a JSON content type and report the PayPal issue.
+	 *
+	 * Order capture takes no fields. PayPal rejects the capture when the request
+	 * arrives without a JSON content type, so the request must always carry one,
+	 * and a rejection must surface the stable issue code rather than a generic
+	 * message.
+	 *
+	 * @return void
+	 */
+	public function testBodylessWriteSendsJsonContentTypeAndSurfacesIssueCode(): void {
+		$client = $this->client( 'sandbox', 'client-a' );
+
+		$this->http->queue(
+			'POST',
+			'/v2/checkout/orders/ORDER-1/capture',
+			array(
+				'response' => array( 'code' => 422 ),
+				'body' => wp_json_encode(
+					array(
+						'name' => 'UNPROCESSABLE_ENTITY',
+						'details' => array( array( 'issue' => 'ORDER_NOT_APPROVED' ) ),
+					)
+				),
+			)
+		);
+
+		$rejected = $client->capture_order( 'ORDER-1' );
+
+		$calls  = $this->http->calls();
+		$call   = $calls[ count( $calls ) - 1 ];
+		$header = $call['args']['headers'];
+
+		$this->assertSame( 'POST', $call['method'] );
+		$this->assertSame( 'application/json', $header['Content-Type'] );
+		$this->assertSame( '{}', $call['args']['body'] );
+		$this->assertNotSame( '', $header['PayPal-Request-Id'] );
+		$this->assertFalse( $rejected['ok'] );
+		$this->assertSame( 422, $rejected['status'] );
+		$this->assertSame( 'ORDER_NOT_APPROVED', $rejected['issue'] );
+
+		$this->http->queue(
+			'POST',
+			'/v2/checkout/orders/ORDER-2/capture',
+			array(
+				'response' => array( 'code' => 201 ),
+				'body' => '{"id":"ORDER-2"}',
+			)
+		);
+		$this->assertTrue( $client->capture_order( 'ORDER-2' )['ok'] );
+	}
+
+	/**
 	 * Webhook patch uses only exact replace operations.
 	 *
 	 * @return void

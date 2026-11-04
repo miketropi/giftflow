@@ -22,6 +22,7 @@ final class PayPalFlowIsolationTest extends \WP_Ajax_UnitTestCase {
 	/** @var PayPal_Gateway */ private $gateway;
 	/** @var array<int,array<string,mixed>> */ private $requests = array();
 	/** @var int */ private $order_sequence = 0;
+	/** @var array<string,mixed>|null */ private $capture_rejection = null;
 	/** @var string */ private $ajax_response = '';
 
 	/** Configure gateway and both profiles. @return void */
@@ -254,6 +255,51 @@ final class PayPalFlowIsolationTest extends \WP_Ajax_UnitTestCase {
 		$this->assertSame( array(), $this->requests );
 	}
 
+	/**
+	 * A rejected capture reports the PayPal issue code instead of a bare error.
+	 *
+	 * @return void
+	 */
+	public function testRejectedCaptureReportsThePayPalIssueCode(): void {
+		$campaign_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'campaign',
+				'post_status' => 'publish',
+			)
+		);
+		$order       = $this->ajax(
+			'giftflow_paypal_create_order',
+			array(
+				'amount'         => '10.00',
+				'donor_name'     => 'Ada Lovelace',
+				'donor_email'    => 'ada@example.test',
+				'campaign_id'    => (string) $campaign_id,
+				'payment_method' => 'paypal',
+			)
+		);
+		$this->assertTrue( $order['success'], wp_json_encode( $order ) );
+
+		$this->capture_rejection = array(
+			'response' => array( 'code' => 422 ),
+			'body'     => wp_json_encode(
+				array(
+					'name'    => 'UNPROCESSABLE_ENTITY',
+					'details' => array( array( 'issue' => 'ORDER_NOT_APPROVED' ) ),
+				)
+			),
+		);
+
+		$donations_before = (int) wp_count_posts( 'donation' )->publish;
+		$capture          = $this->ajax( 'giftflow_paypal_capture_order', array( 'orderID' => $order['data']['orderID'] ) );
+
+		$this->assertFalse( $capture['success'] );
+		$this->assertStringContainsString( 'ORDER_NOT_APPROVED', $capture['data']['message'] );
+		$this->assertStringContainsString( '422', $capture['data']['message'] );
+		$this->assertStringNotContainsString( 'UNPROCESSABLE_ENTITY', $capture['data']['message'] );
+		$this->assertSame( $donations_before, (int) wp_count_posts( 'donation' )->publish );
+		$this->assertSandboxRequests();
+	}
+
 	/** Execute AJAX and decode response. @param string $action Action. @param array $data Data. @param string|null $nonce Nonce override. @return array */
 	private function ajax( string $action, array $data, ?string $nonce = null ): array {
 		$_GET = array();
@@ -345,6 +391,9 @@ final class PayPalFlowIsolationTest extends \WP_Ajax_UnitTestCase {
 		if ( '/v2/checkout/orders' === $path ) {
 			++$this->order_sequence;
 			return $this->response( 201, array( 'id' => 'ORDER-' . $this->order_sequence ) ); }
+		if ( false !== strpos( $path, '/capture' ) && null !== $this->capture_rejection ) {
+			return $this->capture_rejection;
+		}
 		if ( false !== strpos( $path, '/capture' ) ) {
 			return $this->response(
 				201,

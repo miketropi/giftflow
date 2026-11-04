@@ -423,10 +423,19 @@ final class PayPalApiClient {
 			'headers' => $headers,
 			'timeout' => 30,
 		);
-		if ( ! empty( $body ) ) {
+		$is_write = in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true );
+
+		if ( $is_write ) {
+			// PayPal requires a JSON content type on every write request, even
+			// when the endpoint takes no fields (order capture, for example), so
+			// an empty body is sent as an empty JSON object.
+			$args['headers']['Content-Type'] = 'application/json';
+			$args['body'] = empty( $body ) ? '{}' : (string) wp_json_encode( $body );
+		} elseif ( ! empty( $body ) ) {
 			$args['headers']['Content-Type'] = 'application/json';
 			$args['body'] = wp_json_encode( $body );
 		}
+
 		if ( in_array( $method, array( 'POST', 'PUT', 'PATCH', 'DELETE' ), true ) ) {
 			$args['headers']['PayPal-Request-Id'] = wp_generate_uuid4();
 		}

@@ -716,7 +716,21 @@ class PayPal_Gateway extends Gateway_Base {
 		);
 		$response = $client->create_order( $order_data );
 		if ( ! $response['ok'] || empty( $response['body']['id'] ) ) {
-			throw new \Exception( esc_html__( 'Failed to create PayPal order', 'giftflow' ) );
+			Giftflow_Logger::error(
+				'paypal.order.create_failed',
+				array(
+					'environment' => $environment,
+					'status'      => isset( $response['status'] ) ? (int) $response['status'] : 0,
+					'error_code'  => isset( $response['code'] ) ? (string) $response['code'] : '',
+					'issue'       => isset( $response['issue'] ) ? (string) $response['issue'] : '',
+					'gateway'     => 'paypal',
+				),
+				'paypal'
+			);
+
+			throw new \Exception(
+				esc_html( $this->describe_api_failure( __( 'Failed to create PayPal order', 'giftflow' ), $response ) )
+			);
 		}
 		$order_id = $response['body']['id'];
 		$profile = $this->get_repository()->get_profile( $environment );
@@ -760,7 +774,24 @@ class PayPal_Gateway extends Gateway_Base {
 		$response = $client->capture_order( $order_id );
 		if ( ! $response['ok'] ) {
 			delete_transient( $transient_key );
-			return new \WP_Error( 'paypal_error', esc_html__( 'Failed to capture PayPal order', 'giftflow' ) );
+
+			Giftflow_Logger::error(
+				'paypal.order.capture_failed',
+				array(
+					'order_id'    => $order_id,
+					'environment' => $environment,
+					'status'      => isset( $response['status'] ) ? (int) $response['status'] : 0,
+					'error_code'  => isset( $response['code'] ) ? (string) $response['code'] : '',
+					'issue'       => isset( $response['issue'] ) ? (string) $response['issue'] : '',
+					'gateway'     => 'paypal',
+				),
+				'paypal'
+			);
+
+			return new \WP_Error(
+				'paypal_error',
+				$this->describe_api_failure( __( 'Failed to capture PayPal order', 'giftflow' ), $response )
+			);
 		}
 		$response_body = $response['body'];
 		$donation_id = $this->create_donation_record( $snapshot['donation_data'] );
@@ -1632,6 +1663,41 @@ class PayPal_Gateway extends Gateway_Base {
 				'gateway'        => 'paypal',
 			),
 			'paypal'
+		);
+	}
+
+	/**
+	 * Turn a failed PayPal API response into an actionable message.
+	 *
+	 * Only the stable PayPal issue/error code and the HTTP status are surfaced:
+	 * the raw response body, credentials and tokens never reach the donor or the
+	 * logs.
+	 *
+	 * @param string $fallback Base message shown when nothing else is known.
+	 * @param array  $response PayPal API response envelope.
+	 * @return string
+	 */
+	private function describe_api_failure( $fallback, array $response ) {
+		$reason = isset( $response['issue'] ) && is_string( $response['issue'] ) && '' !== $response['issue']
+			? strtoupper( preg_replace( '/[^A-Za-z0-9_]/', '', $response['issue'] ) )
+			: '';
+
+		if ( '' === $reason && isset( $response['code'] ) && is_string( $response['code'] ) ) {
+			$reason = $response['code'];
+		}
+
+		$status = isset( $response['status'] ) ? (int) $response['status'] : 0;
+
+		if ( '' === $reason && 0 === $status ) {
+			return $fallback;
+		}
+
+		return sprintf(
+			// translators: 1: base error message, 2: PayPal issue or error code, 3: HTTP status code.
+			__( '%1$s (%2$s, HTTP %3$d).', 'giftflow' ),
+			$fallback,
+			'' === $reason ? __( 'no error code', 'giftflow' ) : $reason,
+			$status
 		);
 	}
 
