@@ -216,6 +216,10 @@ $giftflow_credential_row = static function ( array $args ) use ( $giftflow_panel
 
 		<div class="giftflow-paypal-modal-body">
 
+			<div class="notice notice-info inline giftflow-paypal-notice">
+				<p><?php echo esc_html( $giftflow_panel_string( $strings, 'connect_hint' ) ); ?></p>
+			</div>
+
 			<div class="giftflow-paypal-tabs" role="tablist" aria-label="<?php esc_attr_e( 'PayPal configuration profile', 'giftflow' ); ?>">
 				<?php foreach ( $environments as $index => $environment ) : ?>
 					<?php
