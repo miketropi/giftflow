@@ -12,3 +12,5 @@ giftflow.zip
 .design-drafts/*
 !.design-drafts/.gitkeep
 !.design-drafts/DESIGN.md
+# PHPUnit
+.phpunit.cache/

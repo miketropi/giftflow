@@ -311,6 +311,13 @@ Site administrators are responsible for ensuring compliance with applicable priv
 
 == Changelog ==
 
+= 1.2.0 =
+* New: PayPal connection management with a Sandbox/Live configuration dialog (Connect PayPal Config) that stores each profile's credentials and webhook endpoint separately.
+* New: Connect & Auto Configure provisions the PayPal webhook endpoint through the PayPal REST API, Check Configuration reports exact drift and Repair applies it.
+* Improvement: Every PayPal operation is bound to the environment and account that created it, so Sandbox and Live orders, subscriptions, product/plan caches and webhook deliveries can no longer cross-update each other.
+* Improvement: Switching the active payment environment never edits, migrates or invalidates the other profile.
+* Dev: Credentials and webhook endpoints are validated against PayPal and reported with stable, sanitized error codes; secrets are only ever shown masked.
+
 = 1.0.16 =
 * Fix: Resolved JavaScript conflicts between PhotoSwipe library and WooCommerce by removing PhotoSwipe from the plugin.
 * Improvement: Developed and integrated a custom lightbox library for handling image galleries and campaign media.

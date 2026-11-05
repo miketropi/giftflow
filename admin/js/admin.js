@@ -2,6 +2,8 @@ import '../css/admin.scss';
 import './modules/test-send-mail';
 import './modules/dashboard-view';
 import './modules/custom-fields';
+import './modules/stripe-connection';
+import './modules/paypal-connection';
 
 ((w, $) => {
   'use strict';

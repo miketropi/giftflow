@@ -294,7 +294,9 @@ function giftflow_initialize_settings() {
 			$section['option_name'],
 			array(
 				'type'              => 'array',
-				'sanitize_callback' => 'giftflow_sanitize_settings_callback',
+				'sanitize_callback' => 'giftflow_payment_options' === $section['option_name']
+					? 'giftflow_sanitize_payment_options'
+					: 'giftflow_sanitize_settings_callback',
 				'default'           => array(),
 			)
 		);
@@ -428,6 +430,119 @@ function giftflow_sanitize_setting_value( $value, $key = '' ) {
 
 	// Default: sanitize as text field.
 	return sanitize_text_field( $value );
+}
+
+/**
+ * Sanitize payment options while protecting panel-owned connection state.
+ *
+ * The bulk settings form must not overwrite environment-scoped connection
+ * state, clear saved credentials through blank fields, or drop the active
+ * payment environment when a connection panel was not rendered.
+ *
+ * @param mixed $data Submitted payment options.
+ * @return array
+ */
+function giftflow_sanitize_payment_options( $data ) {
+	$existing  = get_option( 'giftflow_payment_options' );
+	$existing  = is_array( $existing ) ? $existing : array();
+	$sanitized = giftflow_sanitize_settings_callback( $data );
+
+	if ( ! is_array( $sanitized ) ) {
+		$sanitized = array();
+	}
+
+	$stored_stripe = isset( $existing['stripe'] ) && is_array( $existing['stripe'] ) ? $existing['stripe'] : array();
+	$submitted     = isset( $sanitized['stripe'] ) && is_array( $sanitized['stripe'] ) ? $sanitized['stripe'] : array();
+
+	// Credentials are rendered blank and masked, so blank or absent means "keep".
+	foreach ( GiftFlow\Stripe\StripeEnvironment::all() as $environment ) {
+		foreach ( GiftFlow\Stripe\StripeEnvironment::credential_option_keys( $environment ) as $option_key ) {
+			$submitted_value = isset( $submitted[ $option_key ] ) && is_string( $submitted[ $option_key ] )
+				? trim( $submitted[ $option_key ] )
+				: '';
+
+			if ( '' !== $submitted_value ) {
+				continue;
+			}
+
+			$stored_value = isset( $stored_stripe[ $option_key ] ) && is_string( $stored_stripe[ $option_key ] )
+				? trim( $stored_stripe[ $option_key ] )
+				: '';
+
+			if ( '' !== $stored_value ) {
+				$submitted[ $option_key ] = $stored_value;
+			} else {
+				unset( $submitted[ $option_key ] );
+			}
+		}
+	}
+
+	// Owned by the connection panel, never by the bulk form.
+	$panel_keys = array(
+		GiftFlow\Stripe\StripeEnvironment::MODE_OPTION,
+		GiftFlow\Stripe\StripeConnectionRepository::CONNECTIONS_KEY,
+		GiftFlow\Stripe\StripeConnectionRepository::MIGRATION_KEY,
+	);
+
+	foreach ( $panel_keys as $panel_key ) {
+		if ( isset( $submitted[ $panel_key ] ) ) {
+			continue;
+		}
+
+		if ( array_key_exists( $panel_key, $stored_stripe ) ) {
+			$submitted[ $panel_key ] = $stored_stripe[ $panel_key ];
+		}
+	}
+
+	$sanitized['stripe'] = $submitted;
+
+	// Preserve giftflow_paypal connection-panel credentials and profile state.
+	$stored_paypal = isset( $existing['paypal'] ) && is_array( $existing['paypal'] ) ? $existing['paypal'] : array();
+	$submitted     = isset( $sanitized['paypal'] ) && is_array( $sanitized['paypal'] ) ? $sanitized['paypal'] : array();
+
+	// Credentials are rendered blank and masked, so blank or absent means "keep".
+	foreach ( GiftFlow\PayPal\PayPalEnvironment::all() as $environment ) {
+		foreach ( GiftFlow\PayPal\PayPalEnvironment::credential_option_keys( $environment ) as $option_key ) {
+			$submitted_value = isset( $submitted[ $option_key ] ) && is_string( $submitted[ $option_key ] )
+				? trim( $submitted[ $option_key ] )
+				: '';
+
+			if ( '' !== $submitted_value ) {
+				continue;
+			}
+
+			$stored_value = isset( $stored_paypal[ $option_key ] ) && is_string( $stored_paypal[ $option_key ] )
+				? trim( $stored_paypal[ $option_key ] )
+				: '';
+
+			if ( '' !== $stored_value ) {
+				$submitted[ $option_key ] = $stored_value;
+			} else {
+				unset( $submitted[ $option_key ] );
+			}
+		}
+	}
+
+	// Owned by the connection panel, never by the bulk form.
+	$paypal_panel_keys = array(
+		GiftFlow\PayPal\PayPalEnvironment::MODE_OPTION,
+		GiftFlow\PayPal\PayPalConnectionRepository::CONNECTIONS_KEY,
+		GiftFlow\PayPal\PayPalConnectionRepository::MIGRATION_KEY,
+	);
+
+	foreach ( $paypal_panel_keys as $panel_key ) {
+		if ( isset( $submitted[ $panel_key ] ) ) {
+			continue;
+		}
+
+		if ( array_key_exists( $panel_key, $stored_paypal ) ) {
+			$submitted[ $panel_key ] = $stored_paypal[ $panel_key ];
+		}
+	}
+
+	$sanitized['paypal'] = $submitted;
+
+	return $sanitized;
 }
 
 /**

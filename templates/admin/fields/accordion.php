@@ -46,6 +46,13 @@ $label         = isset( $settings['label'] ) ? $settings['label'] : '';
 			<p class="description"><?php echo esc_html( $description ); ?></p>
 		<?php endif; ?>
 		
+		<?php
+		// Section panel renders under the description, above the field list.
+		if ( isset( $content_callback ) && is_callable( $content_callback ) ) {
+			call_user_func( $content_callback );
+		}
+		?>
+
 		<?php if ( ! empty( $settings['fields'] ) ) : ?>
 			<div class="giftflow-accordion-fields">
 				<?php
@@ -84,10 +91,5 @@ $label         = isset( $settings['label'] ) ? $settings['label'] : '';
 			</div>
 		<?php endif; ?>
 		
-		<?php
-		if ( isset( $content_callback ) && is_callable( $content_callback ) ) {
-			call_user_func( $content_callback );
-		}
-		?>
 	</div>
 </div>

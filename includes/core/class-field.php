@@ -241,6 +241,13 @@ class GiftFlow_Field {
 	private $pro_only = false;
 
 	/**
+	 * Field content callback (used by composite field types such as accordion).
+	 *
+	 * @var callable|null
+	 */
+	private $content = null;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $id Field ID.
@@ -302,6 +309,11 @@ class GiftFlow_Field {
 
 		// Set field pro only.
 		$this->pro_only = isset( $args['pro_only'] ) ? $args['pro_only'] : false;
+
+		// Set field content callback (rendered by composite field types).
+		if ( isset( $args['content'] ) && is_callable( $args['content'] ) ) {
+			$this->content = $args['content'];
+		}
 
 		// default currency symbol.
 		$default_currency_symbol = giftflow_get_currency_symbol( giftflow_get_current_currency() );
