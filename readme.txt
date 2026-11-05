@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.13
+Stable tag: 1.1.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -311,12 +311,14 @@ Site administrators are responsible for ensuring compliance with applicable priv
 
 == Changelog ==
 
-= 1.2.0 =
-* New: PayPal connection management with a Sandbox/Live configuration dialog (Connect PayPal Config) that stores each profile's credentials and webhook endpoint separately.
-* New: Connect & Auto Configure provisions the PayPal webhook endpoint through the PayPal REST API, Check Configuration reports exact drift and Repair applies it.
-* Improvement: Every PayPal operation is bound to the environment and account that created it, so Sandbox and Live orders, subscriptions, product/plan caches and webhook deliveries can no longer cross-update each other.
+= 1.1.14 =
+* New: Stripe and PayPal connection management with a Sandbox/Live configuration dialog (Connect ... Config) that stores each profile's credentials and webhook endpoint separately.
+* New: Connect & Auto Configure provisions the webhook endpoint through the provider API, Check Configuration reports exact drift and Repair applies it.
+* Improvement: Every payment operation is bound to the environment and account that created it, so Sandbox and Live orders, subscriptions, product/plan caches and webhook deliveries can no longer cross-update each other.
 * Improvement: Switching the active payment environment never edits, migrates or invalidates the other profile.
-* Dev: Credentials and webhook endpoints are validated against PayPal and reported with stable, sanitized error codes; secrets are only ever shown masked.
+* Improvement: The connection dialogs explain that the keys must be saved and then connected, and label each inline credential field with "Click to edit".
+* Fix: PayPal order capture could fail with "Failed to capture PayPal order" because the capture request was sent without a JSON content type. Rejected order creates and captures now report the PayPal error code instead of a bare message.
+* Dev: Credentials and webhook endpoints are validated against the provider and reported with stable, sanitized error codes; secrets are only ever shown masked.
 
 = 1.0.16 =
 * Fix: Resolved JavaScript conflicts between PhotoSwipe library and WooCommerce by removing PhotoSwipe from the plugin.

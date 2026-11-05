@@ -443,7 +443,7 @@ final class StripeWebhookProvisioner {
 		/**
 		 * Filter whether a webhook URL is considered publicly reachable.
 		 *
-		 * @since 1.2.0
+		 * @since 1.1.14
 		 *
 		 * @param bool   $is_public Whether the URL passed the built-in checks.
 		 * @param string $url       Evaluated URL.

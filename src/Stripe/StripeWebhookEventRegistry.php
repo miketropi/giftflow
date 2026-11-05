@@ -72,7 +72,7 @@ final class StripeWebhookEventRegistry {
 		/**
 		 * Filter the webhook events required for an environment.
 		 *
-		 * @since 1.2.0
+		 * @since 1.1.14
 		 *
 		 * @param string[] $events            Required event names.
 		 * @param string   $environment       Environment the list applies to, or '' when unknown.

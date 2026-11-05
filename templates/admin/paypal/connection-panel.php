@@ -8,7 +8,7 @@
  * inputs start empty so blank means "keep the saved value".
  *
  * @package GiftFlow
- * @since 1.2.0
+ * @since 1.1.14
  *
  * @var array $paypal_panel Panel view model built by PayPalConnectionPanel.
  */
