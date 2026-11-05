@@ -28,6 +28,15 @@ define( 'GIFTFLOW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIFTFLOW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
+/**
+ * Checkout/payment observation contract version consumed by GiftFlow Pro.
+ *
+ * Bump only after every documented path in `src/Services/CheckoutExtension.php`,
+ * `src/Services/PaymentObservation.php`, `src/Services/CheckoutMoney.php` and the
+ * bank transfer management hook ships together.
+ */
+define( 'GIFTFLOW_REWARDS_CONTRACT_VERSION', 1 );
+
 /*
  * Load Composer autoloaders.
  *
@@ -175,6 +184,11 @@ function giftflow_load_files() {
 			}
 		}
 	}
+}
+
+// Register the checkout/payment observation adapters (no-ops without a consumer).
+if ( class_exists( 'GiftFlow\Services\BankTransferObservation' ) ) {
+	GiftFlow\Services\BankTransferObservation::register();
 }
 
 // Preload legacy files so classes are available for activation/deactivation.

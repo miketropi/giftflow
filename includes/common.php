@@ -462,10 +462,23 @@ function giftflow_get_preset_donation_amounts_by_campaign( $campaign_id ) {
 		$preset_donation_amounts = unserialize( $preset_donation_amounts );
 	}
 
+	// Campaigns without saved presets return '' or a plain "10, 25, 35" string.
+	if ( ! is_array( $preset_donation_amounts ) ) {
+		$preset_donation_amounts = array();
+
+		foreach ( explode( ',', (string) get_post_meta( $campaign_id, '_preset_donation_amounts', true ) ) as $preset_amount ) {
+			$preset_amount = trim( $preset_amount );
+
+			if ( '' !== $preset_amount ) {
+				$preset_donation_amounts[] = array( 'amount' => $preset_amount );
+			}
+		}
+	}
+
 	return array_map(
 		function ( $item ) {
 			return array(
-				'amount' => (float) trim( $item['amount'] ),
+				'amount' => (float) trim( is_array( $item ) ? (string) $item['amount'] : (string) $item ),
 			);
 		},
 		$preset_donation_amounts

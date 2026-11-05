@@ -561,6 +561,9 @@ class PayPal_Gateway extends Gateway_Base {
 		 */
 		do_action( 'giftflow_donation_form_before_process_donation', $data );
 
+		// Preserve the exact decimal lexeme: `floatval()` below loses cents.
+		$raw_amount = isset( $data['amount'] ) && is_scalar( $data['amount'] ) ? (string) $data['amount'] : '';
+
 		// Get donation amount - required.
 		$amount = isset( $data['amount'] ) ? floatval( $data['amount'] ) : 0;
 		if ( ! $amount || $amount <= 0 ) {
@@ -591,6 +594,21 @@ class PayPal_Gateway extends Gateway_Base {
 					'message' => __( 'Donor name and email are required', 'giftflow' ),
 				)
 			);
+		}
+
+		$checkout_extension = $this->prepare_checkout_extension( $data, $raw_amount, (int) $donation_data['campaign_id'], false );
+
+		if ( is_wp_error( $checkout_extension ) ) {
+			wp_send_json_error(
+				array(
+					'message' => $checkout_extension->get_error_message(),
+					'code'    => $checkout_extension->get_error_code(),
+				)
+			);
+		}
+
+		if ( ! empty( $checkout_extension ) ) {
+			$donation_data['_checkout_extension'] = $checkout_extension;
 		}
 
 		try {
@@ -690,22 +708,41 @@ class PayPal_Gateway extends Gateway_Base {
 		if ( ! $client ) {
 			throw new \Exception( esc_html__( 'PayPal is not properly configured', 'giftflow' ) );
 		}
+		$extension = isset( $donation_data['_checkout_extension'] ) && is_array( $donation_data['_checkout_extension'] )
+			? $donation_data['_checkout_extension']
+			: array();
+
+		if ( ! empty( $extension ) ) {
+			// Extended checkouts charge the exact server-resolved integer amount.
+			$purchase_value    = \GiftFlow\Services\CheckoutMoney::format( (int) $extension['amount_minor'] );
+			$purchase_currency = strtoupper( (string) $extension['currency'] );
+		} else {
+			$purchase_value    = number_format( (float) $donation_data['donation_amount'], 2, '.', '' );
+			$purchase_currency = strtoupper( $this->get_currency() );
+		}
+
+		$purchase_unit = array(
+			'amount' => array(
+				'currency_code' => $purchase_currency,
+				'value' => $purchase_value,
+			),
+			'description' => sprintf(
+				// translators: 1: donor name, 2: campaign id or name.
+				__( 'Donation from %1$s for campaign %2$s', 'giftflow' ),
+				$donation_data['donor_name'],
+				$donation_data['campaign_id']
+			),
+		);
+
+		if ( ! empty( $extension ) ) {
+			// `custom_id` carries the attempt token so webhooks can be reconciled
+			// even when the order webhook arrives before the donation exists.
+			$purchase_unit['custom_id'] = (string) $extension['attempt_key'];
+		}
+
 		$order_data = array(
 			'intent' => 'CAPTURE',
-			'purchase_units' => array(
-				array(
-					'amount' => array(
-						'currency_code' => strtoupper( $this->get_currency() ),
-						'value' => number_format( (float) $donation_data['donation_amount'], 2, '.', '' ),
-					),
-					'description' => sprintf(
-						// translators: 1: donor name, 2: campaign id or name.
-						__( 'Donation from %1$s for campaign %2$s', 'giftflow' ),
-						$donation_data['donor_name'],
-						$donation_data['campaign_id']
-					),
-				),
-			),
+			'purchase_units' => array( $purchase_unit ),
 			'application_context' => array(
 				'brand_name' => get_bloginfo( 'name' ),
 				'landing_page' => 'NO_PREFERENCE',
@@ -714,7 +751,10 @@ class PayPal_Gateway extends Gateway_Base {
 				'cancel_url' => home_url(),
 			),
 		);
-		$response = $client->create_order( $order_data );
+		$response = $client->create_order(
+			$order_data,
+			empty( $extension ) ? '' : (string) $extension['attempt_key'] . ':order'
+		);
 		if ( ! $response['ok'] || empty( $response['body']['id'] ) ) {
 			Giftflow_Logger::error(
 				'paypal.order.create_failed',
@@ -771,8 +811,21 @@ class PayPal_Gateway extends Gateway_Base {
 		if ( ! $client ) {
 			return new \WP_Error( 'paypal_error', esc_html__( 'PayPal is not properly configured', 'giftflow' ) );
 		}
-		$response = $client->capture_order( $order_id );
+		$extension = isset( $snapshot['donation_data']['_checkout_extension'] ) && is_array( $snapshot['donation_data']['_checkout_extension'] )
+			? $snapshot['donation_data']['_checkout_extension']
+			: array();
+
+		$response = $client->capture_order( $order_id, empty( $extension ) ? '' : (string) $extension['attempt_key'] . ':capture' );
 		if ( ! $response['ok'] ) {
+			if ( ! empty( $extension ) ) {
+				$status = isset( $response['status'] ) ? (int) $response['status'] : 0;
+
+				if ( $status >= 400 && $status < 500 ) {
+					// Definitive provider rejection: release the hold exactly once.
+					\GiftFlow\Services\CheckoutExtension::failed( $extension, 'paypal_capture_rejected', true );
+				}
+			}
+
 			delete_transient( $transient_key );
 
 			Giftflow_Logger::error(
@@ -794,8 +847,39 @@ class PayPal_Gateway extends Gateway_Base {
 			);
 		}
 		$response_body = $response['body'];
+
+		if ( ! empty( $extension ) && ! $this->verify_capture( $response_body, $extension ) ) {
+			// A capture that is not COMPLETED, or whose money does not match the
+			// promised charge, is not proof of payment: never confirm a reward
+			// from it. The signed webhook reconciles the attempt later.
+			Giftflow_Logger::error(
+				'paypal.capture.unverified',
+				array(
+					'order_id'    => $order_id,
+					'environment' => $environment,
+					'status'      => isset( $response['status'] ) ? (int) $response['status'] : 0,
+					'gateway'     => 'paypal',
+				),
+				'paypal'
+			);
+
+			return new \WP_Error(
+				'paypal_error',
+				esc_html__( 'Your payment is still being reviewed. Please contact us if your receipt shows a charge.', 'giftflow' )
+			);
+		}
+
 		$donation_id = $this->create_donation_record( $snapshot['donation_data'] );
 		if ( is_wp_error( $donation_id ) ) {
+			if ( ! empty( $extension ) ) {
+				// Money moved but no donation exists: surface an unallocated exception.
+				$capture_id = isset( $response_body['purchase_units'][0]['payments']['captures'][0]['id'] )
+					? (string) $response_body['purchase_units'][0]['payments']['captures'][0]['id']
+					: '';
+
+				$this->observe_unallocated( 'paid', $extension, $environment, $order_id, $capture_id );
+			}
+
 			delete_transient( $transient_key );
 			return new \WP_Error( 'paypal_error', esc_html__( 'Payment successful but failed to create donation record', 'giftflow' ) );
 		}
@@ -821,6 +905,20 @@ class PayPal_Gateway extends Gateway_Base {
 			)
 		);
 		$this->log_success( $transaction_id, $donation_id );
+
+		if ( ! empty( $extension ) ) {
+			\GiftFlow\Services\CheckoutExtension::bind(
+				$extension,
+				array(
+					'donation_id' => (int) $donation_id,
+					'provider_id' => (string) $order_id,
+					'gateway'     => 'paypal',
+				)
+			);
+		}
+
+		$this->emit_observation( 'paid', (int) $donation_id, $environment, $order_id, $transaction_id );
+
 		do_action( 'giftflow_paypal_payment_completed', $donation_id, $transaction_id, $response_body );
 		do_action( 'giftflow_donation_after_payment_processed', $donation_id, true );
 		return array(
@@ -865,6 +963,10 @@ class PayPal_Gateway extends Gateway_Base {
 
 		if ( isset( $donation_data['anonymous_donation'] ) ) {
 			$data['anonymous_donation'] = ( 'yes' === $donation_data['anonymous_donation'] || true === $donation_data['anonymous_donation'] || '1' === $donation_data['anonymous_donation'] ) ? 'yes' : 'no';
+		}
+
+		if ( ! empty( $donation_data['_checkout_extension'] ) && is_array( $donation_data['_checkout_extension'] ) ) {
+			$data['_checkout_extension'] = $donation_data['_checkout_extension'];
 		}
 
 		// Use centralized Donations class to create donation.
@@ -1114,16 +1216,24 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @param string $currency       Currency code.
 	 * @param string $interval       Plugin interval (daily, weekly, monthly, quarterly, yearly).
 	 * @param int    $number_of_times Number of billing cycles (0 = infinite).
+	 * @param int|null $exact_minor   Exact integer minor units (extended checkouts).
+	 * @param string $request_id      Optional caller-owned PayPal-Request-Id.
 	 * @return string|\WP_Error PayPal Plan ID or WP_Error.
 	 */
-	private function get_or_create_paypal_plan( $amount, $currency, $interval, $number_of_times = 0 ) {
+	private function get_or_create_paypal_plan( $amount, $currency, $interval, $number_of_times = 0, $exact_minor = null, $request_id = '' ) {
 		$environment = $this->get_active_environment();
 		$client = $this->client_for_environment( $environment );
 		if ( ! $client ) {
 			return new \WP_Error( 'paypal_token_error', __( 'Failed to authenticate with PayPal', 'giftflow' ) );
 		}
 		$paypal_interval = $this->map_interval_to_paypal( $interval );
-		$amount_minor = (int) round( (float) $amount * 100 );
+		$amount_minor = null === $exact_minor ? (int) round( (float) $amount * 100 ) : (int) $exact_minor;
+
+		if ( null === $exact_minor ) {
+			$amount_value = number_format( (float) $amount, 2, '.', '' );
+		} else {
+			$amount_value = \GiftFlow\Services\CheckoutMoney::format( $amount_minor );
+		}
 		$option_key = $this->get_repository()->plan_option_key( $environment, $currency, $amount_minor, $interval, (int) $number_of_times );
 		$cached_plan_id = get_option( $option_key, '' );
 		if ( ! empty( $cached_plan_id ) ) {
@@ -1147,7 +1257,7 @@ class PayPal_Gateway extends Gateway_Base {
 			'name' => sprintf(
 				// translators: 1: formatted amount, 2: currency code, 3: billing interval unit.
 				__( 'Donation %1$s %2$s / %3$s', 'giftflow' ),
-				number_format( (float) $amount, 2, '.', '' ),
+				$amount_value,
 				strtoupper( $currency ),
 				strtolower( $paypal_interval['interval_unit'] )
 			),
@@ -1160,7 +1270,7 @@ class PayPal_Gateway extends Gateway_Base {
 					'total_cycles' => (int) $number_of_times,
 					'pricing_scheme' => array(
 						'fixed_price' => array(
-							'value' => number_format( (float) $amount, 2, '.', '' ),
+							'value' => $amount_value,
 							'currency_code' => strtoupper( $currency ),
 						),
 					),
@@ -1171,7 +1281,7 @@ class PayPal_Gateway extends Gateway_Base {
 				'payment_failure_threshold' => 3,
 			),
 		);
-		$response = $client->create_plan( $plan_data );
+		$response = $client->create_plan( $plan_data, (string) $request_id );
 		if ( ! $response['ok'] || empty( $response['body']['id'] ) ) {
 			return new \WP_Error( 'paypal_plan_error', __( 'Failed to create PayPal plan', 'giftflow' ) );
 		}
@@ -1237,7 +1347,14 @@ class PayPal_Gateway extends Gateway_Base {
 			),
 			'custom_id' => (string) $donation_id,
 		);
-		$response = $client->create_subscription( $subscription_data );
+		$extension = isset( $data['_checkout_extension'] ) && is_array( $data['_checkout_extension'] )
+			? $data['_checkout_extension']
+			: array();
+
+		$response = $client->create_subscription(
+			$subscription_data,
+			empty( $extension ) ? '' : (string) $extension['attempt_key'] . ':subscription'
+		);
 		if ( ! $response['ok'] || empty( $response['body']['id'] ) ) {
 			return new \WP_Error( 'paypal_subscription_error', __( 'Failed to create PayPal subscription', 'giftflow' ) );
 		}
@@ -1292,6 +1409,9 @@ class PayPal_Gateway extends Gateway_Base {
 
 		do_action( 'giftflow_donation_form_before_process_donation', $data );
 
+		// Preserve the exact decimal lexeme before the float conversion below.
+		$raw_amount = isset( $data['amount'] ) && is_scalar( $data['amount'] ) ? (string) $data['amount'] : '';
+
 		$amount = isset( $data['amount'] ) ? floatval( $data['amount'] ) : 0;
 		if ( ! $amount || $amount <= 0 ) {
 			wp_send_json_error( array( 'message' => __( 'Donation amount is required', 'giftflow' ) ) );
@@ -1317,6 +1437,21 @@ class PayPal_Gateway extends Gateway_Base {
 			wp_send_json_error( array( 'message' => __( 'Invalid recurring donation data', 'giftflow' ) ) );
 		}
 
+		$checkout_extension = $this->prepare_checkout_extension( $data, $raw_amount, (int) $donation_data['campaign_id'], true );
+
+		if ( is_wp_error( $checkout_extension ) ) {
+			wp_send_json_error(
+				array(
+					'message' => $checkout_extension->get_error_message(),
+					'code'    => $checkout_extension->get_error_code(),
+				)
+			);
+		}
+
+		if ( ! empty( $checkout_extension ) ) {
+			$donation_data['_checkout_extension'] = $checkout_extension;
+		}
+
 		try {
 			$interval     = $donation_data['recurring_interval'];
 			$currency     = strtoupper( $this->get_currency() );
@@ -1327,7 +1462,18 @@ class PayPal_Gateway extends Gateway_Base {
 				$num_of_times = absint( get_post_meta( $campaign_id, '_recurring_number_of_times', true ) );
 			}
 
-			$plan_id = $this->get_or_create_paypal_plan( $amount, $currency, $interval, $num_of_times );
+			if ( ! empty( $checkout_extension ) ) {
+				$currency = (string) $checkout_extension['currency'];
+			}
+
+			$plan_id = $this->get_or_create_paypal_plan(
+				$amount,
+				$currency,
+				$interval,
+				$num_of_times,
+				empty( $checkout_extension ) ? null : (int) $checkout_extension['amount_minor'],
+				empty( $checkout_extension ) ? '' : (string) $checkout_extension['attempt_key'] . ':plan'
+			);
 			if ( is_wp_error( $plan_id ) ) {
 				wp_send_json_error( array( 'message' => $plan_id->get_error_message() ) );
 			}
@@ -1336,6 +1482,16 @@ class PayPal_Gateway extends Gateway_Base {
 			$donation_id = $this->create_donation_record( $donation_data );
 			if ( is_wp_error( $donation_id ) ) {
 				wp_send_json_error( array( 'message' => $donation_id->get_error_message() ) );
+			}
+
+			if ( ! empty( $checkout_extension ) ) {
+				\GiftFlow\Services\CheckoutExtension::bind(
+					$checkout_extension,
+					array(
+						'donation_id' => (int) $donation_id,
+						'gateway'     => 'paypal',
+					)
+				);
 			}
 			$environment = $this->get_active_environment();
 			$client      = $this->client_for_environment( $environment );
@@ -1359,6 +1515,17 @@ class PayPal_Gateway extends Gateway_Base {
 			update_post_meta( $donation_id, '_is_subscription_parent', '1' );
 			update_post_meta( $donation_id, '_recurring_number_of_times', $num_of_times );
 			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $result['raw_response'] ) );
+
+			if ( ! empty( $checkout_extension ) ) {
+				\GiftFlow\Services\CheckoutExtension::bind(
+					$checkout_extension,
+					array(
+						'donation_id' => (int) $donation_id,
+						'provider_id' => (string) $result['subscription_id'],
+						'gateway'     => 'paypal',
+					)
+				);
+			}
 
 			do_action( 'giftflow_paypal_subscription_created', $donation_id, $result['subscription_id'], $result['raw_response'] );
 
@@ -1628,6 +1795,153 @@ class PayPal_Gateway extends Gateway_Base {
 		);
 
 		wp_send_json_success( array( 'message' => __( 'PayPal subscription cancelled successfully.', 'giftflow' ) ) );
+	}
+
+	/**
+	 * Validate and prepare checkout extension data for a PayPal submission.
+	 *
+	 * @param array  $data        Sanitized request data.
+	 * @param string $raw_amount  Original decimal amount lexeme.
+	 * @param int    $campaign_id Campaign id resolved by Core.
+	 * @param bool   $is_recurring Whether the submission is recurring.
+	 * @return array|\WP_Error Empty array when the checkout is not extended.
+	 */
+	private function prepare_checkout_extension( $data, $raw_amount, $campaign_id, $is_recurring ) {
+		if ( ! class_exists( '\GiftFlow\Services\CheckoutExtension' ) ) {
+			return array();
+		}
+
+		$environment = $this->get_active_environment();
+		$profile     = $this->get_repository()->get_profile( $environment );
+
+		$context = array(
+			'gateway'          => 'paypal',
+			'environment'      => $environment,
+			'currency'         => strtoupper( $this->get_currency() ),
+			'raw_amount'       => (string) $raw_amount,
+			'donation_type'    => isset( $data['donation_type'] ) ? sanitize_text_field( $data['donation_type'] ) : '',
+			'is_recurring'     => (bool) $is_recurring,
+			'campaign_id'      => (int) $campaign_id,
+			'donor_email'      => isset( $data['donor_email'] ) ? sanitize_email( $data['donor_email'] ) : '',
+			'provider_account' => isset( $profile['paypal_app_id'] ) ? (string) $profile['paypal_app_id'] : '',
+		);
+
+		return \GiftFlow\Services\CheckoutExtension::prepare( $data, $context );
+	}
+
+	/**
+	 * Verify a capture response against the promised reward charge.
+	 *
+	 * Requires a COMPLETED capture whose exact money matches the extension and,
+	 * when present, the attempt token carried in `custom_id`.
+	 *
+	 * @param array $response_body Captured order body.
+	 * @param array $extension     Validated extension payload.
+	 * @return bool
+	 */
+	private function verify_capture( $response_body, $extension ) {
+		if ( ! class_exists( '\GiftFlow\Services\CheckoutMoney' ) ) {
+			return false;
+		}
+
+		$unit = isset( $response_body['purchase_units'][0] ) && is_array( $response_body['purchase_units'][0] )
+			? $response_body['purchase_units'][0]
+			: array();
+
+		$capture = isset( $unit['payments']['captures'][0] ) && is_array( $unit['payments']['captures'][0] )
+			? $unit['payments']['captures'][0]
+			: array();
+
+		$status = isset( $capture['status'] ) ? strtoupper( (string) $capture['status'] ) : '';
+
+		if ( 'COMPLETED' !== $status ) {
+			return false;
+		}
+
+		if ( isset( $unit['custom_id'] ) && '' !== (string) $unit['custom_id'] && (string) $unit['custom_id'] !== (string) $extension['attempt_key'] ) {
+			return false;
+		}
+
+		$value    = isset( $capture['amount']['value'] ) ? (string) $capture['amount']['value'] : '';
+		$currency = isset( $capture['amount']['currency_code'] ) ? strtoupper( (string) $capture['amount']['currency_code'] ) : '';
+
+		$minor = \GiftFlow\Services\CheckoutMoney::parse( $value, $currency );
+
+		if ( is_wp_error( $minor ) ) {
+			return false;
+		}
+
+		return (int) $minor === (int) $extension['amount_minor'] && $currency === (string) $extension['currency'];
+	}
+
+	/**
+	 * Emit a normalized payment observation for an extended checkout.
+	 *
+	 * @param string $kind           Observation kind.
+	 * @param int    $donation_id    Donation id.
+	 * @param string $environment    Environment id.
+	 * @param string $subject        Stable provider order id.
+	 * @param string $transaction_id Provider transaction id.
+	 * @return void
+	 */
+	private function emit_observation( $kind, $donation_id, $environment, $subject, $transaction_id ) {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		$attempt  = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_ATTEMPT, true );
+		$amount   = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_AMOUNT, true );
+		$currency = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_CURRENCY, true );
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'paypal:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'paypal',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => (int) $donation_id,
+				'attempt_key'    => '' === $attempt ? null : $attempt,
+				'provider_id'    => (string) $subject,
+				'transaction_id' => (string) $transaction_id,
+				'amount_minor'   => '' === $amount ? null : (int) $amount,
+				'currency'       => '' === $currency ? null : $currency,
+				'is_initial'     => true,
+				'source'         => 'sync',
+			)
+		);
+	}
+
+	/**
+	 * Emit a paid observation that has no Core donation yet.
+	 *
+	 * @param string $kind           Observation kind.
+	 * @param array  $extension      Validated extension payload.
+	 * @param string $environment    Environment id.
+	 * @param string $subject        Provider order id.
+	 * @param string $transaction_id Provider capture id.
+	 * @return void
+	 */
+	private function observe_unallocated( $kind, $extension, $environment, $subject, $transaction_id = '' ) {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'paypal:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'paypal',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => 0,
+				'attempt_key'    => (string) $extension['attempt_key'],
+				'provider_id'    => (string) $subject,
+				'transaction_id' => (string) $transaction_id,
+				'amount_minor'   => (int) $extension['amount_minor'],
+				'currency'       => (string) $extension['currency'],
+				'is_initial'     => true,
+				'source'         => 'sync',
+			)
+		);
 	}
 
 	/**

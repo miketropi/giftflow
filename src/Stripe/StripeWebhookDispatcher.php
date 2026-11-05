@@ -43,6 +43,9 @@ final class StripeWebhookDispatcher {
 		'invoice_payment.paid',
 		'customer.subscription.deleted',
 		'customer.subscription.updated',
+		'charge.dispute.created',
+		'charge.dispute.updated',
+		'charge.dispute.closed',
 	);
 
 	/**
@@ -143,6 +146,12 @@ final class StripeWebhookDispatcher {
 				$this->handle_subscription_updated( $event_object, $environment );
 				break;
 
+			case 'charge.dispute.created':
+			case 'charge.dispute.updated':
+			case 'charge.dispute.closed':
+				$this->handle_charge_dispute( $event_object, $environment, $event_type );
+				break;
+
 			default:
 				return false;
 		}
@@ -184,6 +193,13 @@ final class StripeWebhookDispatcher {
 				$subscription_id = isset( $event_object->id ) ? (string) $event_object->id : '';
 
 				return $this->subscription_donation_ids( $subscription_id );
+
+			case 'charge.dispute.created':
+			case 'charge.dispute.updated':
+			case 'charge.dispute.closed':
+				$donation_id = $this->donation_id_for_dispute( $event_object, $environment );
+
+				return $donation_id > 0 ? array( $donation_id ) : array();
 
 			default:
 				return array();
@@ -251,6 +267,8 @@ final class StripeWebhookDispatcher {
 			'stripe'
 		);
 
+		$this->emit_observation( 'paid', $donation_id, $environment, $transaction_id, '' !== $charge_id ? $charge_id : $transaction_id, true );
+
 		do_action( 'giftflow_stripe_webhook_payment_completed', $donation_id, $payment_intent, $environment );
 	}
 
@@ -299,6 +317,10 @@ final class StripeWebhookDispatcher {
 		update_post_meta( $donation_id, '_payment_error', $error_message );
 		update_post_meta( $donation_id, '_payment_status', 'failed' );
 
+		$pi_id = isset( $payment_intent->id ) ? (string) $payment_intent->id : '';
+
+		$this->emit_observation( 'failed', $donation_id, $environment, $pi_id, $pi_id, true );
+
 		do_action( 'giftflow_stripe_webhook_payment_failed', $donation_id, $payment_intent, $environment );
 	}
 
@@ -340,6 +362,10 @@ final class StripeWebhookDispatcher {
 		$donations_class = new Donations();
 		$donations_class->update_status( $donation_id, 'cancelled' );
 		update_post_meta( $donation_id, '_payment_status', 'canceled' );
+
+		$pi_id = isset( $payment_intent->id ) ? (string) $payment_intent->id : '';
+
+		$this->emit_observation( 'cancelled', $donation_id, $environment, $pi_id, $pi_id, true );
 
 		do_action( 'giftflow_stripe_webhook_payment_canceled', $donation_id, $payment_intent, $environment );
 	}
@@ -386,6 +412,12 @@ final class StripeWebhookDispatcher {
 		$donations_class = new Donations();
 		$donations_class->update_status( $donation_id, 'refunded' );
 		update_post_meta( $donation_id, '_payment_status', 'refunded' );
+
+		$charged   = isset( $charge->amount ) ? (int) $charge->amount : 0;
+		$refunded  = isset( $charge->amount_refunded ) ? (int) $charge->amount_refunded : 0;
+		$refund_kind = ( $charged > 0 && $refunded >= $charged ) ? 'refund_full' : 'refund_partial';
+
+		$this->emit_observation( $refund_kind, $donation_id, $environment, $charge_id, $charge_id, true );
 
 		do_action( 'giftflow_stripe_webhook_charge_refunded', $donation_id, $charge, $environment );
 	}
@@ -489,6 +521,11 @@ final class StripeWebhookDispatcher {
 
 			do_action( 'giftflow_stripe_recurring_renewal_created', $donation_id, $parent_donation_id, $subscription_id, (array) $invoice, $environment );
 		}
+
+		$invoice_is_initial = 'first' === $target['state'];
+		$invoice_target_id  = 'first' === $target['state'] ? $parent_donation_id : $donation_id;
+
+		$this->emit_observation( 'paid', (int) $invoice_target_id, $environment, $invoice_id, $payment_intent, $invoice_is_initial );
 
 		$this->update_parent_after_renewal( $parent_donation_id, $invoice );
 
@@ -622,6 +659,237 @@ final class StripeWebhookDispatcher {
 	 *
 	 * @param int    $parent_donation_id Parent donation post id.
 	 * @param object $invoice            Stripe invoice object.
+	 * @return void
+	 */
+	/**
+	 * Handle `charge.dispute.*` events.
+	 *
+	 * Disputes never change the Core donation status: the donation was paid and
+	 * may still be won. The normalized observation lets extension owners (e.g.
+	 * Rewards) put the claim into review. Unknown provider states stay "open"
+	 * and are never interpreted as a win.
+	 *
+	 * @param object $dispute      Dispute object.
+	 * @param string $environment  Verified environment.
+	 * @param string $event_type   Stripe event type.
+	 * @return void
+	 */
+	public function handle_charge_dispute( $dispute, string $environment, string $event_type = '' ): void {
+		$dispute_id = isset( $dispute->id ) ? (string) $dispute->id : '';
+
+		if ( '' === $dispute_id ) {
+			return;
+		}
+
+		$donation_id = $this->donation_id_for_dispute( $dispute, $environment );
+		$kind        = $this->dispute_kind( $dispute );
+		$charge_id   = isset( $dispute->charge ) && is_string( $dispute->charge ) ? (string) $dispute->charge : $dispute_id;
+		$status      = isset( $dispute->status ) ? (string) $dispute->status : '';
+
+		if ( $donation_id > 0 ) {
+			Donation_Event_History::add(
+				$donation_id,
+				'payment_dispute',
+				'',
+				__( 'Webhook: charge dispute', 'giftflow' ),
+				array(
+					'dispute_id'  => $dispute_id,
+					'status'      => $status,
+					'kind'        => $kind,
+					'event_type'  => $event_type,
+					'gateway'     => 'stripe',
+					'environment' => $environment,
+					'source'      => 'webhook',
+				)
+			);
+		}
+
+		Giftflow_Logger::info(
+			'stripe.webhook.charge.dispute',
+			array(
+				'dispute_id'  => $dispute_id,
+				'donation_id' => $donation_id,
+				'status'      => $status,
+				'kind'        => $kind,
+				'environment' => $environment,
+				'gateway'     => 'stripe',
+			),
+			'stripe'
+		);
+
+		$this->emit_observation( $kind, $donation_id, $environment, $dispute_id, $charge_id, true );
+
+		do_action( 'giftflow_stripe_webhook_charge_dispute', $donation_id, $dispute, $environment, $kind );
+	}
+
+	/**
+	 * Map a dispute status to an observation kind.
+	 *
+	 * @param object $dispute Dispute object.
+	 * @return string
+	 */
+	private function dispute_kind( $dispute ): string {
+		$status = isset( $dispute->status ) ? strtolower( (string) $dispute->status ) : '';
+
+		if ( 'won' === $status ) {
+			return 'dispute_won';
+		}
+
+		if ( 'lost' === $status ) {
+			return 'dispute_lost';
+		}
+
+		return 'dispute_open';
+	}
+
+	/**
+	 * Resolve the donation a dispute belongs to.
+	 *
+	 * Uses payment intent metadata first, then stored payment intent/charge ids.
+	 * When the payload only carries a charge id, the authenticated charge is
+	 * fetched outside any database transaction to recover the donation binding.
+	 *
+	 * @param object $dispute     Dispute object.
+	 * @param string $environment Verified environment.
+	 * @return int Donation id, or 0 when it cannot be resolved.
+	 */
+	private function donation_id_for_dispute( $dispute, string $environment ): int {
+		$payment_intent = isset( $dispute->payment_intent ) ? $dispute->payment_intent : '';
+
+		if ( is_object( $payment_intent ) ) {
+			$found = $this->find_donation_id_by_metadata( $payment_intent, $environment );
+
+			if ( $found > 0 ) {
+				return $found;
+			}
+
+			$payment_intent = isset( $payment_intent->id ) ? (string) $payment_intent->id : '';
+		}
+
+		if ( is_string( $payment_intent ) && '' !== $payment_intent ) {
+			foreach ( array( '_stripe_payment_intent_id', '_transaction_id' ) as $meta_key ) {
+				$posts = $this->find_donations(
+					$environment,
+					array(
+						array(
+							'key'   => $meta_key,
+							'value' => $payment_intent,
+						),
+					),
+					array( 'fields' => 'ids' )
+				);
+
+				if ( ! empty( $posts ) ) {
+					return (int) $posts[0];
+				}
+			}
+		}
+
+		$charge = isset( $dispute->charge ) ? $dispute->charge : '';
+
+		if ( is_object( $charge ) ) {
+			$found = $this->find_donation_id_by_metadata( $charge, $environment );
+
+			if ( $found > 0 ) {
+				return $found;
+			}
+
+			$charge = isset( $charge->id ) ? (string) $charge->id : '';
+		}
+
+		if ( ! is_string( $charge ) || '' === $charge ) {
+			return 0;
+		}
+
+		$posts = $this->find_donations(
+			$environment,
+			array(
+				array(
+					'key'   => '_stripe_charge_id',
+					'value' => $charge,
+				),
+			),
+			array( 'fields' => 'ids' )
+		);
+
+		if ( ! empty( $posts ) ) {
+			return (int) $posts[0];
+		}
+
+		$client = $this->client_for_environment( $environment );
+
+		if ( null === $client ) {
+			return 0;
+		}
+
+		try {
+			$detail = $client->charges->retrieve( $charge );
+		} catch ( ApiErrorException $e ) {
+			Giftflow_Logger::error(
+				'stripe.webhook.dispute.charge_lookup_failed',
+				array(
+					'charge_id'   => $charge,
+					'environment' => $environment,
+					'gateway'     => 'stripe',
+				),
+				'stripe'
+			);
+
+			return 0;
+		}
+
+		return $this->find_donation_id_by_metadata( $detail, $environment );
+	}
+
+	/**
+	 * Emit a normalized payment observation for extension consumers.
+	 *
+	 * @param string $kind           Observation kind.
+	 * @param int    $donation_id    Donation id (0 when unresolved).
+	 * @param string $environment    Verified environment.
+	 * @param string $subject        Stable provider resource id.
+	 * @param string $transaction_id Provider transaction reference.
+	 * @param bool   $is_initial     Whether this is the initial charge.
+	 * @return void
+	 */
+	private function emit_observation( string $kind, int $donation_id, string $environment, string $subject, string $transaction_id, bool $is_initial ): void {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		$attempt  = '';
+		$amount   = '';
+		$currency = '';
+
+		if ( $donation_id > 0 ) {
+			$attempt  = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_ATTEMPT, true );
+			$amount   = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_AMOUNT, true );
+			$currency = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_CURRENCY, true );
+		}
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'stripe:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'stripe',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => $donation_id,
+				'attempt_key'    => '' === $attempt ? null : $attempt,
+				'provider_id'    => $subject,
+				'transaction_id' => $transaction_id,
+				'amount_minor'   => '' === $amount ? null : (int) $amount,
+				'currency'       => '' === $currency ? null : $currency,
+				'is_initial'     => $is_initial,
+				'source'         => 'webhook',
+			)
+		);
+	}
+
+	/**
+	 * Update the parent donation after a renewal invoice.
+	 *
+	 * @param int   $parent_donation_id Parent donation post id.
+	 * @param mixed $invoice            Stripe invoice object.
 	 * @return void
 	 */
 	private function update_parent_after_renewal( int $parent_donation_id, $invoice ): void {
