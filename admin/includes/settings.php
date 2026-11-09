@@ -613,9 +613,8 @@ function giftflow_payment_methods_options() {
  * @return string
  */
 function giftflow_test_mail_html() {
-	// get mail options.
-	$email_opts  = get_option( 'giftflow_email_options' );
-	$admin_email = $email_opts['email_admin_address'] ?? get_bloginfo( 'admin_email' );
+	// Resolve the same address the test emails are actually delivered to.
+	$admin_email = giftflow_get_admin_email_address();
 
 	// Define the default notification buttons.
 	$notification_buttons = array(

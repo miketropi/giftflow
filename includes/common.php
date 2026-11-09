@@ -797,6 +797,12 @@ function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) 
 	// get donor data.
 	$donor_data = giftflow_get_donor_data_by_id( $donor_id );
 
+	// A missing donor or an unusable address must not create an account: there
+	// would be nobody to sign in as and nowhere to deliver the welcome mail.
+	if ( ! is_object( $donor_data ) || ! is_string( $donor_data->email ) || ! is_email( $donor_data->email ) ) {
+		return;
+	}
+
 	// check if user exists by email.
 	$user = get_user_by( 'email', $donor_data->email );
 

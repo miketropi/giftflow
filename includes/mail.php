@@ -10,6 +10,128 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Resolve the administrator address used by plugin notifications.
+ *
+ * The saved mail setting wins while it holds a single valid address; otherwise
+ * the site administration address is used. When neither is valid the result is
+ * an empty string so callers fail explicitly instead of mailing nowhere.
+ *
+ * @return string Valid address, or an empty string.
+ */
+function giftflow_get_admin_email_address() {
+	$email_opts = get_option( 'giftflow_email_options' );
+	$candidates = array();
+
+	if ( is_array( $email_opts ) && isset( $email_opts['email_admin_address'] ) && is_string( $email_opts['email_admin_address'] ) ) {
+		$candidates[] = $email_opts['email_admin_address'];
+	}
+
+	$site_admin = get_option( 'admin_email' );
+
+	if ( is_string( $site_admin ) ) {
+		$candidates[] = $site_admin;
+	}
+
+	foreach ( $candidates as $candidate ) {
+		$candidate = trim( $candidate );
+
+		if ( '' !== $candidate && is_email( $candidate ) ) {
+			return $candidate;
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Normalize and validate a recipient argument the way WordPress accepts it.
+ *
+ * Supports a single address, a comma separated list, an array of either and
+ * `Name <address>` wrappers. Every non-empty entry must be a string holding one
+ * valid address; an empty entry is ignored, which keeps trailing commas legal.
+ *
+ * @param mixed $to Recipient argument.
+ * @return array{valid:bool,count:int,recipients:string[]}
+ */
+function giftflow_normalize_mail_recipients( $to ) {
+	if ( is_array( $to ) ) {
+		$entries = array_values( $to );
+	} elseif ( is_string( $to ) ) {
+		$entries = explode( ',', $to );
+	} else {
+		return array(
+			'valid'      => false,
+			'count'      => 0,
+			'recipients' => array(),
+		);
+	}
+
+	$recipients = array();
+	$count      = 0;
+
+	foreach ( $entries as $entry ) {
+		if ( ! is_string( $entry ) ) {
+			return array(
+				'valid'      => false,
+				'count'      => $count,
+				'recipients' => array(),
+			);
+		}
+
+		$entry = trim( $entry );
+
+		if ( '' === $entry ) {
+			continue;
+		}
+
+		++$count;
+
+		$address = $entry;
+
+		if ( preg_match( '/^[^<>]*<([^<>]+)>$/', $entry, $matches ) ) {
+			$address = $matches[1];
+		}
+
+		if ( ! is_email( trim( $address ) ) ) {
+			return array(
+				'valid'      => false,
+				'count'      => $count,
+				'recipients' => array(),
+			);
+		}
+
+		$recipients[] = $entry;
+	}
+
+	return array(
+		'valid'      => $count > 0,
+		'count'      => $count,
+		'recipients' => $count > 0 ? $recipients : array(),
+	);
+}
+
+/**
+ * Report a rejected mail attempt without leaking addresses or content.
+ *
+ * @param string $code            WP_Error code.
+ * @param string $message         Translated message.
+ * @param int    $recipient_count Number of recipients considered.
+ * @return void
+ */
+function giftflow_report_mail_failure( $code, $message, $recipient_count ) {
+	do_action(
+		'wp_mail_failed',
+		new WP_Error(
+			$code,
+			$message,
+			array(
+				'recipient_count' => (int) $recipient_count,
+			)
+		)
+	);
+}
+
+/**
  * Sendmail
  *
  * @param array $args Email arguments.
@@ -27,9 +149,40 @@ function giftflow_send_mail_template( $args = array() ) {
 		)
 	);
 
-	$email_opts          = get_option( 'giftflow_email_options' );
-	$email_from_name     = $email_opts['email_from_name'] ?? get_bloginfo( 'name' );
-	$email_admin_address = $email_opts['email_admin_address'] ?? get_bloginfo( 'admin_email' );
+	$recipients = giftflow_normalize_mail_recipients( $args['to'] );
+
+	if ( ! $recipients['valid'] ) {
+		giftflow_report_mail_failure(
+			'giftflow_mail_invalid_recipient',
+			__( 'A valid recipient email address is required.', 'giftflow' ),
+			$recipients['count']
+		);
+
+		return false;
+	}
+
+	$email_opts      = get_option( 'giftflow_email_options' );
+	$email_from_name = '';
+
+	if ( is_array( $email_opts ) && isset( $email_opts['email_from_name'] ) && is_string( $email_opts['email_from_name'] ) ) {
+		$email_from_name = trim( $email_opts['email_from_name'] );
+	}
+
+	if ( '' === $email_from_name ) {
+		$email_from_name = (string) get_bloginfo( 'name' );
+	}
+
+	$email_admin_address = giftflow_get_admin_email_address();
+
+	if ( '' === $email_admin_address ) {
+		giftflow_report_mail_failure(
+			'giftflow_mail_invalid_sender',
+			__( 'A valid sender email address is required.', 'giftflow' ),
+			$recipients['count']
+		);
+
+		return false;
+	}
 
 	$headers = array(
 		'From: ' . $email_from_name . ' <' . $email_admin_address . '>',
@@ -48,7 +201,7 @@ function giftflow_send_mail_template( $args = array() ) {
 	);
 	$__html = ob_get_clean();
 
-	return wp_mail( $args['to'], $args['subject'], $__html, $headers );
+	return wp_mail( is_array( $args['to'] ) ? $recipients['recipients'] : implode( ', ', $recipients['recipients'] ), $args['subject'], $__html, $headers );
 }
 
 // test mail ajax.
@@ -82,8 +235,7 @@ add_action( 'giftflow_test_send_mail', 'giftflow_test_send_mail_action' );
  */
 function giftflow_test_send_mail_action( $name ) {
 
-	$email_opts  = get_option( 'giftflow_email_options' );
-	$admin_email = $email_opts['email_admin_address'];
+	$admin_email = giftflow_get_admin_email_address();
 
 	switch ( $name ) {
 
@@ -171,8 +323,7 @@ add_action( 'giftflow_donation_after_payment_processed', 'giftflow_send_mail_not
  * @return bool Whether the email was sent successfully.
  */
 function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
-	$email_opts  = get_option( 'giftflow_email_options' );
-	$admin_email = $email_opts['email_admin_address'];
+	$admin_email = giftflow_get_admin_email_address();
 
 	// get donation data.
 	$donation_data = giftflow_get_donation_data_by_id( $donation_id );
@@ -241,6 +392,10 @@ function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id,
 
 	// get donation data.
 	$donation_data = giftflow_get_donation_data_by_id( $donation_id );
+
+	if ( ! is_object( $donation_data ) ) {
+		return false;
+	}
 
 	// send thanks email.
 	ob_start();
