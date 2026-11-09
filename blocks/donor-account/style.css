@@ -512,6 +512,11 @@
 @media (max-width: 768px) {
 	.giftflow-donor-account {
 		flex-direction: column;
+
+		/* The base rule pins items to the start so the sidebar keeps its own
+		   width; once stacked, both children must claim the full row or the tab
+		   content collapses to its intrinsic width. */
+		align-items: stretch;
 	}
 
 	.giftflow-donor-account__nav {
