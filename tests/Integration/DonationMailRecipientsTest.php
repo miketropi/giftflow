@@ -98,9 +98,10 @@ final class DonationMailRecipientsTest extends \WP_UnitTestCase {
 	 * Create a donation with a real donor record.
 	 *
 	 * @param string $donor_email Donor email.
+	 * @param string $status      Initial donation status.
 	 * @return int Donation id.
 	 */
-	private function donation( $donor_email = 'donor@example.org' ) {
+	private function donation( $donor_email = 'donor@example.org', $status = 'completed' ) {
 		$donations = new \GiftFlow\Core\Donations();
 
 		$donation_id = $donations->create(
@@ -110,7 +111,7 @@ final class DonationMailRecipientsTest extends \WP_UnitTestCase {
 				'donor_email'     => $donor_email,
 				'payment_method'  => 'stripe',
 				'campaign_id'     => 0,
-				'status'          => 'completed',
+				'status'          => $status,
 			)
 		);
 
@@ -146,6 +147,23 @@ final class DonationMailRecipientsTest extends \WP_UnitTestCase {
 		$this->assertCount( 1, $this->sent );
 
 		return $this->sent[0]['to'];
+	}
+
+	/**
+	 * Captured messages addressed to a specific recipient.
+	 *
+	 * @param string $recipient Expected `to` value.
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function messages_to( $recipient ) {
+		return array_values(
+			array_filter(
+				$this->sent,
+				static function ( $mail ) use ( $recipient ) {
+					return $recipient === $mail['to'];
+				}
+			)
+		);
 	}
 
 	/**
@@ -360,6 +378,163 @@ final class DonationMailRecipientsTest extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * A completed transition sends the thank-you once, and only once.
+	 *
+	 * @return void
+	 */
+	public function test_completed_transition_sends_thank_you_exactly_once(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'completed@example.org', 'pending' );
+		$donations   = new \GiftFlow\Core\Donations();
+
+		$this->sent = array();
+
+		$this->assertTrue( $donations->update_status( $donation_id, 'completed' ) );
+		$this->assertCount( 1, $this->messages_to( 'completed@example.org' ) );
+
+		// Re-entering completed after another status must not resend.
+		$this->assertTrue( $donations->update_status( $donation_id, 'pending' ) );
+		$this->assertTrue( $donations->update_status( $donation_id, 'completed' ) );
+		$this->assertCount( 1, $this->messages_to( 'completed@example.org' ) );
+	}
+
+	/**
+	 * A gateway result that is not a confirmation sends no admin notification.
+	 *
+	 * @return void
+	 */
+	public function test_unconfirmed_payment_sends_no_admin_notification(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'pending@example.org', 'pending' );
+
+		$this->sent = array();
+
+		do_action(
+			'giftflow_donation_after_payment_processed',
+			$donation_id,
+			array(
+				'success' => false,
+				'status'  => 'requires_action',
+			)
+		);
+
+		$this->assertCount( 0, $this->messages_to( 'admin@example.org' ) );
+	}
+
+	/**
+	 * The admin notification follows the completed status, exactly once.
+	 *
+	 * @return void
+	 */
+	public function test_admin_notified_once_on_completed_transition(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'settled@example.org', 'pending' );
+		$donations   = new \GiftFlow\Core\Donations();
+
+		$this->sent = array();
+
+		$this->assertTrue( $donations->update_status( $donation_id, 'completed' ) );
+		$this->assertCount( 1, $this->messages_to( 'admin@example.org' ) );
+
+		// Leaving and re-entering completed must not resend.
+		$this->assertTrue( $donations->update_status( $donation_id, 'pending' ) );
+		$this->assertTrue( $donations->update_status( $donation_id, 'completed' ) );
+		$this->assertCount( 1, $this->messages_to( 'admin@example.org' ) );
+	}
+
+	/**
+	 * A pending bank transfer notifies the admin once; later completion does not.
+	 *
+	 * @return void
+	 */
+	public function test_bank_transfer_pending_notifies_admin_once(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'bank-transfer@example.org', 'pending' );
+
+		update_post_meta( $donation_id, '_payment_method', 'direct_bank_transfer' );
+
+		$this->sent = array();
+
+		do_action( 'giftflow_bank_transfer_payment_pending', $donation_id, 'REF-1', array() );
+		$this->assertCount( 1, $this->messages_to( 'admin@example.org' ) );
+		$this->assertCount( 0, $this->messages_to( 'bank-transfer@example.org' ) );
+
+		$this->assertTrue( ( new \GiftFlow\Core\Donations() )->update_status( $donation_id, 'completed' ) );
+		$this->assertCount( 1, $this->messages_to( 'admin@example.org' ) );
+		$this->assertCount( 1, $this->messages_to( 'bank-transfer@example.org' ) );
+	}
+
+	/**
+	 * The direct admin notification call still sends, once per donation.
+	 *
+	 * @return void
+	 */
+	public function test_direct_admin_notification_call_sends_once(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation();
+
+		$this->sent = array();
+
+		$this->assertTrue( giftflow_send_mail_notification_donation_to_admin( $donation_id ) );
+		$this->assertSame( 'admin@example.org', $this->only_recipient() );
+
+		$this->sent = array();
+		$this->assertFalse( giftflow_send_mail_notification_donation_to_admin( $donation_id ) );
+		$this->assertCount( 0, $this->sent );
+	}
+
+	/**
+	 * Unconfirmed payments never send the thank-you.
+	 *
+	 * @return void
+	 */
+	public function test_unconfirmed_payments_send_no_thank_you(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'unconfirmed@example.org', 'pending' );
+		$donations   = new \GiftFlow\Core\Donations();
+
+		$this->sent = array();
+
+		$this->assertTrue( $donations->update_status( $donation_id, 'failed' ) );
+		$this->assertCount( 0, $this->sent );
+
+		update_post_meta( $donation_id, '_payment_status', 'processing' );
+		$this->assertFalse( giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, true ) );
+		$this->assertCount( 0, $this->sent );
+	}
+
+	/**
+	 * A direct bank transfer confirmed through Donation Management sends once.
+	 *
+	 * The management screen writes `_status` directly, so it does not fire the
+	 * Donations status hooks.
+	 *
+	 * @return void
+	 */
+	public function test_management_confirmation_sends_thank_you_once(): void {
+		update_option( 'giftflow_email_options', array( 'email_admin_address' => 'admin@example.org' ) );
+
+		$donation_id = $this->donation( 'bank@example.org', 'pending' );
+
+		update_post_meta( $donation_id, '_payment_method', 'direct_bank_transfer' );
+		update_post_meta( $donation_id, '_status', 'completed' );
+
+		$this->sent = array();
+
+		do_action( 'giftflow_donation_management_saved', $donation_id, 'pending', 'completed', 1 );
+		$this->assertSame( 'bank@example.org', $this->only_recipient() );
+
+		do_action( 'giftflow_donation_management_saved', $donation_id, 'pending', 'completed', 1 );
+		$this->assertCount( 1, $this->sent );
+	}
+
+	/**
 	 * The donor thank-you stays addressed to the donor, never to the admin.
 	 *
 	 * @return void
@@ -372,9 +547,12 @@ final class DonationMailRecipientsTest extends \WP_UnitTestCase {
 		$this->assertTrue( giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, true ) );
 		$this->assertSame( 'thanked@example.org', $this->only_recipient() );
 
-		// No payment success, no mail.
+		// The same donation cannot be thanked twice.
 		$this->sent = array();
+		$this->assertFalse( giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, true ) );
+		$this->assertCount( 0, $this->sent );
 
+		// No payment success, no mail.
 		$this->assertNull( giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, false ) );
 		$this->assertCount( 0, $this->sent );
 	}

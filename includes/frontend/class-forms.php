@@ -197,9 +197,12 @@ class Forms extends Base {
 		}
 
 		/**
-		 * Add hook after payment processed
-
-		 * @see giftflow_send_mail_notification_donation_to_admin - 10
+		 * Fires after the gateway returned a non-error result.
+		 *
+		 * This is not proof that the payment settled: provider results such as
+		 * Stripe `requires_action` arrive here too. Admin/donor notifications are
+		 * registered on the donation status lifecycle instead.
+		 *
 		 * @see giftflow_auto_create_user_on_donation - 10
 		 */
 		do_action( 'giftflow_donation_after_payment_processed', $donation_id, $payment_result );

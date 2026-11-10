@@ -313,20 +313,62 @@ function giftflow_test_send_mail_action( $name ) {
 	}
 }
 
-// send mail notification donation to admin.
-add_action( 'giftflow_donation_after_payment_processed', 'giftflow_send_mail_notification_donation_to_admin', 10, 2 );
+// Notify the admin once the donation is confirmed, or when a bank transfer is recorded as pending.
+add_action( 'giftflow_donation_status_completed', 'giftflow_send_admin_new_donation_email_on_completed', 10, 1 );
+add_action( 'giftflow_bank_transfer_payment_pending', 'giftflow_send_admin_new_donation_email_on_bank_transfer_pending', 10, 1 );
 
 /**
- * Send mail notification donation to admin.
+ * Send the admin new donation notification when a donation reaches completed.
  *
  * @param int $donation_id The donation ID.
- * @return bool Whether the email was sent successfully.
+ * @return bool Whether the email was sent.
  */
-function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
-	$admin_email = giftflow_get_admin_email_address();
+function giftflow_send_admin_new_donation_email_on_completed( $donation_id ) {
+	return giftflow_send_admin_new_donation_email( $donation_id );
+}
+
+/**
+ * Send the admin new donation notification for a pending bank transfer.
+ *
+ * Direct bank transfer is confirmed manually, so the admin must be told while
+ * the donation is still pending.
+ *
+ * @param int $donation_id The donation ID.
+ * @return bool Whether the email was sent.
+ */
+function giftflow_send_admin_new_donation_email_on_bank_transfer_pending( $donation_id ) {
+	return giftflow_send_admin_new_donation_email( $donation_id );
+}
+
+/**
+ * Send the admin new donation notification at most once per donation.
+ *
+ * The `_admin_new_donation_email_sent` marker is claimed before dispatch so the
+ * pending bank-transfer path and a later completed transition cannot both send.
+ *
+ * @param int $donation_id The donation ID.
+ * @return bool Whether the email was sent.
+ */
+function giftflow_send_admin_new_donation_email( $donation_id ) {
+	$donation_id = absint( $donation_id );
+
+	if ( ! $donation_id ) {
+		return false;
+	}
 
 	// get donation data.
 	$donation_data = giftflow_get_donation_data_by_id( $donation_id );
+
+	if ( ! is_object( $donation_data ) ) {
+		return false;
+	}
+
+	// Claim the send before dispatch; a second claim finds the marker and bails.
+	if ( ! add_post_meta( $donation_id, '_admin_new_donation_email_sent', time(), true ) ) {
+		return false;
+	}
+
+	$admin_email = giftflow_get_admin_email_address();
 
 	ob_start();
 	// Allow filtering/modifying the arguments passed to the admin new donation email template.
@@ -351,7 +393,7 @@ function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
 	giftflow_load_template( 'email/new-donation-admin.php', $admin_email_args );
 	$content = ob_get_clean();
 
-	return giftflow_send_mail_template(
+	$sent = giftflow_send_mail_template(
 		array(
 			'to'      => $admin_email,
 			'subject' => apply_filters(
@@ -370,21 +412,93 @@ function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
 			'content' => $content,
 		)
 	);
+
+	if ( ! $sent ) {
+		// Release the claim so a later delivery attempt can still send.
+		delete_post_meta( $donation_id, '_admin_new_donation_email_sent' );
+	}
+
+	return (bool) $sent;
 }
 
-// send mail thank you to donor payment successful.
-add_action( 'giftflow_donation_after_payment_processed', 'giftflow_send_mail_thank_you_to_donor_payment_successful', 12, 2 );
-
 /**
- * Send mail thank you to donor payment successful.
+ * Send mail notification donation to admin.
+ *
+ * Retained as a public entry point for callers that already hold a donation
+ * record. Real flows are driven by the completed-status and bank-pending hooks
+ * above.
  *
  * @param int $donation_id The donation ID.
- * @param mixed $payment_result The payment result.
  * @return bool Whether the email was sent successfully.
  */
-function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, $payment_result ) {
-	if ( true !== $payment_result ) {
-		return;
+function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
+	return giftflow_send_admin_new_donation_email( $donation_id );
+}
+
+// Send the donor thank-you only when the donation is actually confirmed as completed.
+add_action( 'giftflow_donation_status_completed', 'giftflow_send_donor_thank_you_email_on_completed', 10, 1 );
+
+// Direct bank transfer is confirmed through Donation Management, which writes the status meta directly.
+add_action( 'giftflow_donation_management_saved', 'giftflow_send_donor_thank_you_email_after_management_save', 10, 4 );
+
+/**
+ * Send the donor thank-you when a donation transitions to completed.
+ *
+ * @param int $donation_id The donation ID.
+ * @return bool Whether the email was sent.
+ */
+function giftflow_send_donor_thank_you_email_on_completed( $donation_id ) {
+	return giftflow_send_donor_thank_you_email( $donation_id );
+}
+
+/**
+ * Send the donor thank-you after a Donation Management save completes a donation.
+ *
+ * The management screen writes `_status` directly instead of going through
+ * Donations::update_status(), so the status hooks do not fire for a direct bank
+ * transfer confirmed by an administrator.
+ *
+ * @param int    $donation_id The donation ID.
+ * @param string $old_status Status before the save.
+ * @param string $new_status Status after the save.
+ * @param int    $actor_id Acting user ID. Unused.
+ * @return bool Whether the email was sent.
+ */
+function giftflow_send_donor_thank_you_email_after_management_save( $donation_id, $old_status, $new_status, $actor_id ) {
+	unset( $actor_id );
+
+	if ( 'completed' !== $new_status || 'completed' === $old_status ) {
+		return false;
+	}
+
+	return giftflow_send_donor_thank_you_email( $donation_id );
+}
+
+/**
+ * Send the donor thank-you email at most once per completed donation.
+ *
+ * The `_thank_you_email_sent` marker is claimed before dispatch, so paths that
+ * report the same success twice (for example PayPal fires both the
+ * after-payment action and the status update) cannot send duplicates.
+ *
+ * @param int $donation_id The donation ID.
+ * @return bool Whether the email was sent.
+ */
+function giftflow_send_donor_thank_you_email( $donation_id ) {
+	$donation_id = absint( $donation_id );
+
+	if ( ! $donation_id ) {
+		return false;
+	}
+
+	// Only a donation that is actually completed may receive the thank-you.
+	if ( 'completed' !== (string) get_post_meta( $donation_id, '_status', true ) ) {
+		return false;
+	}
+
+	// Claim the send before dispatch; a second claim finds the marker and bails.
+	if ( ! add_post_meta( $donation_id, '_thank_you_email_sent', time(), true ) ) {
+		return false;
 	}
 
 	// get giftflow_get_donor_account_page() url.
@@ -394,6 +508,8 @@ function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id,
 	$donation_data = giftflow_get_donation_data_by_id( $donation_id );
 
 	if ( ! is_object( $donation_data ) ) {
+		delete_post_meta( $donation_id, '_thank_you_email_sent' );
+
 		return false;
 	}
 
@@ -419,7 +535,7 @@ function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id,
 	giftflow_load_template( 'email/thanks-donor.php', $thanks_donor_args );
 	$content = ob_get_clean();
 
-	return giftflow_send_mail_template(
+	$sent = giftflow_send_mail_template(
 		array(
 			'to'      => $donation_data->donor_email,
 			'subject' => apply_filters(
@@ -438,4 +554,30 @@ function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id,
 			'content' => $content,
 		)
 	);
+
+	if ( ! $sent ) {
+		// Release the claim so a later delivery attempt can still send.
+		delete_post_meta( $donation_id, '_thank_you_email_sent' );
+	}
+
+	return (bool) $sent;
+}
+
+/**
+ * Send mail thank you to donor payment successful.
+ *
+ * Retained as a public entry point for callers that already hold a definitive
+ * payment result. Real payment flows no longer depend on this signature; they
+ * are driven by the completed-status hooks above.
+ *
+ * @param int   $donation_id The donation ID.
+ * @param mixed $payment_result The payment result.
+ * @return bool|null Whether the email was sent, null when the result is not a success.
+ */
+function giftflow_send_mail_thank_you_to_donor_payment_successful( $donation_id, $payment_result ) {
+	if ( true !== $payment_result ) {
+		return null;
+	}
+
+	return giftflow_send_donor_thank_you_email( $donation_id );
 }
