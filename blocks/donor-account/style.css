@@ -18,6 +18,13 @@
 	z-index: 10;
 }
 
+/* The editor previews the layout without pinning the column, so the sticky
+   sidebar never floats over neighbouring blocks inside the canvas. */
+.editor-styles-wrapper .wp-block-giftflow-donor-account .giftflow-donor-account__sidebar {
+	position: static;
+	z-index: auto;
+}
+
 .giftflow-donor-account__nav {
 	display: flex;
 	flex-direction: column;
