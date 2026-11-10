@@ -32,18 +32,31 @@ if ( ! in_array( $gf_active_tab, $gf_valid_slugs, true ) ) {
 }
 ?>
 <div <?php echo $block_wrapper_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes returns safe HTML. ?>>
-	<nav class="giftflow-donor-account__nav" role="tablist">
-		<?php foreach ( $gf_tabs as $gf_tab ) : ?>
-			<a
-				href="<?php echo esc_url( add_query_arg( 'tab', $gf_tab['slug'], get_permalink() ) ); ?>"
-				class="giftflow-donor-account__nav-item<?php echo $gf_tab['slug'] === $gf_active_tab ? ' is-active' : ''; ?>"
-				role="tab"
-				aria-selected="<?php echo $gf_tab['slug'] === $gf_active_tab ? 'true' : 'false'; ?>"
-			>
-				<?php echo esc_html( $gf_tab['label'] ); ?>
-			</a>
-		<?php endforeach; ?>
-	</nav>
+	<div class="giftflow-donor-account__sidebar">
+		<?php
+		/**
+		 * Fires immediately before the donor account navigation.
+		 *
+		 * Runs inside the sidebar wrapper, so anything added here shares the
+		 * navigation column instead of becoming a third flex child.
+		 *
+		 * @param WP_User $gf_current_user Current user.
+		 */
+		do_action( 'giftflow_donor_account_before_nav', $gf_current_user );
+		?>
+		<nav class="giftflow-donor-account__nav" role="tablist">
+			<?php foreach ( $gf_tabs as $gf_tab ) : ?>
+				<a
+					href="<?php echo esc_url( add_query_arg( 'tab', $gf_tab['slug'], get_permalink() ) ); ?>"
+					class="giftflow-donor-account__nav-item<?php echo $gf_tab['slug'] === $gf_active_tab ? ' is-active' : ''; ?>"
+					role="tab"
+					aria-selected="<?php echo $gf_tab['slug'] === $gf_active_tab ? 'true' : 'false'; ?>"
+				>
+					<?php echo esc_html( $gf_tab['label'] ); ?>
+				</a>
+			<?php endforeach; ?>
+		</nav>
+	</div>
 
 	<div class="giftflow-donor-account__content">
 		<?php
