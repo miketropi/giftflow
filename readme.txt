@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.14
+Stable tag: 1.1.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,14 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.1.15 =
+* New: Donor account sidebar slot, `giftflow_donor_account_before_nav`, fired inside the navigation column in both block and classic rendering so extensions can render a donor card above the navigation.
+* Improvement: The donor account navigation column is now sized and pinned by a sidebar wrapper, keeping any injected card and the navigation sticky together; the block editor preview mirrors the same layout.
+* Fix: The donor thank-you email is now sent when a donation actually reaches completed, for every gateway, exactly once per donation.
+* Fix: The admin new donation notification waits for a confirmed payment for Stripe and PayPal; direct bank transfers still notify when the transfer is recorded as pending and are not notified again on completion.
+* Fix: The donor account keeps the full available width when stacked on small screens.
+* Dev: Checkout/payment observation contract for GiftFlow Pro Rewards.
 
 = 1.1.14 =
 * New: Stripe and PayPal connection management with a Sandbox/Live configuration dialog (Connect ... Config) that stores each profile's credentials and webhook endpoint separately.
