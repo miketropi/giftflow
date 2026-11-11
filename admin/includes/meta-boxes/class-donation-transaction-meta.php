@@ -295,7 +295,9 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 			return;
 		}
 
-		$fields = $this->get_fields();
+		$fields         = $this->get_fields();
+		$initial_status = (string) get_post_meta( $post_id, '_status', true );
+
 		foreach ( $fields as $field_id => $field ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ $field_id ] ) ) {
@@ -321,6 +323,27 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 				update_post_meta( $post_id, '_' . $field_id, $new_value );
 			}
 		}
+
+		/**
+		 * Fires after a donation has been fully saved through Donation Management.
+		 *
+		 * Observers must not re-validate permissions or re-write fields: the
+		 * existing nonce/capability checks above are the only confirmation path.
+		 * The event fires on unchanged saves too, so retries stay idempotent for
+		 * consumers that dedupe on their own keys.
+		 *
+		 * @param int    $post_id    Donation post id.
+		 * @param string $old_status Status before the save.
+		 * @param string $new_status Status after the save.
+		 * @param int    $actor_id   Acting user id.
+		 */
+		do_action(
+			'giftflow_donation_management_saved',
+			(int) $post_id,
+			$initial_status,
+			(string) get_post_meta( $post_id, '_status', true ),
+			get_current_user_id()
+		);
 	}
 
 	/**

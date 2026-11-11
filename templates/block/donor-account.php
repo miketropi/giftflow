@@ -21,6 +21,18 @@ $active_tab = $active_tab ?? $tabs[0]['slug'];
 ?>
 
 <div class="giftflow-donor-account" role="tablist" aria-label="<?php esc_attr_e( 'Donor Account Navigation', 'giftflow' ); ?>">
+	<div class="giftflow-donor-account__sidebar">
+	<?php
+	/**
+	 * Fires immediately before the donor account navigation.
+	 *
+	 * Runs inside the sidebar wrapper, so anything added here shares the
+	 * navigation column instead of becoming a third flex child.
+	 *
+	 * @param WP_User $current_user Current user.
+	 */
+	do_action( 'giftflow_donor_account_before_nav', $current_user );
+	?>
 	<div class="giftflow-donor-account__tabs" role="tablist">
 	<?php
 	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound, WordPress.WP.GlobalVariablesOverride.Prohibited
@@ -36,6 +48,7 @@ $active_tab = $active_tab ?? $tabs[0]['slug'];
 		<span class="giftflow-donor-account__tab-label"><?php echo esc_html( $tab['label'] ); ?></span>
 		</a>
 	<?php endforeach; ?>
+	</div>
 	</div>
   
 	<div class="giftflow-donor-account__content">

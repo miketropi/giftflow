@@ -394,6 +394,7 @@ class Stripe_Gateway extends Gateway_Base {
 		}
 
 		$is_recurring = $this->is_recurring_donation( $data );
+		$extension    = $this->checkout_extension( $data );
 
 		try {
 			if ( $is_recurring ) {
@@ -402,14 +403,37 @@ class Stripe_Gateway extends Gateway_Base {
 
 			// One-time flow.
 			$payment_intent_data = $this->prepare_payment_intent_data( $data, $donation_id, $environment );
-			$payment_intent      = $client->paymentIntents->create( $payment_intent_data );
+
+			if ( is_wp_error( $payment_intent_data ) ) {
+				return $payment_intent_data;
+			}
+
+			$payment_intent = $client->paymentIntents->create( $payment_intent_data, $this->request_options( $extension, 'intent' ) );
 
 			update_post_meta( $donation_id, '_stripe_payment_intent_id', $payment_intent->id );
 			$this->binding()->persist( (int) $donation_id, $environment );
 
+			if ( ! empty( $extension ) ) {
+				\GiftFlow\Services\CheckoutExtension::bind(
+					$extension,
+					array(
+						'donation_id' => (int) $donation_id,
+						'provider_id' => (string) $payment_intent->id,
+						'gateway'     => 'stripe',
+					)
+				);
+			}
+
 			return $this->handle_payment_intent_response( $payment_intent, $donation_id, $environment );
 		} catch ( ApiErrorException $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id, $e->getStripeCode() );
+
+			// A 4xx API error is a definitive rejection; anything else may be uncertain.
+			$status = (int) $e->getHttpStatus();
+			if ( ! empty( $extension ) && $status >= 400 && $status < 500 ) {
+				\GiftFlow\Services\CheckoutExtension::failed( $extension, 'stripe_api_rejected', true );
+			}
+
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		} catch ( \Exception $e ) {
 			$this->log_error( 'payment_exception', $e->getMessage(), $donation_id );
@@ -418,39 +442,89 @@ class Stripe_Gateway extends Gateway_Base {
 	}
 
 	/**
+	 * Validated checkout extension payload for this submission.
+	 *
+	 * @param array $data Payment data.
+	 * @return array Empty array when the checkout is not extended.
+	 */
+	private function checkout_extension( $data ) {
+		if ( empty( $data['_checkout_extension'] ) || ! is_array( $data['_checkout_extension'] ) ) {
+			return array();
+		}
+
+		$extension = $data['_checkout_extension'];
+
+		if ( empty( $extension['attempt_key'] ) || empty( $extension['amount_minor'] ) ) {
+			return array();
+		}
+
+		return $extension;
+	}
+
+	/**
+	 * Stripe request options, keeping a stable idempotency key per operation.
+	 *
+	 * @param array  $extension Validated extension payload.
+	 * @param string $operation Operation suffix (intent, price, subscription…).
+	 * @return array
+	 */
+	private function request_options( $extension, $operation ) {
+		if ( empty( $extension['attempt_key'] ) ) {
+			return array();
+		}
+
+		return array( 'idempotency_key' => $extension['attempt_key'] . ':' . $operation );
+	}
+
+	/**
 	 * Prepare payment intent data for Stripe API
 	 *
 	 * @param array  $data Payment data.
 	 * @param int    $donation_id Donation ID.
 	 * @param string $environment Environment id.
-	 * @return array
+	 * @return array|\WP_Error
 	 */
 	private function prepare_payment_intent_data( $data, $donation_id, $environment ) {
 		$statement_descriptor = $this->get_setting( 'statement_descriptor', get_bloginfo( 'name' ) );
 		$statement_descriptor = substr( $statement_descriptor, 0, 22 ); // Stripe limit.
 
-		// Convert amount to cents (Stripe expects smallest currency unit).
-		$amount_in_cents = (int) ( (float) $data['donation_amount'] * 100 );
+		$extension = $this->checkout_extension( $data );
+
+		if ( ! empty( $extension ) ) {
+			// Extended checkouts charge the exact server-resolved integer amount.
+			$amount_in_cents = (int) $extension['amount_minor'];
+			$charge_currency = strtolower( (string) $extension['currency'] );
+		} else {
+			// Convert amount to cents (Stripe expects smallest currency unit).
+			$amount_in_cents = (int) ( (float) $data['donation_amount'] * 100 );
+			$charge_currency = strtolower( $this->get_currency() );
+		}
+
+		$metadata = array_merge(
+			array(
+				'donation_id' => (string) $donation_id,
+				'campaign_id' => (string) $data['campaign_id'],
+				'donor_email' => sanitize_email( $data['donor_email'] ),
+				'donor_name' => sanitize_text_field( $data['donor_name'] ),
+				'site_url' => home_url(),
+			),
+			$this->binding()->resource_metadata( $environment )
+		);
+
+		if ( ! empty( $extension ) ) {
+			$metadata['giftflow_attempt'] = (string) $extension['attempt_key'];
+		}
 
 		$payment_intent_data = array(
 			'amount' => $amount_in_cents,
-			'currency' => strtolower( $this->get_currency() ),
+			'currency' => $charge_currency,
 			'payment_method' => $data['payment_method_id'], // Payment Method ID from frontend.
 			'confirmation_method' => 'manual',
 			'confirm' => true,
 			'return_url' => $this->get_return_url( $donation_id ),
 			// translators: 1: donor name, 2: campaign id or name.
 			'description' => sprintf( __( 'Donation from %1$s for campaign %2$s', 'giftflow' ), sanitize_text_field( $data['donor_name'] ), $data['campaign_id'] ),
-			'metadata' => array_merge(
-				array(
-					'donation_id' => (string) $donation_id,
-					'campaign_id' => (string) $data['campaign_id'],
-					'donor_email' => sanitize_email( $data['donor_email'] ),
-					'donor_name' => sanitize_text_field( $data['donor_name'] ),
-					'site_url' => home_url(),
-				),
-				$this->binding()->resource_metadata( $environment )
-			),
+			'metadata' => $metadata,
 		);
 
 		// Add receipt email.
@@ -458,7 +532,22 @@ class Stripe_Gateway extends Gateway_Base {
 			$payment_intent_data['receipt_email'] = sanitize_email( $data['donor_email'] );
 		}
 
-		return apply_filters( 'giftflow_stripe_prepare_payment_intent_data', $payment_intent_data, $data, $donation_id );
+		$payment_intent_data = apply_filters( 'giftflow_stripe_prepare_payment_intent_data', $payment_intent_data, $data, $donation_id );
+
+		if ( ! empty( $extension ) ) {
+			// Fail closed: a filter must not silently change a promised reward charge.
+			$filtered_amount   = isset( $payment_intent_data['amount'] ) ? (int) $payment_intent_data['amount'] : 0;
+			$filtered_currency = isset( $payment_intent_data['currency'] ) ? strtolower( (string) $payment_intent_data['currency'] ) : '';
+
+			if ( $filtered_amount !== $amount_in_cents || $filtered_currency !== $charge_currency ) {
+				return new \WP_Error(
+					'stripe_error',
+					__( 'The selected reward cannot be charged with this payment configuration.', 'giftflow' )
+				);
+			}
+		}
+
+		return $payment_intent_data;
 	}
 
 	/**
@@ -533,11 +622,21 @@ class Stripe_Gateway extends Gateway_Base {
 
 		$interval_raw = isset( $data['recurring_interval'] ) ? sanitize_text_field( $data['recurring_interval'] ) : 'monthly';
 		$stripe_recurring = $this->map_recurring_interval_to_stripe( $interval_raw );
-		$amount_cents = (int) ( (float) $data['donation_amount'] * 100 );
+
+		$extension = $this->checkout_extension( $data );
+
+		if ( ! empty( $extension ) ) {
+			// Extended checkouts price the exact server-resolved integer amount.
+			$amount_cents      = (int) $extension['amount_minor'];
+			$price_currency    = strtolower( (string) $extension['currency'] );
+		} else {
+			$amount_cents      = (int) ( (float) $data['donation_amount'] * 100 );
+			$price_currency    = strtolower( $this->get_currency() );
+		}
 
 		$price_params = array(
 			'unit_amount'   => $amount_cents,
-			'currency'      => strtolower( $this->get_currency() ),
+			'currency'      => $price_currency,
 			'recurring'     => $stripe_recurring,
 			'product_data'  => array(
 				'name' => sprintf(
@@ -550,9 +649,22 @@ class Stripe_Gateway extends Gateway_Base {
 		);
 
 		try {
-			$price = $client->prices->create( $price_params );
+			$price = $client->prices->create( $price_params, $this->request_options( $extension, 'price' ) );
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
+		}
+
+		if ( ! empty( $extension ) ) {
+			// Fail closed: the created price must match the promised reward charge.
+			$price_amount   = isset( $price->unit_amount ) ? (int) $price->unit_amount : 0;
+			$price_code     = isset( $price->currency ) ? strtolower( (string) $price->currency ) : '';
+
+			if ( $price_amount !== $amount_cents || $price_code !== $price_currency ) {
+				return new \WP_Error(
+					'stripe_error',
+					__( 'The selected reward cannot be charged with this payment configuration.', 'giftflow' )
+				);
+			}
 		}
 
 		$subscription_params = array(
@@ -571,8 +683,20 @@ class Stripe_Gateway extends Gateway_Base {
 			),
 		);
 
+		/**
+		 * Filter the Stripe subscription parameters before the subscription is created.
+		 *
+		 * @since 1.1.15
+		 *
+		 * @param array  $subscription_params Subscription payload.
+		 * @param array  $data              Donation form data.
+		 * @param int    $donation_id       Donation post ID.
+		 * @param string $environment       Environment id.
+		 */
+		$subscription_params = apply_filters( 'giftflow_stripe_subscription_params', $subscription_params, $data, $donation_id, $environment );
+
 		try {
-			$subscription = $client->subscriptions->create( $subscription_params );
+			$subscription = $client->subscriptions->create( $subscription_params, $this->request_options( $extension, 'subscription' ) );
 		} catch ( ApiErrorException $e ) {
 			return new \WP_Error( 'stripe_error', $e->getMessage() );
 		}
@@ -589,6 +713,17 @@ class Stripe_Gateway extends Gateway_Base {
 		update_post_meta( $donation_id, '_is_subscription_parent', '1' );
 		$this->binding()->persist( (int) $donation_id, $environment );
 
+		if ( ! empty( $extension ) ) {
+			\GiftFlow\Services\CheckoutExtension::bind(
+				$extension,
+				array(
+					'donation_id' => (int) $donation_id,
+					'provider_id' => (string) $subscription->id,
+					'gateway'     => 'stripe',
+				)
+			);
+		}
+
 		if ( isset( $subscription->current_period_end ) ) {
 			update_post_meta( $donation_id, '_recurring_next_payment_date', gmdate( 'Y-m-d\TH:i:s\Z', $subscription->current_period_end ) );
 		}
@@ -597,6 +732,10 @@ class Stripe_Gateway extends Gateway_Base {
 		$invoice_paid   = is_object( $latest_invoice ) && isset( $latest_invoice->status ) && 'paid' === $latest_invoice->status;
 
 		if ( ! $invoice_paid ) {
+			if ( ! empty( $extension ) ) {
+				\GiftFlow\Services\CheckoutExtension::failed( $extension, 'stripe_invoice_unpaid', false );
+			}
+
 			return new \WP_Error(
 				'stripe_error',
 				__( 'The payment for your donation was not completed. Please try again, and if the issue persists, don\'t hesitate to contact us for assistance. Thank you for your support!', 'giftflow' )
@@ -761,6 +900,8 @@ class Stripe_Gateway extends Gateway_Base {
 		);
 		$this->log_success( $transaction_id, $donation_id );
 
+		$this->emit_observation( 'paid', (int) $donation_id, $environment, (string) $payment_intent->id, $charge_id ? $charge_id : $transaction_id, true, 'sync' );
+
 		do_action( 'giftflow_stripe_payment_completed', $donation_id, $transaction_id, $payment_intent->toArray() );
 
 		// Return success response for AJAX.
@@ -880,7 +1021,59 @@ class Stripe_Gateway extends Gateway_Base {
 		$donations_class = new Donations();
 		$donations_class->update_status( $donation_id, 'failed' );
 
+		if ( 'canceled' === $payment_intent->status ) {
+			$this->emit_observation( 'cancelled', (int) $donation_id, $environment, (string) $payment_intent->id, (string) $payment_intent->id, true, 'sync' );
+		} else {
+			$this->emit_observation( 'failed', (int) $donation_id, $environment, (string) $payment_intent->id, (string) $payment_intent->id, true, 'sync' );
+		}
+
+		$extension = \GiftFlow\Services\CheckoutExtension::from_donation( $donation_id );
+
+		if ( ! empty( $extension ) ) {
+			// A declined/canceled intent is a definitive provider rejection.
+			\GiftFlow\Services\CheckoutExtension::failed( $extension, 'stripe_' . $payment_intent->status, true );
+		}
+
 		return new \WP_Error( 'stripe_error', $error_message );
+	}
+
+	/**
+	 * Emit a normalized payment observation for Rewards-style consumers.
+	 *
+	 * @param string $kind            Observation kind.
+	 * @param int    $donation_id     Donation ID.
+	 * @param string $environment     Environment id.
+	 * @param string $subject         Stable provider resource id (payment intent, charge, dispute).
+	 * @param string $transaction_id  Provider transaction id.
+	 * @param bool   $is_initial      Whether this is the initial successful charge.
+	 * @param string $source          sync|webhook|donation_management.
+	 * @return void
+	 */
+	private function emit_observation( $kind, $donation_id, $environment, $subject, $transaction_id, $is_initial = true, $source = 'sync' ) {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		$attempt = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_ATTEMPT, true );
+		$amount  = get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_AMOUNT, true );
+		$currency = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_CURRENCY, true );
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'stripe:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'stripe',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => (int) $donation_id,
+				'attempt_key'    => '' === $attempt ? null : $attempt,
+				'provider_id'    => (string) $subject,
+				'transaction_id' => (string) $transaction_id,
+				'amount_minor'   => '' === (string) $amount ? null : (int) $amount,
+				'currency'       => '' === $currency ? null : $currency,
+				'is_initial'     => (bool) $is_initial,
+				'source'         => $source,
+			)
+		);
 	}
 
 	/**

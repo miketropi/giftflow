@@ -10,6 +10,7 @@ namespace GiftFlow\Frontend;
 
 use GiftFlow\Core\Base;
 use GiftFlow\Core\Donations;
+use GiftFlow\Services\CheckoutExtension;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -106,8 +107,16 @@ class Forms extends Base {
 		// sanitize data if it is an array, else sanitize the data.
 		$fields = giftflow_sanitize_array( $payload );
 
+		// The checkout extension payload is server-owned; never accept it from the browser.
+		unset( $fields['_checkout_extension'] );
+
+		// Preserve the exact decimal lexeme: `floatval()` below loses cents.
+		$raw_amount = isset( $fields['donation_amount'] ) && is_scalar( $fields['donation_amount'] )
+			? (string) $fields['donation_amount']
+			: '';
+
 		// convert amout to float.
-		$fields['donation_amount'] = floatval( wp_unslash( $fields['donation_amount'] ) );
+		$fields['donation_amount'] = floatval( wp_unslash( isset( $fields['donation_amount'] ) ? $fields['donation_amount'] : 0 ) );
 
 		// add filter to fields.
 		$fields = apply_filters( 'giftflow_donation_form_fields', $fields );
@@ -131,13 +140,44 @@ class Forms extends Base {
 			);
 		}
 
+		// Let checkout extensions (e.g. Rewards) validate and own the payment intent.
+		$checkout_context   = $this->build_checkout_context( $fields, $raw_amount );
+		$checkout_extension = CheckoutExtension::prepare( $fields, $checkout_context );
+
+		if ( is_wp_error( $checkout_extension ) ) {
+			wp_send_json_error(
+				array(
+					'message' => $checkout_extension->get_error_message(),
+					'code'    => $checkout_extension->get_error_code(),
+				)
+			);
+		}
+
+		if ( ! empty( $checkout_extension ) ) {
+			// Server-owned key: kept apart from browser submitted fields.
+			$fields['_checkout_extension'] = $checkout_extension;
+		}
+
 		// Create donation record.
 		$donation_id = $this->create_donation( $fields );
 
 		if ( is_wp_error( $donation_id ) ) {
+			CheckoutExtension::failed( $checkout_extension, $donation_id->get_error_code(), true );
+
 			wp_send_json_error(
 				array(
 					'message' => $donation_id->get_error_message(),
+				)
+			);
+		}
+
+		// Bind the extension attempt to the real donation before any provider call.
+		if ( ! empty( $checkout_extension ) ) {
+			CheckoutExtension::bind(
+				$checkout_extension,
+				array(
+					'donation_id' => $donation_id,
+					'gateway'     => $checkout_context['gateway'],
 				)
 			);
 		}
@@ -146,6 +186,9 @@ class Forms extends Base {
 		$payment_result = $this->process_payment( $fields, $donation_id );
 
 		if ( is_wp_error( $payment_result ) ) {
+			// The gateway reports definitive rejections itself; anything here may be uncertain.
+			CheckoutExtension::failed( $checkout_extension, $payment_result->get_error_code(), false );
+
 			wp_send_json_error(
 				array(
 					'message' => $payment_result->get_error_message(),
@@ -154,9 +197,12 @@ class Forms extends Base {
 		}
 
 		/**
-		 * Add hook after payment processed
-
-		 * @see giftflow_send_mail_notification_donation_to_admin - 10
+		 * Fires after the gateway returned a non-error result.
+		 *
+		 * This is not proof that the payment settled: provider results such as
+		 * Stripe `requires_action` arrive here too. Admin/donor notifications are
+		 * registered on the donation status lifecycle instead.
+		 *
 		 * @see giftflow_auto_create_user_on_donation - 10
 		 */
 		do_action( 'giftflow_donation_after_payment_processed', $donation_id, $payment_result );
@@ -203,6 +249,72 @@ class Forms extends Base {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Build the server-resolved checkout context handed to checkout extensions.
+	 *
+	 * Everything here is derived from validated input or server state: the
+	 * browser cannot supply the gateway, environment, currency or raw amount
+	 * used for the extension contract.
+	 *
+	 * @param array  $fields     Sanitized donation fields.
+	 * @param string $raw_amount Original decimal amount lexeme.
+	 * @return array
+	 */
+	private function build_checkout_context( array $fields, $raw_amount ) {
+		$gateway_id = isset( $fields['payment_method'] ) ? sanitize_text_field( (string) $fields['payment_method'] ) : '';
+		$gateway    = \GiftFlow\Gateways\Gateway_Base::get_gateway( $gateway_id );
+
+		$environment      = '';
+		$provider_account = '';
+
+		if ( $gateway && method_exists( $gateway, 'get_active_environment' ) ) {
+			$environment = (string) $gateway->get_active_environment();
+		}
+
+		switch ( $gateway_id ) {
+			case 'stripe':
+				$currency = (string) apply_filters( 'giftflow_stripe_currency', 'USD' );
+				break;
+			case 'paypal':
+				$currency = (string) apply_filters( 'giftflow_paypal_currency', 'USD' );
+				break;
+			default:
+				$currency = function_exists( 'giftflow_get_current_currency' ) ? (string) giftflow_get_current_currency() : 'USD';
+				break;
+		}
+
+		if ( $gateway && method_exists( $gateway, 'get_repository' ) && '' !== $environment ) {
+			try {
+				$profile = $gateway->get_repository()->get_profile( $environment );
+
+				if ( is_array( $profile ) ) {
+					foreach ( array( 'stripe_account_id', 'paypal_merchant_id', 'paypal_app_id' ) as $profile_key ) {
+						if ( ! empty( $profile[ $profile_key ] ) ) {
+							$provider_account = (string) $profile[ $profile_key ];
+							break;
+						}
+					}
+				}
+			} catch ( \Throwable $e ) {
+				$provider_account = '';
+			}
+		}
+
+		$donation_type = isset( $fields['donation_type'] ) ? sanitize_text_field( (string) $fields['donation_type'] ) : '';
+
+		return array(
+			'gateway'          => $gateway_id,
+			'environment'      => $environment,
+			'currency'         => strtoupper( trim( $currency ) ),
+			'raw_amount'       => (string) $raw_amount,
+			'donation_type'    => $donation_type,
+			'is_recurring'     => 'recurring' === $donation_type,
+			'campaign_id'      => isset( $fields['campaign_id'] ) ? (int) $fields['campaign_id'] : 0,
+			'donor_email'      => isset( $fields['donor_email'] ) ? sanitize_email( (string) $fields['donor_email'] ) : '',
+			'provider_account' => $provider_account,
+		);
 	}
 
 	/**
@@ -284,6 +396,11 @@ class Forms extends Base {
 
 		if ( isset( $data['anonymous_donation'] ) ) {
 			$donation_data['anonymous_donation'] = ( 'yes' === $data['anonymous_donation'] || true === $data['anonymous_donation'] || '1' === $data['anonymous_donation'] ) ? 'yes' : 'no';
+		}
+
+		// Server-owned checkout extension data (never copied from raw input).
+		if ( ! empty( $data['_checkout_extension'] ) && is_array( $data['_checkout_extension'] ) ) {
+			$donation_data['_checkout_extension'] = $data['_checkout_extension'];
 		}
 
 		// Use centralized Donations class to create donation.

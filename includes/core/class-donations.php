@@ -597,6 +597,15 @@ class Donations extends Base {
 			}
 		}
 
+		// Checkout extension attempt (exact money boundary for extended checkouts).
+		if ( isset( $data['_checkout_extension'] ) && is_array( $data['_checkout_extension'] ) ) {
+			$extension_meta = \GiftFlow\Services\CheckoutExtension::donation_meta( $data['_checkout_extension'] );
+
+			foreach ( $extension_meta as $extension_meta_key => $extension_meta_value ) {
+				update_post_meta( $donation_id, $extension_meta_key, $extension_meta_value );
+			}
+		}
+
 		/**
 		 * Fires after donation meta is saved.
 		 *

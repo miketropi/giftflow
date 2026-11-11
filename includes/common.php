@@ -462,10 +462,23 @@ function giftflow_get_preset_donation_amounts_by_campaign( $campaign_id ) {
 		$preset_donation_amounts = unserialize( $preset_donation_amounts );
 	}
 
+	// Campaigns without saved presets return '' or a plain "10, 25, 35" string.
+	if ( ! is_array( $preset_donation_amounts ) ) {
+		$preset_donation_amounts = array();
+
+		foreach ( explode( ',', (string) get_post_meta( $campaign_id, '_preset_donation_amounts', true ) ) as $preset_amount ) {
+			$preset_amount = trim( $preset_amount );
+
+			if ( '' !== $preset_amount ) {
+				$preset_donation_amounts[] = array( 'amount' => $preset_amount );
+			}
+		}
+	}
+
 	return array_map(
 		function ( $item ) {
 			return array(
-				'amount' => (float) trim( $item['amount'] ),
+				'amount' => (float) trim( is_array( $item ) ? (string) $item['amount'] : (string) $item ),
 			);
 		},
 		$preset_donation_amounts
@@ -783,6 +796,12 @@ function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) 
 
 	// get donor data.
 	$donor_data = giftflow_get_donor_data_by_id( $donor_id );
+
+	// A missing donor or an unusable address must not create an account: there
+	// would be nobody to sign in as and nowhere to deliver the welcome mail.
+	if ( ! is_object( $donor_data ) || ! is_string( $donor_data->email ) || ! is_email( $donor_data->email ) ) {
+		return;
+	}
 
 	// check if user exists by email.
 	$user = get_user_by( 'email', $donor_data->email );

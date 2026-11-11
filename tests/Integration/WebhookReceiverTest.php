@@ -141,7 +141,7 @@ final class WebhookReceiverTest extends \WP_UnitTestCase {
 	public function testUnknownSignedEventIsAcknowledgedWithoutMutationOrVerificationTimestamp(): void {
 		$donation = $this->donation( 'sandbox' );
 		$this->storeSecret( 'sandbox', $this->sandboxSecret );
-		$payload = $this->payload( $donation, false, 'charge.dispute.created' );
+		$payload = $this->payload( $donation, false, 'customer.created' );
 		$before = $this->metaSnapshot( $donation );
 		$result = $this->receiver->receive( $payload, $this->signature( $payload, $this->sandboxSecret ) );
 		$this->assertSame( 200, $result['status'] );

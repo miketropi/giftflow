@@ -160,6 +160,13 @@ final class PayPalWebhookDispatcher {
 					'Webhook: BILLING.SUBSCRIPTION.EXPIRED',
 					'giftflow_paypal_subscription_expired'
 				);
+			case 'CUSTOMER.DISPUTE.CREATED':
+			case 'CUSTOMER.DISPUTE.UPDATED':
+			case 'CUSTOMER.DISPUTE.RESOLVED':
+				return $this->customer_dispute( $resource, $environment );
+			case 'PAYMENT.CAPTURE.REVERSED':
+			case 'PAYMENT.SALE.REVERSED':
+				return $this->payment_reversed( $resource, $environment );
 		}
 		return false;
 	}
@@ -236,6 +243,9 @@ final class PayPalWebhookDispatcher {
 		$id       = $this->transaction_id( $resource, false );
 		$donation = $this->find_donation_by_transaction_id( $id, $environment );
 		if ( ! $donation ) {
+			// Payment confirmed before the Core donation exists (or the attempt
+			// was never bound): keep it visible instead of silently dropping it.
+			$this->observe_unbound( 'paid', $resource, $environment, $id );
 			return false;
 		}
 		Donation_Event_History::add(
@@ -260,6 +270,7 @@ final class PayPalWebhookDispatcher {
 		);
 		( new Donations() )->update_status( $donation, 'completed' );
 		update_post_meta( $donation, '_webhook_completed_data', wp_json_encode( $resource ) );
+		$this->emit_observation( 'paid', (int) $donation, $environment, $id, $id, true );
 		do_action( 'giftflow_paypal_webhook_payment_completed', $donation, $resource );
 		return true;
 	}
@@ -297,6 +308,7 @@ final class PayPalWebhookDispatcher {
 		( new Donations() )->update_status( $donation, 'failed' );
 		update_post_meta( $donation, '_payment_error', $message );
 		update_post_meta( $donation, '_webhook_denied_data', wp_json_encode( $resource ) );
+		$this->emit_observation( 'failed', (int) $donation, $environment, $id, $id, true );
 		do_action( 'giftflow_paypal_webhook_payment_denied', $donation, $resource );
 		return true;
 	}
@@ -337,6 +349,10 @@ final class PayPalWebhookDispatcher {
 			update_post_meta( $donation, '_refund_amount', sanitize_text_field( $resource['amount']['value'] ) );
 		}
 		update_post_meta( $donation, '_refund_raw_data', wp_json_encode( $resource ) );
+
+		$refund_kind = $this->refund_kind( $resource, (int) $donation );
+
+		$this->emit_observation( $refund_kind, (int) $donation, $environment, $refund, $id, true );
 		do_action( 'giftflow_paypal_webhook_payment_refunded', $donation, $resource );
 		return true;
 	}
@@ -466,6 +482,7 @@ final class PayPalWebhookDispatcher {
 					'source'          => 'webhook',
 				)
 			);
+			$this->emit_observation( 'paid', (int) $parent, $environment, $sale, $sale, true );
 			do_action( 'giftflow_donation_after_payment_processed', $parent, true );
 		} else {
 			$renewal = wp_insert_post(
@@ -534,6 +551,7 @@ final class PayPalWebhookDispatcher {
 				)
 			);
 
+			$this->emit_observation( 'paid', (int) $renewal, $environment, $sale, $sale, false );
 			do_action( 'giftflow_paypal_recurring_renewal_created', $renewal, $parent, $subscription, $resource );
 		}
 
@@ -548,6 +566,279 @@ final class PayPalWebhookDispatcher {
 	 * The sale resource carries no billing schedule, so the next billing time is
 	 * read from the subscription that owns it, through the environment-bound
 	 * client. A failure leaves the stored value untouched.
+	 *
+	 * @param int    $parent       Parent donation post id.
+	 * @param string $subscription Subscription id.
+	 * @param string $environment  Verified environment id.
+	 * @return void
+	 */
+	/**
+	 * Handle customer dispute events.
+	 *
+	 * The dispute never changes the Core donation status. Unknown states are
+	 * reported as an open dispute and never interpreted as a win.
+	 *
+	 * @param array  $resource    Dispute resource.
+	 * @param string $environment Verified environment.
+	 * @return bool
+	 */
+	private function customer_dispute( array $resource, string $environment ): bool {
+		$dispute_id = isset( $resource['dispute_id'] ) ? (string) $resource['dispute_id'] : ( isset( $resource['id'] ) ? (string) $resource['id'] : '' );
+
+		if ( '' === $dispute_id ) {
+			return false;
+		}
+
+		$donation   = 0;
+		$seller_txn = '';
+
+		if ( isset( $resource['disputed_transactions'][0] ) && is_array( $resource['disputed_transactions'][0] ) ) {
+			$first      = $resource['disputed_transactions'][0];
+			$seller_txn = isset( $first['seller_transaction_id'] ) ? (string) $first['seller_transaction_id'] : '';
+
+			if ( '' !== $seller_txn ) {
+				$found = $this->find_donation_by_transaction_id( $seller_txn, $environment );
+				$donation = $found ? (int) $found : 0;
+			}
+		}
+
+		$kind = $this->dispute_kind( $resource );
+
+		if ( $donation > 0 ) {
+			Donation_Event_History::add(
+				$donation,
+				'payment_dispute',
+				'',
+				__( 'Webhook: customer dispute', 'giftflow' ),
+				array(
+					'dispute_id'  => $dispute_id,
+					'kind'        => $kind,
+					'gateway'     => 'paypal',
+					'source'      => 'webhook',
+				)
+			);
+		}
+
+		Giftflow_Logger::info(
+			'paypal.webhook.customer.dispute',
+			array(
+				'dispute_id'  => $dispute_id,
+				'donation_id' => $donation,
+				'kind'        => $kind,
+				'gateway'     => 'paypal',
+			),
+			'paypal'
+		);
+
+		$this->emit_observation( $kind, $donation, $environment, $dispute_id, $seller_txn, true );
+
+		do_action( 'giftflow_paypal_webhook_customer_dispute', $donation, $resource, $kind );
+
+		return true;
+	}
+
+	/**
+	 * Map a PayPal dispute resource to an observation kind.
+	 *
+	 * @param array $resource Dispute resource.
+	 * @return string
+	 */
+	private function dispute_kind( array $resource ): string {
+		$outcome = isset( $resource['dispute_outcome']['outcome_code'] ) ? strtoupper( (string) $resource['dispute_outcome']['outcome_code'] ) : '';
+
+		if ( 0 === strpos( $outcome, 'RESOLVED_SELLER_FAVOUR' ) ) {
+			return 'dispute_won';
+		}
+
+		if ( 0 === strpos( $outcome, 'RESOLVED_BUYER_FAVOUR' ) ) {
+			return 'dispute_lost';
+		}
+
+		return 'dispute_open';
+	}
+
+	/**
+	 * Handle capture/sale reversal events.
+	 *
+	 * @param array  $resource    Reversal resource.
+	 * @param string $environment Verified environment.
+	 * @return bool
+	 */
+	private function payment_reversed( array $resource, string $environment ): bool {
+		$id       = $this->transaction_id( $resource, true );
+		$donation = $this->find_donation_by_transaction_id( $id, $environment );
+
+		if ( ! $donation ) {
+			$this->observe_unbound( 'reversed', $resource, $environment, $id );
+
+			return false;
+		}
+
+		Donation_Event_History::add(
+			$donation,
+			'payment_reversed',
+			'',
+			__( 'Webhook: payment reversed', 'giftflow' ),
+			array(
+				'transaction_id' => $id,
+				'gateway'        => 'paypal',
+				'source'         => 'webhook',
+			)
+		);
+
+		Giftflow_Logger::info(
+			'paypal.webhook.payment.reversed',
+			array(
+				'donation_id'    => $donation,
+				'transaction_id' => $id,
+				'gateway'        => 'paypal',
+			),
+			'paypal'
+		);
+
+		$this->emit_observation( 'reversed', (int) $donation, $environment, $id, $id, true );
+
+		do_action( 'giftflow_paypal_webhook_payment_reversed', $donation, $resource );
+
+		return true;
+	}
+
+	/**
+	 * Classify a refund as full or partial.
+	 *
+	 * @param array $resource    Refund resource.
+	 * @param int   $donation_id Donation id.
+	 * @return string
+	 */
+	private function refund_kind( array $resource, int $donation_id ): string {
+		$refund_value    = isset( $resource['amount']['value'] ) ? (string) $resource['amount']['value'] : '';
+		$refund_currency = isset( $resource['amount']['currency_code'] ) ? strtoupper( (string) $resource['amount']['currency_code'] ) : '';
+
+		$refund_minor = class_exists( '\GiftFlow\Services\CheckoutMoney' )
+			? \GiftFlow\Services\CheckoutMoney::parse( $refund_value, $refund_currency )
+			: new \WP_Error( 'unsupported', 'unsupported' );
+
+		if ( is_wp_error( $refund_minor ) ) {
+			return 'refund_partial';
+		}
+
+		$charged_minor = 0;
+
+		if ( class_exists( '\GiftFlow\Services\CheckoutExtension' ) ) {
+			$attempt_amount = get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_AMOUNT, true );
+
+			if ( '' !== (string) $attempt_amount ) {
+				$charged_minor = (int) $attempt_amount;
+			}
+		}
+
+		if ( 0 === $charged_minor ) {
+			$stored_amount = (float) get_post_meta( $donation_id, '_amount', true );
+			$charged_minor = (int) round( $stored_amount * 100 );
+		}
+
+		if ( $charged_minor > 0 && (int) $refund_minor >= $charged_minor ) {
+			return 'refund_full';
+		}
+
+		return 'refund_partial';
+	}
+
+	/**
+	 * Emit a normalized observation for a bound donation.
+	 *
+	 * @param string $kind           Observation kind.
+	 * @param int    $donation_id    Donation id (0 when unresolved).
+	 * @param string $environment    Verified environment.
+	 * @param string $subject        Stable provider resource id.
+	 * @param string $transaction_id Provider transaction id.
+	 * @param bool   $is_initial     Whether this is the initial charge.
+	 * @return void
+	 */
+	private function emit_observation( string $kind, int $donation_id, string $environment, string $subject, string $transaction_id, bool $is_initial ): void {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		$attempt  = '';
+		$amount   = '';
+		$currency = '';
+
+		if ( $donation_id > 0 ) {
+			$attempt  = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_ATTEMPT, true );
+			$amount   = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_AMOUNT, true );
+			$currency = (string) get_post_meta( $donation_id, \GiftFlow\Services\CheckoutExtension::META_CURRENCY, true );
+		}
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'paypal:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'paypal',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => $donation_id,
+				'attempt_key'    => '' === $attempt ? null : $attempt,
+				'provider_id'    => $subject,
+				'transaction_id' => $transaction_id,
+				'amount_minor'   => '' === $amount ? null : (int) $amount,
+				'currency'       => '' === $currency ? null : $currency,
+				'is_initial'     => $is_initial,
+				'source'         => 'webhook',
+			)
+		);
+	}
+
+	/**
+	 * Emit an observation for a payment that could not be bound to a donation.
+	 *
+	 * @param string $kind           Observation kind.
+	 * @param array  $resource       Provider resource.
+	 * @param string $environment    Verified environment.
+	 * @param string $subject        Stable provider resource id.
+	 * @return void
+	 */
+	private function observe_unbound( string $kind, array $resource, string $environment, string $subject ): void {
+		if ( ! class_exists( '\GiftFlow\Services\PaymentObservation' ) ) {
+			return;
+		}
+
+		$attempt = isset( $resource['custom_id'] ) && is_string( $resource['custom_id'] ) && preg_match( '/^[A-Za-z0-9_.:\-]{8,191}$/', $resource['custom_id'] )
+			? $resource['custom_id']
+			: null;
+
+		$amount   = isset( $resource['amount']['value'] ) ? (string) $resource['amount']['value'] : '';
+		$currency = isset( $resource['amount']['currency_code'] ) ? strtoupper( (string) $resource['amount']['currency_code'] ) : '';
+
+		$amount_minor = null;
+
+		if ( '' !== $amount && class_exists( '\GiftFlow\Services\CheckoutMoney' ) ) {
+			$parsed = \GiftFlow\Services\CheckoutMoney::parse( $amount, $currency );
+
+			if ( ! is_wp_error( $parsed ) ) {
+				$amount_minor = (int) $parsed;
+			}
+		}
+
+		\GiftFlow\Services\PaymentObservation::emit(
+			array(
+				'event_key'      => 'paypal:' . $environment . ':' . $subject . ':' . $kind,
+				'gateway'        => 'paypal',
+				'environment'    => $environment,
+				'kind'           => $kind,
+				'donation_id'    => 0,
+				'attempt_key'    => $attempt,
+				'provider_id'    => $subject,
+				'transaction_id' => $subject,
+				'amount_minor'   => $amount_minor,
+				'currency'       => '' === $currency ? null : $currency,
+				'is_initial'     => true,
+				'source'         => 'webhook',
+			)
+		);
+	}
+
+	/**
+	 * Refresh the parent donation's next payment date from the resolved environment.
 	 *
 	 * @param int    $parent       Parent donation post id.
 	 * @param string $subscription Subscription id.

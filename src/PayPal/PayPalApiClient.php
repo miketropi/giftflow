@@ -188,24 +188,26 @@ final class PayPalApiClient {
 	 * @param string $method HTTP method.
 	 * @param string $path   API path.
 	 * @param array  $body   JSON body.
-	 * @param array  $query  Query parameters.
+	 * @param array  $query      Query parameters.
+	 * @param string $request_id Optional caller-owned PayPal-Request-Id (idempotency key).
 	 * @return array Sanitized response envelope.
 	 */
-	public function request( string $method, string $path, array $body = array(), array $query = array() ): array {
+	public function request( string $method, string $path, array $body = array(), array $query = array(), string $request_id = '' ): array {
 		$method = strtoupper( trim( $method ) );
 		$token  = $this->access_token();
 		if ( '' === $token ) {
 			return ! empty( $this->token_failure ) ? $this->token_failure : $this->error_envelope( 0, array(), '', true );
 		}
 
-		$result = $this->send_business_request( $method, $path, $body, $query, $token );
+		$result = $this->send_business_request( $method, $path, $body, $query, $token, $request_id );
 		if ( 401 === $result['status'] ) {
 			PayPalTokenCache::forget( $this->environment, $this->client_id );
 			$token = $this->access_token();
 			if ( '' === $token ) {
 				return ! empty( $this->token_failure ) ? $this->token_failure : $this->error_envelope( 401, array() );
 			}
-			$result = $this->send_business_request( $method, $path, $body, $query, $token );
+			// Same request id on the auth retry: the provider must dedupe the write.
+			$result = $this->send_business_request( $method, $path, $body, $query, $token, $request_id );
 		}
 		return $result;
 	}
@@ -213,21 +215,23 @@ final class PayPalApiClient {
 	/**
 	 * Create an order.
 	 *
-	 * @param array $order_data Order payload.
+	 * @param array  $order_data Order payload.
+	 * @param string $request_id Optional caller-owned PayPal-Request-Id.
 	 * @return array
 	 */
-	public function create_order( array $order_data ): array {
-		return $this->request( 'POST', '/v2/checkout/orders', $order_data );
+	public function create_order( array $order_data, string $request_id = '' ): array {
+		return $this->request( 'POST', '/v2/checkout/orders', $order_data, array(), $request_id );
 	}
 
 	/**
 	 * Capture an order.
 	 *
-	 * @param string $order_id Order ID.
+	 * @param string $order_id   Order ID.
+	 * @param string $request_id Optional caller-owned PayPal-Request-Id.
 	 * @return array
 	 */
-	public function capture_order( string $order_id ): array {
-		return $this->request( 'POST', '/v2/checkout/orders/' . rawurlencode( $order_id ) . '/capture' );
+	public function capture_order( string $order_id, string $request_id = '' ): array {
+		return $this->request( 'POST', '/v2/checkout/orders/' . rawurlencode( $order_id ) . '/capture', array(), array(), $request_id );
 	}
 
 	/**
@@ -263,11 +267,12 @@ final class PayPalApiClient {
 	/**
 	 * Create a billing plan.
 	 *
-	 * @param array $plan Plan payload.
+	 * @param array  $plan       Plan payload.
+	 * @param string $request_id Optional caller-owned PayPal-Request-Id.
 	 * @return array
 	 */
-	public function create_plan( array $plan ): array {
-		return $this->request( 'POST', '/v1/billing/plans', $plan );
+	public function create_plan( array $plan, string $request_id = '' ): array {
+		return $this->request( 'POST', '/v1/billing/plans', $plan, array(), $request_id );
 	}
 
 	/**
@@ -283,11 +288,12 @@ final class PayPalApiClient {
 	/**
 	 * Create a subscription.
 	 *
-	 * @param array $subscription Subscription payload.
+	 * @param array  $subscription Subscription payload.
+	 * @param string $request_id   Optional caller-owned PayPal-Request-Id.
 	 * @return array
 	 */
-	public function create_subscription( array $subscription ): array {
-		return $this->request( 'POST', '/v1/billing/subscriptions', $subscription );
+	public function create_subscription( array $subscription, string $request_id = '' ): array {
+		return $this->request( 'POST', '/v1/billing/subscriptions', $subscription, array(), $request_id );
 	}
 
 	/**
@@ -406,11 +412,12 @@ final class PayPalApiClient {
 	 * @param string $method HTTP method.
 	 * @param string $path   API path relative to the environment base URL.
 	 * @param array  $body   Request body fields.
-	 * @param array  $query  Query parameters.
-	 * @param string $token  OAuth access token.
+	 * @param array  $query      Query parameters.
+	 * @param string $token      OAuth access token.
+	 * @param string $request_id Optional caller-owned PayPal-Request-Id.
 	 * @return array Sanitized response envelope.
 	 */
-	private function send_business_request( string $method, string $path, array $body, array $query, string $token ): array {
+	private function send_business_request( string $method, string $path, array $body, array $query, string $token, string $request_id = '' ): array {
 		$url = $this->api_base() . '/' . ltrim( $path, '/' );
 		if ( ! empty( $query ) ) {
 			$url = add_query_arg( $query, $url );
@@ -437,7 +444,7 @@ final class PayPalApiClient {
 		}
 
 		if ( in_array( $method, array( 'POST', 'PUT', 'PATCH', 'DELETE' ), true ) ) {
-			$args['headers']['PayPal-Request-Id'] = wp_generate_uuid4();
+			$args['headers']['PayPal-Request-Id'] = '' !== $request_id ? $request_id : wp_generate_uuid4();
 		}
 		$response = call_user_func( $this->transport, $method, $url, $args );
 		if ( is_wp_error( $response ) ) {

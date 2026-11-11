@@ -38,6 +38,9 @@ final class StripeWebhookEventRegistry {
 		'payment_intent.payment_failed',
 		'payment_intent.canceled',
 		'charge.refunded',
+		'charge.dispute.created',
+		'charge.dispute.updated',
+		'charge.dispute.closed',
 	);
 
 	/**

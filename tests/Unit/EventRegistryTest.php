@@ -25,6 +25,9 @@ class EventRegistryTest extends UnitTestCase {
 
 		$this->assertSame(
 			array(
+				'charge.dispute.closed',
+				'charge.dispute.created',
+				'charge.dispute.updated',
 				'charge.refunded',
 				'payment_intent.canceled',
 				'payment_intent.payment_failed',
