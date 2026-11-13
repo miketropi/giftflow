@@ -101,11 +101,7 @@ final class BankTransferObservation {
 			return;
 		}
 
-		$environment = (string) apply_filters( self::FILTER_ENVIRONMENT, 'live', $donation_id );
-
-		if ( ! in_array( $environment, array( 'live', 'sandbox' ), true ) ) {
-			$environment = 'live';
-		}
+		$environment = self::environment_for( $donation_id );
 
 		$attempt  = (string) get_post_meta( $donation_id, CheckoutExtension::META_ATTEMPT, true );
 		$amount   = (string) get_post_meta( $donation_id, CheckoutExtension::META_AMOUNT, true );
@@ -128,6 +124,33 @@ final class BankTransferObservation {
 				'actor_id'       => $actor_id,
 			)
 		);
+	}
+
+	/**
+	 * Resolve the environment for a bank donation.
+	 *
+	 * An extended checkout persists the environment it was charged under. That
+	 * value is authoritative: it must not be relabelled later because a filter
+	 * changed order or a Pro setting was edited. Donations without a persisted
+	 * environment keep using the environment filter, defaulting to live.
+	 *
+	 * @param int $donation_id Donation post id.
+	 * @return string `live` or `sandbox`.
+	 */
+	private static function environment_for( $donation_id ) {
+		$persisted = strtolower( trim( (string) get_post_meta( $donation_id, CheckoutExtension::META_ENVIRONMENT, true ) ) );
+
+		if ( in_array( $persisted, array( 'live', 'sandbox' ), true ) ) {
+			return $persisted;
+		}
+
+		$environment = (string) apply_filters( self::FILTER_ENVIRONMENT, 'live', $donation_id );
+
+		if ( ! in_array( $environment, array( 'live', 'sandbox' ), true ) ) {
+			return 'live';
+		}
+
+		return $environment;
 	}
 
 	/**
