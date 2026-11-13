@@ -414,7 +414,7 @@ class Stripe_Gateway extends Gateway_Base {
 			$this->binding()->persist( (int) $donation_id, $environment );
 
 			if ( ! empty( $extension ) ) {
-				\GiftFlow\Services\CheckoutExtension::bind(
+				$bound = \GiftFlow\Services\CheckoutExtension::bind(
 					$extension,
 					array(
 						'donation_id' => (int) $donation_id,
@@ -422,6 +422,15 @@ class Stripe_Gateway extends Gateway_Base {
 						'gateway'     => 'stripe',
 					)
 				);
+
+				if ( is_wp_error( $bound ) ) {
+					// A required extension refused this donation. The intent cannot be
+					// confirmed, so the checkout stops with its ordinary error shape and
+					// the donation is left pending for administrator review.
+					$this->log_error( 'extension_bind_failed', $bound->get_error_message(), $donation_id, $bound->get_error_code() );
+
+					return $bound;
+				}
 			}
 
 			return $this->handle_payment_intent_response( $payment_intent, $donation_id, $environment );
@@ -714,7 +723,7 @@ class Stripe_Gateway extends Gateway_Base {
 		$this->binding()->persist( (int) $donation_id, $environment );
 
 		if ( ! empty( $extension ) ) {
-			\GiftFlow\Services\CheckoutExtension::bind(
+			$bound = \GiftFlow\Services\CheckoutExtension::bind(
 				$extension,
 				array(
 					'donation_id' => (int) $donation_id,
@@ -722,6 +731,12 @@ class Stripe_Gateway extends Gateway_Base {
 					'gateway'     => 'stripe',
 				)
 			);
+
+			if ( is_wp_error( $bound ) ) {
+				$this->log_error( 'extension_bind_failed', $bound->get_error_message(), $donation_id, $bound->get_error_code() );
+
+				return $bound;
+			}
 		}
 
 		if ( isset( $subscription->current_period_end ) ) {

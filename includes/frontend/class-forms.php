@@ -158,6 +158,17 @@ class Forms extends Base {
 			$fields['_checkout_extension'] = $checkout_extension;
 		}
 
+		// A replayable extension response means this exact request already
+		// completed. Return the stored response instead of creating a second
+		// donation or charging the provider again.
+		$replay = self::replay_result( $checkout_extension );
+
+		if ( null !== $replay ) {
+			wp_send_json_success( $replay );
+
+			return;
+		}
+
 		// Create donation record.
 		$donation_id = $this->create_donation( $fields );
 
@@ -173,13 +184,24 @@ class Forms extends Base {
 
 		// Bind the extension attempt to the real donation before any provider call.
 		if ( ! empty( $checkout_extension ) ) {
-			CheckoutExtension::bind(
+			$bound = CheckoutExtension::bind(
 				$checkout_extension,
 				array(
 					'donation_id' => $donation_id,
 					'gateway'     => $checkout_context['gateway'],
 				)
 			);
+
+			if ( is_wp_error( $bound ) ) {
+				// A required extension refused the binding: the payment must not
+				// start. The donation stays pending for administrator review.
+				wp_send_json_error(
+					array(
+						'message' => $bound->get_error_message(),
+						'code'    => $bound->get_error_code(),
+					)
+				);
+			}
 		}
 
 		// Process payment.
@@ -214,6 +236,29 @@ class Forms extends Base {
 				'payment_result' => $payment_result,
 			)
 		);
+	}
+
+	/**
+	 * Return a stored provider response for an already-completed identical request.
+	 *
+	 * The extension owns the decision: it returns the response only when the
+	 * locked attempt row proves this exact request already finished. Anything
+	 * else (unknown, in flight, no extension) returns `null` so Core continues
+	 * normally.
+	 *
+	 * @param mixed $checkout_extension Validated extension data or an empty array.
+	 * @return array|null
+	 */
+	private static function replay_result( $checkout_extension ) {
+		if ( empty( $checkout_extension ) || ! is_array( $checkout_extension ) ) {
+			return null;
+		}
+
+		if ( empty( $checkout_extension['replay_response'] ) || ! is_array( $checkout_extension['replay_response'] ) ) {
+			return null;
+		}
+
+		return $checkout_extension['replay_response'];
 	}
 
 	/**

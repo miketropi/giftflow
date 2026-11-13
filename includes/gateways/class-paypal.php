@@ -907,7 +907,7 @@ class PayPal_Gateway extends Gateway_Base {
 		$this->log_success( $transaction_id, $donation_id );
 
 		if ( ! empty( $extension ) ) {
-			\GiftFlow\Services\CheckoutExtension::bind(
+			$bound = \GiftFlow\Services\CheckoutExtension::bind(
 				$extension,
 				array(
 					'donation_id' => (int) $donation_id,
@@ -915,6 +915,23 @@ class PayPal_Gateway extends Gateway_Base {
 					'gateway'     => 'paypal',
 				)
 			);
+
+			if ( is_wp_error( $bound ) ) {
+				// The capture already happened: this cannot be rolled back by
+				// refusing the request. Record the failure so reconciliation can
+				// retry the attribution instead of losing the donation link.
+				Giftflow_Logger::error(
+					'paypal.capture.bind_failed',
+					array(
+						'donation_id' => (int) $donation_id,
+						'order_id'    => $order_id,
+						'environment' => $environment,
+						'error_code'  => $bound->get_error_code(),
+						'gateway'     => 'paypal',
+					),
+					'paypal'
+				);
+			}
 		}
 
 		$this->emit_observation( 'paid', (int) $donation_id, $environment, $order_id, $transaction_id );
@@ -1485,13 +1502,24 @@ class PayPal_Gateway extends Gateway_Base {
 			}
 
 			if ( ! empty( $checkout_extension ) ) {
-				\GiftFlow\Services\CheckoutExtension::bind(
+				$bound = \GiftFlow\Services\CheckoutExtension::bind(
 					$checkout_extension,
 					array(
 						'donation_id' => (int) $donation_id,
 						'gateway'     => 'paypal',
 					)
 				);
+
+				if ( is_wp_error( $bound ) ) {
+					// A required extension refused this donation: no subscription
+					// may be created at the provider.
+					wp_send_json_error(
+						array(
+							'message' => $bound->get_error_message(),
+							'code'    => $bound->get_error_code(),
+						)
+					);
+				}
 			}
 			$environment = $this->get_active_environment();
 			$client      = $this->client_for_environment( $environment );
@@ -1517,7 +1545,7 @@ class PayPal_Gateway extends Gateway_Base {
 			update_post_meta( $donation_id, '_transaction_raw_data', wp_json_encode( $result['raw_response'] ) );
 
 			if ( ! empty( $checkout_extension ) ) {
-				\GiftFlow\Services\CheckoutExtension::bind(
+				$bound = \GiftFlow\Services\CheckoutExtension::bind(
 					$checkout_extension,
 					array(
 						'donation_id' => (int) $donation_id,
@@ -1525,6 +1553,17 @@ class PayPal_Gateway extends Gateway_Base {
 						'gateway'     => 'paypal',
 					)
 				);
+
+				if ( is_wp_error( $bound ) ) {
+					// The subscription already exists at PayPal; record the failure
+					// for reconciliation instead of pretending it did not happen.
+					$this->log_error(
+						'subscription_bind_failed',
+						$bound->get_error_message(),
+						(int) $donation_id,
+						$bound->get_error_code()
+					);
+				}
 			}
 
 			do_action( 'giftflow_paypal_subscription_created', $donation_id, $result['subscription_id'], $result['raw_response'] );
