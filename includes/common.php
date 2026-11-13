@@ -210,7 +210,20 @@ function giftflow_get_campaign_raised_amount( $campaign_id ) {
 		}
 	}
 
-	return $total_amount;
+	/**
+	 * Filter the completed-donation total for a campaign.
+	 *
+	 * Core sums every completed donation in the site's historical currency and
+	 * environment mix. Extensions that must report a single environment and
+	 * currency (peer-to-peer fundraising) narrow the result here instead of
+	 * changing the default.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param float $total_amount Completed donation total in major units.
+	 * @param int   $campaign_id  Campaign post ID.
+	 */
+	return (float) apply_filters( 'giftflow_campaign_raised_amount', $total_amount, $campaign_id );
 }
 
 /**

@@ -141,11 +141,12 @@ function giftflow_send_mail_template( $args = array() ) {
 	$args = wp_parse_args(
 		$args,
 		array(
-			'to'      => '',
-			'subject' => '',
-			'header'  => '',
-			'content' => '',
-			'footer'  => '',
+			'to'        => '',
+			'subject'   => '',
+			'header'    => '',
+			'content'   => '',
+			'footer'    => '',
+			'from_name' => '',
 		)
 	);
 
@@ -170,6 +171,14 @@ function giftflow_send_mail_template( $args = array() ) {
 
 	if ( '' === $email_from_name ) {
 		$email_from_name = (string) get_bloginfo( 'name' );
+	}
+
+	// An extension may request its own display name. It never controls the
+	// envelope address, and header injection characters are stripped.
+	$requested_name = is_string( $args['from_name'] ) ? trim( str_replace( array( "\r", "\n" ), '', $args['from_name'] ) ) : '';
+
+	if ( '' !== $requested_name ) {
+		$email_from_name = $requested_name;
 	}
 
 	$email_admin_address = giftflow_get_admin_email_address();
