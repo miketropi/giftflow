@@ -979,7 +979,9 @@ class PayPal_Gateway extends Gateway_Base {
 		}
 
 		if ( isset( $donation_data['anonymous_donation'] ) ) {
-			$data['anonymous_donation'] = ( 'yes' === $donation_data['anonymous_donation'] || true === $donation_data['anonymous_donation'] || '1' === $donation_data['anonymous_donation'] ) ? 'yes' : 'no';
+			// A checkbox without a value attribute submits `on`, so every truthy
+			// spelling a form can produce must count.
+			$data['anonymous_donation'] = in_array( strtolower( (string) $donation_data['anonymous_donation'] ), array( '1', 'on', 'true', 'yes' ), true ) ? 'yes' : 'no';
 		}
 
 		if ( ! empty( $donation_data['_checkout_extension'] ) && is_array( $donation_data['_checkout_extension'] ) ) {

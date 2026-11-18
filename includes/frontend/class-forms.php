@@ -440,7 +440,9 @@ class Forms extends Base {
 		}
 
 		if ( isset( $data['anonymous_donation'] ) ) {
-			$donation_data['anonymous_donation'] = ( 'yes' === $data['anonymous_donation'] || true === $data['anonymous_donation'] || '1' === $data['anonymous_donation'] ) ? 'yes' : 'no';
+			// A checkbox without a value attribute submits `on`, so every truthy
+			// spelling a form can produce must count.
+			$donation_data['anonymous_donation'] = in_array( strtolower( (string) $data['anonymous_donation'] ), array( '1', 'on', 'true', 'yes' ), true ) ? 'yes' : 'no';
 		}
 
 		// Server-owned checkout extension data (never copied from raw input).
