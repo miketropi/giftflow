@@ -121,3 +121,9 @@ To add a gateway:
 - New REST endpoints → add to `admin/includes/api.php`
 - Never modify `vendor-prefixed/` or `blocks-build/` directly (they are build artifacts)
 - Always run `composer lint` before committing PHP changes
+
+## Commits
+- Never bypass the pre-commit hook: no `git commit --no-verify` and no agent commit helper's `noVerify` option. lint-staged must run `vendor/bin/phpcbf` (auto-fix) followed by `vendor/bin/phpcs` on staged PHP files.
+- `vendor/bin/phpcs` lints the whole repository through `composer lint`, so every file it reports must be clean before the commit lands; fix a pre-existing violation or report it, never skip it.
+- Run `composer lint` and the specific `composer test` filter for the change before committing, and push only after those gates passed for the exact commits being pushed.
+- lint-staged stashes the worktree while it runs and may leave a `lint-staged automatic backup` stash. Re-check `git status` and `git show --stat` after the commit: a staged hunk can silently drop when a file mixes your edits with pre-existing ones.
