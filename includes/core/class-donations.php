@@ -485,7 +485,9 @@ class Donations extends Base {
 
 		// Anonymous donation.
 		if ( isset( $data['anonymous_donation'] ) ) {
-			$is_anonymous = ( 'yes' === $data['anonymous_donation'] || true === $data['anonymous_donation'] || '1' === $data['anonymous_donation'] );
+			// A checkbox without a value attribute submits `on`, so every truthy
+			// spelling a form can produce must count.
+			$is_anonymous = in_array( strtolower( (string) $data['anonymous_donation'] ), array( '1', 'on', 'true', 'yes' ), true );
 			update_post_meta( $donation_id, '_anonymous_donation', $is_anonymous ? 'yes' : 'no' );
 			update_post_meta( $donation_id, '_anonymous', $is_anonymous ? 'yes' : 'no' );
 		}

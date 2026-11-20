@@ -185,6 +185,17 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 			<div class="nav-tab-wrapper">
 				<a href="#general-tab" class="nav-tab nav-tab-active"><?php esc_html_e( 'General', 'giftflow' ); ?></a>
 				<a href="#advanced-tab" class="nav-tab"><?php esc_html_e( 'Advanced', 'giftflow' ); ?></a>
+				<?php
+				/**
+				 * Fires inside the Campaign Details tab navigation, after the
+				 * built-in tabs. Add-ons print their own `<a class="nav-tab">`
+				 * anchor here and the matching panel on
+				 * `giftflow_campaign_details_panels`.
+				 *
+				 * @param \WP_Post $post Campaign post.
+				 */
+				do_action( 'giftflow_campaign_details_tabs', $post );
+				?>
 			</div>
 			
 			<div id="general-tab" class="tab-content active">
@@ -246,6 +257,18 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 				}
 				?>
 			</div>
+
+			<?php
+			/**
+			 * Fires inside the Campaign Details tab panels, after the built-in
+			 * panels. Add-ons print their own `<div class="tab-content">` panel
+			 * here, matching the anchor added on
+			 * `giftflow_campaign_details_tabs`.
+			 *
+			 * @param \WP_Post $post Campaign post.
+			 */
+			do_action( 'giftflow_campaign_details_panels', $post );
+			?>
 		</div>
 		<?php
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -53,6 +53,27 @@ final class CheckoutExtension {
 	const ACTION_FAILED = 'giftflow_checkout_extension_failed';
 
 	/**
+	 * Filter: `apply_filters( 'giftflow_checkout_extension_validate_binding', true, $extension, $binding )`.
+	 *
+	 * A required extension performs its durable work here and returns a
+	 * `WP_Error` to veto the payment before any provider call.
+	 *
+	 * @var string
+	 */
+	const FILTER_VALIDATE_BINDING = 'giftflow_checkout_extension_validate_binding';
+
+	/**
+	 * Peer-to-peer fundraising contract version.
+	 *
+	 * Extensions that require a fail-closed preparation result and a vetoable
+	 * binding step compare this value. It is incremented only when the wire
+	 * behaviour of `prepare()`/`bind()` changes incompatibly.
+	 *
+	 * @var int
+	 */
+	const P2P_CONTRACT_VERSION = 1;
+
+	/**
 	 * Maximum stored provider reference length (Stripe/PayPal ids fit easily).
 	 *
 	 * @var int
@@ -73,11 +94,22 @@ final class CheckoutExtension {
 	/**
 	 * Whether the extension result means "no extension".
 	 *
+	 * Only `null` and an empty array mean "no extension". A `WP_Error` is a
+	 * decision, never an absent extension, so it is never reported as empty.
+	 *
 	 * @param mixed $extension Value returned by {@see CheckoutExtension::prepare()}.
 	 * @return bool
 	 */
 	public static function is_empty( $extension ) {
-		return empty( $extension ) || ! is_array( $extension );
+		if ( null === $extension ) {
+			return true;
+		}
+
+		if ( is_array( $extension ) ) {
+			return empty( $extension );
+		}
+
+		return false;
 	}
 
 	/**
@@ -100,6 +132,13 @@ final class CheckoutExtension {
 		 * @param array $context   Server-resolved context: gateway, environment, currency, raw_amount, donation_type, campaign_id, provider_account, is_recurring.
 		 */
 		$extension = apply_filters( self::FILTER_PREPARE, array(), $fields, $context );
+
+		// An extension that refuses the checkout must stop it. `empty()` reports a
+		// WP_Error as empty, which previously turned a refusal into an ordinary,
+		// attribution-less checkout.
+		if ( $extension instanceof \WP_Error ) {
+			return $extension;
+		}
 
 		if ( self::is_empty( $extension ) ) {
 			return array();
@@ -239,21 +278,27 @@ final class CheckoutExtension {
 	}
 
 	/**
-	 * Notify extension owners that the attempt is bound to a donation.
+	 * Validate and bind an extension attempt to a Core donation.
+	 *
+	 * A required extension performs its durable binding work in the
+	 * `giftflow_checkout_extension_validate_binding` filter and returns a
+	 * `WP_Error` to veto the payment. Every caller must therefore check the
+	 * result *before* touching the payment provider: a `WP_Error` means the
+	 * payment must not start.
 	 *
 	 * @param array $extension Validated extension data.
 	 * @param array $binding   Binding facts: donation_id, provider_id (optional), gateway (optional).
-	 * @return void
+	 * @return true|\WP_Error True when binding succeeded or no extension is active.
 	 */
 	public static function bind( array $extension, array $binding ) {
 		if ( self::is_empty( $extension ) ) {
-			return;
+			return true;
 		}
 
 		$binding['donation_id'] = isset( $binding['donation_id'] ) ? (int) $binding['donation_id'] : 0;
 
 		if ( $binding['donation_id'] <= 0 ) {
-			return;
+			return new \WP_Error( 'giftflow_checkout_extension_binding_invalid', __( 'The checkout could not be bound to a donation.', 'giftflow' ) );
 		}
 
 		if ( isset( $binding['provider_id'] ) ) {
@@ -261,12 +306,38 @@ final class CheckoutExtension {
 		}
 
 		/**
+		 * Filter whether the extension attempt may be bound to this donation.
+		 *
+		 * Extensions that must record durable attribution do it here, inside the
+		 * request that creates the donation, and return a `WP_Error` when the
+		 * checkout must not continue. Returning the value unchanged keeps Core's
+		 * behaviour for extensions that only observe the bound action.
+		 *
+		 * @param true|\WP_Error $result    Validation result.
+		 * @param array          $extension Validated extension data.
+		 * @param array          $binding   Binding facts.
+		 */
+		$result = apply_filters( self::FILTER_VALIDATE_BINDING, true, $extension, $binding );
+
+		if ( $result instanceof \WP_Error ) {
+			return $result;
+		}
+
+		if ( true !== $result ) {
+			return new \WP_Error( 'giftflow_checkout_extension_binding_invalid', __( 'The checkout extension rejected this payment.', 'giftflow' ) );
+		}
+
+		/**
 		 * Fires when an extended checkout attempt is bound to a Core donation.
+		 *
+		 * Runs only after every registered requirement accepted the binding.
 		 *
 		 * @param array $extension Validated extension data.
 		 * @param array $binding   Binding facts.
 		 */
 		do_action( self::ACTION_BOUND, $extension, $binding );
+
+		return true;
 	}
 
 	/**

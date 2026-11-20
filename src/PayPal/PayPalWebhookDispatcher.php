@@ -551,8 +551,12 @@ final class PayPalWebhookDispatcher {
 				)
 			);
 
-			$this->emit_observation( 'paid', (int) $renewal, $environment, $sale, $sale, false );
+			// Notify extension owners (e.g. peer-to-peer attribution inheritance)
+			// BEFORE the paid observation, matching the Stripe renewal order. A
+			// consumer that must exist before settlement gets its chance here.
 			do_action( 'giftflow_paypal_recurring_renewal_created', $renewal, $parent, $subscription, $resource );
+
+			$this->emit_observation( 'paid', (int) $renewal, $environment, $sale, $sale, false );
 		}
 
 		$this->refresh_next_payment_date( $parent, $subscription, $environment );
