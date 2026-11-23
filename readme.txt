@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.15
+Stable tag: 1.1.16
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,15 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.1.16 =
+* Fix: The donor account dashboard no longer triggers an "Undefined array key full_name" warning for logged-in users without a matching donor record; the greeting falls back to the donor names, then the WordPress display name, then a translated "Donor" label.
+* Fix: The anonymous donation choice is honored for every truthy checkbox spelling (`on`, `true`, `ON`, `1`), not only `yes`.
+* Fix: A checkout extension refusal is returned as a `WP_Error` and can now veto the payment instead of silently producing an ordinary, attribution-less checkout; a replayed prepare response no longer charges twice.
+* Fix: Bank transfer observations keep the environment the extended checkout actually charged under, and PayPal recurring renewals now emit `giftflow_paypal_recurring_renewal_created` before the paid observation, matching Stripe.
+* New: `giftflow_campaign_details_tabs` and `giftflow_campaign_details_panels` extension points for adding tabs to the Campaign Details meta box.
+* New: `giftflow_campaign_raised_amount` filter for reporting a single environment/currency campaign total, and a `from_name` override for `giftflow_send_mail_template()` that leaves the envelope address Core-owned.
+* Dev: `P2P_CONTRACT_VERSION` for peer-to-peer consumers and stricter checkout extension binding validation.
 
 = 1.1.15 =
 * New: Donor account sidebar slot, `giftflow_donor_account_before_nav`, fired inside the navigation column in both block and classic rendering so extensions can render a donor card above the navigation.
