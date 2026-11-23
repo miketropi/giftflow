@@ -10,16 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-// donor.
+// donor. May be null when the current user has no donor record yet.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$donor = $donor ?? array();
+$donor = is_array( $donor ) ? $donor : array();
 
-// get name.
+// get name: donor full name, then donor first/last name, then WP user display name.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$name = $donor['full_name'];
-if ( empty( trim( $name ) ) ) {
-  // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-	$name = 'donor';
+$name = trim( isset( $donor['full_name'] ) ? (string) $donor['full_name'] : '' );
+if ( '' === $name ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	$name = trim( trim( isset( $donor['first_name'] ) ? (string) $donor['first_name'] : '' ) . ' ' . trim( isset( $donor['last_name'] ) ? (string) $donor['last_name'] : '' ) );
+}
+if ( '' === $name ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	$donor_user = ! empty( $current_user_id ) ? get_userdata( $current_user_id ) : wp_get_current_user();
+	if ( $donor_user && $donor_user->exists() ) {
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+		$name = trim( (string) $donor_user->display_name );
+	}
+}
+if ( '' === $name ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	$name = __( 'Donor', 'giftflow' );
 }
 ?>
 <div class="giftflow-donor-account-dashboard">
