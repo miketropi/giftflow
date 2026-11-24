@@ -505,7 +505,7 @@ class Stripe_Gateway extends Gateway_Base {
 			$charge_currency = strtolower( (string) $extension['currency'] );
 		} else {
 			// Convert amount to cents (Stripe expects smallest currency unit).
-			$amount_in_cents = (int) ( (float) $data['donation_amount'] * 100 );
+			$amount_in_cents = (int) round( (float) $data['donation_amount'] * 100 );
 			$charge_currency = strtolower( $this->get_currency() );
 		}
 
@@ -639,7 +639,7 @@ class Stripe_Gateway extends Gateway_Base {
 			$amount_cents      = (int) $extension['amount_minor'];
 			$price_currency    = strtolower( (string) $extension['currency'] );
 		} else {
-			$amount_cents      = (int) ( (float) $data['donation_amount'] * 100 );
+			$amount_cents      = (int) round( (float) $data['donation_amount'] * 100 );
 			$price_currency    = strtolower( $this->get_currency() );
 		}
 

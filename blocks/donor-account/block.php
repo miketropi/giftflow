@@ -95,19 +95,49 @@ function giftflow_donor_account_tabs() {
 }
 
 /**
+ * Resolve the donor account page path, including parent pages.
+ *
+ * `post_name` alone breaks nested pages and yields '' when no page is
+ * configured; both cases produced a rewrite rule that matched the wrong URLs.
+ *
+ * @return string Page path without leading/trailing slashes, or '' when unset.
+ */
+function giftflow_donor_account_page_path() {
+	$donor_account_page_id = (int) giftflow_get_donor_account_page();
+
+	if ( $donor_account_page_id <= 0 || ! get_post( $donor_account_page_id ) ) {
+		return '';
+	}
+
+	$path = get_page_uri( $donor_account_page_id );
+
+	return is_string( $path ) ? trim( $path, '/' ) : '';
+}
+
+/**
  * Add action to register donor account page rewrite rules.
  */
 add_action(
 	'init',
 	function () {
-		$donor_account_page_id = giftflow_get_donor_account_page();
-		$slug                  = get_post_field( 'post_name', $donor_account_page_id );
+		$path = giftflow_donor_account_page_path();
+
+		if ( '' === $path ) {
+			return;
+		}
 
 		add_rewrite_rule(
-			'^' . $slug . '/([^/]*)/?',
-			'index.php?pagename=' . $slug . '&tab=$matches[1]',
+			'^' . preg_quote( $path, '#' ) . '/([^/]*)/?$',
+			'index.php?pagename=' . $path . '&tab=$matches[1]',
 			'top'
 		);
+
+		// Rules added on init are not persisted; flush once when the resolved path
+		// changes instead of waiting for Settings → Permalinks to be re-saved.
+		if ( get_option( 'giftflow_donor_account_rule_path' ) !== $path ) {
+			update_option( 'giftflow_donor_account_rule_path', $path, false );
+			flush_rewrite_rules( false );
+		}
 	}
 );
 
@@ -126,21 +156,24 @@ add_filter(
  * Get donor account page URL.
  *
  * @param string $tab The tab slug.
- * @return string The donor account page URL.
+ * @return string The donor account page URL, or '' when no page is configured.
  */
 function giftflow_donor_account_page_url( $tab ) {
-	$donor_account_page_id = giftflow_get_donor_account_page();
-	$slug                  = get_post_field( 'post_name', $donor_account_page_id );
+	$path = giftflow_donor_account_page_path();
 
-	$tab = trim( $tab, '/' );
+	if ( '' === $path ) {
+		return '';
+	}
+
+	$tab = trim( (string) $tab, '/' );
 	if ( get_option( 'permalink_structure' ) ) {
 		// pretty permalinks enabled.
-		return home_url( '/' . $slug . '/' . $tab );
+		return home_url( '/' . $path . '/' . $tab );
 	} else {
 		// plain permalinks -> query-string style.
 		return add_query_arg(
 			array(
-				'pagename' => $slug,
+				'pagename' => $path,
 				'tab'      => $tab,
 			),
 			home_url( '/' )
@@ -308,7 +341,7 @@ function giftflow_donor_account_my_account_callback() {
 		'giftflow_update_password'
 	)
 	) {
-		$password_result = giftflow_process_password_form( $current_user, $post_data );
+		$password_result = giftflow_process_password_form( $current_user, wp_unslash( $_POST ) );
 	}
 
 	// =============================================================================
@@ -449,16 +482,19 @@ function giftflow_sanitize_account_form_data( $post_data = array() ) {
 }
 
 /**
- * Sanitize password form data
+ * Collect password form data.
+ *
+ * Passwords are never sanitized: `sanitize_text_field()` strips tags, trims and
+ * decodes `%xx` sequences, so the value would no longer match what the user typed.
  *
  * @param array $post_data The post data.
- * @return array The sanitized form data.
+ * @return array The password form data.
  */
 function giftflow_sanitize_password_form_data( $post_data = array() ) {
 	return array(
-		'current_password' => sanitize_text_field( wp_unslash( $post_data['giftflow_current_password'] ?? '' ) ),
-		'new_password'     => sanitize_text_field( wp_unslash( $post_data['giftflow_new_password'] ?? '' ) ),
-		'confirm_password' => sanitize_text_field( wp_unslash( $post_data['giftflow_confirm_password'] ?? '' ) ),
+		'current_password' => isset( $post_data['giftflow_current_password'] ) ? (string) $post_data['giftflow_current_password'] : '',
+		'new_password'     => isset( $post_data['giftflow_new_password'] ) ? (string) $post_data['giftflow_new_password'] : '',
+		'confirm_password' => isset( $post_data['giftflow_confirm_password'] ) ? (string) $post_data['giftflow_confirm_password'] : '',
 	);
 }
 

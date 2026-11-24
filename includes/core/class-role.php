@@ -74,8 +74,9 @@ class Role extends Base {
 	public function assign_donor_role( $user_id ) {
 		$user = get_user_by( 'id', $user_id );
 		if ( $user && ! in_array( 'giftflow_donor', $user->roles, true ) ) {
-			// set role.
-			$user->set_role( 'giftflow_donor' );
+			// add_role() keeps every existing role; set_role() would strip an
+			// administrator/editor down to subscriber.
+			$user->add_role( 'giftflow_donor' );
 
 			// add more role subscriber.
 			$user->add_role( 'subscriber' );

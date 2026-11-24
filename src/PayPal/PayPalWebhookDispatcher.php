@@ -525,7 +525,6 @@ final class PayPalWebhookDispatcher {
 			}
 
 			foreach ( array(
-				'_status'               => 'completed',
 				'_parent_donation_id'   => $parent,
 				'_paypal_sale_id'       => $sale,
 				'_paypal_subscription_id' => $subscription,
@@ -535,6 +534,8 @@ final class PayPalWebhookDispatcher {
 			) as $key => $value ) {
 				update_post_meta( $renewal, $key, $value );
 			}
+
+			( new Donations() )->update_status( $renewal, 'completed' );
 
 			Donation_Event_History::add(
 				$renewal,

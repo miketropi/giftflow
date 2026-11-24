@@ -228,7 +228,6 @@ class Plugin {
 		$this->unschedule_logs_cleanup();
 
 		$role = \GiftFlow\Core\Role::get_instance();
-		$role->remove_roles();
 		$role->remove_capabilities();
 	}
 

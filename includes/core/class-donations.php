@@ -116,6 +116,11 @@ class Donations extends Base {
 		// Save donation meta fields.
 		$this->save_donation_meta( $donation_id, $data );
 
+		// Apply the requested status transition through the single hook-firing path.
+		if ( isset( $data['status'] ) && in_array( $data['status'], $this->valid_statuses, true ) ) {
+			$this->update_status( $donation_id, $data['status'] );
+		}
+
 		/**
 		 * Fires after a donation is created.
 		 *
@@ -179,6 +184,11 @@ class Donations extends Base {
 
 		// Update donation meta fields.
 		$this->save_donation_meta( $donation_id, $data );
+
+		// Apply the requested status transition through the single hook-firing path.
+		if ( isset( $data['status'] ) && in_array( $data['status'], $this->valid_statuses, true ) ) {
+			$this->update_status( $donation_id, $data['status'] );
+		}
 
 		/**
 		 * Fires after a donation is updated.
@@ -492,13 +502,10 @@ class Donations extends Base {
 			update_post_meta( $donation_id, '_anonymous', $is_anonymous ? 'yes' : 'no' );
 		}
 
-		// Status.
-		if ( isset( $data['status'] ) ) {
-			if ( in_array( $data['status'], $this->valid_statuses, true ) ) {
-				update_post_meta( $donation_id, '_status', $data['status'] );
-			}
-		} elseif ( ! get_post_meta( $donation_id, '_status', true ) ) {
-			// Set default status if not provided.
+		// Status. The requested status is applied by create()/update() through
+		// update_status() so giftflow_donation_status_* hooks fire; here we only
+		// guarantee a row exists.
+		if ( ! get_post_meta( $donation_id, '_status', true ) ) {
 			update_post_meta( $donation_id, '_status', 'pending' );
 		}
 
@@ -669,7 +676,11 @@ class Donations extends Base {
 		// Save donor email and name.
 		update_post_meta( $donor_id, '_email', sanitize_email( $email ) );
 		if ( isset( $data['donor_name'] ) ) {
-			update_post_meta( $donor_id, '_first_name', sanitize_text_field( $data['donor_name'] ) );
+			$donor_name = sanitize_text_field( $data['donor_name'] );
+			$name_parts = preg_split( '/\s+/u', trim( $donor_name ), 2 );
+
+			update_post_meta( $donor_id, '_first_name', isset( $name_parts[0] ) ? $name_parts[0] : '' );
+			update_post_meta( $donor_id, '_last_name', isset( $name_parts[1] ) ? $name_parts[1] : '' );
 		}
 
 		/**

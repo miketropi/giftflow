@@ -128,12 +128,11 @@ class Donation_Event_History {
 		$orderby    = isset( $args['orderby'] ) && in_array( $args['orderby'], array( 'id', 'event', 'status', 'created_at' ), true ) ? $args['orderby'] : 'created_at';
 		$limit      = isset( $args['limit'] ) ? absint( $args['limit'] ) : 0;
 
+		// Identifiers cannot be bound by prepare(); both values are whitelisted above.
 		$sql = $wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			'SELECT * FROM ' . $table_name . ' WHERE donation_id = %d ORDER BY %s %s',
-			$donation_id,
-			$orderby,
-			$order
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			'SELECT * FROM ' . $table_name . ' WHERE donation_id = %d ORDER BY ' . $orderby . ' ' . $order,
+			$donation_id
 		);
 		if ( $limit > 0 ) {
 			$sql .= $wpdb->prepare( ' LIMIT %d', $limit );

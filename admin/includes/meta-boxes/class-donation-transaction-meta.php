@@ -306,7 +306,10 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 				if ( 'status' === $field_id ) {
 					$old_status = get_post_meta( $post_id, '_status', true );
 					if ( $old_status !== $new_value ) {
-						update_post_meta( $post_id, '_' . $field_id, $new_value );
+						// Single hook-firing path: giftflow_donation_status_updated and
+						// giftflow_donation_status_{$status} must observe admin edits.
+						$donations = new \GiftFlow\Core\Donations();
+						$donations->update_status( $post_id, $new_value );
 						Donation_Event_History::add(
 							$post_id,
 							'admin_status_updated',

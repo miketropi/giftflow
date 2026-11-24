@@ -100,7 +100,8 @@ add_action(
 				'methods'             => 'GET',
 				'callback'            => 'giftflow_export_campaign_csv',
 				'permission_callback' => function () {
-					return current_user_can( 'edit_posts' ); // Editor, Author, Admin.
+					// The export contains donor names and emails for every campaign.
+					return current_user_can( 'manage_options' );
 				},
 				'args'                => array(
 					'campaign_id' => array(
@@ -215,7 +216,7 @@ function giftflow_get_dashboard_statistics_charts( $request ) {
 }
 
 /**
- * Handle POST /wp-json/giftflow/v1/campaign/csv-export.
+ * Handle GET /wp-json/giftflow/v1/campaign/csv-export.
  * Exports the campaign CSV.
 
  * @param WP_REST_Request $request The request object.
@@ -229,5 +230,9 @@ function giftflow_export_campaign_csv( $request ) {
 	$campaign_id = $request->get_param( 'campaign_id' );
 	$date_from   = $request->get_param( 'date_from' );
 	$date_to     = $request->get_param( 'date_to' );
-	$export      = new GiftFlow_Export( $campaign_id, 'all', $date_from, $date_to, true, true, 'csv' );
+
+	// Only a custom period reads the dates; 'all' silently ignored them.
+	$period = ( ! empty( $date_from ) && ! empty( $date_to ) ) ? 'custom' : 'all';
+
+	$export      = new GiftFlow_Export( $campaign_id, $period, $date_from, $date_to, true, true, 'csv' );
 }

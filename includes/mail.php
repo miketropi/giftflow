@@ -445,10 +445,9 @@ function giftflow_send_mail_notification_donation_to_admin( $donation_id ) {
 }
 
 // Send the donor thank-you only when the donation is actually confirmed as completed.
+// The Donation Management screen now updates status through Donations::update_status(),
+// so this hook covers administrative confirmations too.
 add_action( 'giftflow_donation_status_completed', 'giftflow_send_donor_thank_you_email_on_completed', 10, 1 );
-
-// Direct bank transfer is confirmed through Donation Management, which writes the status meta directly.
-add_action( 'giftflow_donation_management_saved', 'giftflow_send_donor_thank_you_email_after_management_save', 10, 4 );
 
 /**
  * Send the donor thank-you when a donation transitions to completed.
@@ -457,29 +456,6 @@ add_action( 'giftflow_donation_management_saved', 'giftflow_send_donor_thank_you
  * @return bool Whether the email was sent.
  */
 function giftflow_send_donor_thank_you_email_on_completed( $donation_id ) {
-	return giftflow_send_donor_thank_you_email( $donation_id );
-}
-
-/**
- * Send the donor thank-you after a Donation Management save completes a donation.
- *
- * The management screen writes `_status` directly instead of going through
- * Donations::update_status(), so the status hooks do not fire for a direct bank
- * transfer confirmed by an administrator.
- *
- * @param int    $donation_id The donation ID.
- * @param string $old_status Status before the save.
- * @param string $new_status Status after the save.
- * @param int    $actor_id Acting user ID. Unused.
- * @return bool Whether the email was sent.
- */
-function giftflow_send_donor_thank_you_email_after_management_save( $donation_id, $old_status, $new_status, $actor_id ) {
-	unset( $actor_id );
-
-	if ( 'completed' !== $new_status || 'completed' === $old_status ) {
-		return false;
-	}
-
 	return giftflow_send_donor_thank_you_email( $donation_id );
 }
 

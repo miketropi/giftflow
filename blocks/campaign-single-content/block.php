@@ -142,7 +142,12 @@ function giftflow_campaign_single_content_tab_campaign( $post_id ) {
 	?>
 	<div class="campaign-post-content theme-global-prose">
 		<!-- Campaign post content by id. -->
-		<?php echo wp_kses_post( get_the_content( $post_id ) ); ?>
+		<?php
+		// Run the content filters so dynamic blocks (FAQ, status bar, …) render;
+		// wp_kses_post alone has no block comment to expand, leaving self-closing
+		// dynamic blocks empty.
+		echo apply_filters( 'the_content', get_the_content( null, false, $post_id ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the_content filters escape their output.
+		?>
 	</div>
 	<?php
 		/**

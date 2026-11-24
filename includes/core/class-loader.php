@@ -546,9 +546,9 @@ class Loader extends Base {
 	 */
 	public function deactivate() {
 		$this->unschedule_logs_cleanup();
-		// Clean up roles and capabilities.
+		// Keep the role definition: deleting it orphans every donor user, who
+		// would then hold a role slug that no longer exists.
 		$role_manager = \GiftFlow\Core\Role::get_instance();
-		$role_manager->remove_roles();
 		$role_manager->remove_capabilities();
 	}
 

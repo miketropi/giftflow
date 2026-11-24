@@ -69,10 +69,15 @@ function giftflow_get_total_donations_amount() {
 			SELECT SUM(CAST(pm.meta_value AS DECIMAL(10,2)))
 			FROM {$wpdb->postmeta} pm
 			INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+			INNER JOIN {$wpdb->postmeta} status_pm ON status_pm.post_id = p.ID
+				AND status_pm.meta_key = %s
+				AND status_pm.meta_value = %s
 			WHERE pm.meta_key = %s
 			AND p.post_type = %s
 			AND p.post_status = %s
 			",
+			'_status',
+			'completed',
 			'_amount',
 			'donation',
 			'publish'

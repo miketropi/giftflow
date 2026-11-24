@@ -559,10 +559,37 @@ function giftflow_get_campaign_donations( $campaign_id, $args = array(), $paged 
 		)
 	);
 
-	// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-	$args['meta_key'] = '_campaign_id';
-	// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-	$args['meta_value'] = $campaign_id;
+	// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+	$meta_query = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) ? $args['meta_query'] : array();
+
+	// Only completed donations are public; added here so every caller agrees with
+	// the AJAX pagination, which already filtered on `_status`.
+	$has_status_clause = false;
+	foreach ( $meta_query as $clause ) {
+		if ( is_array( $clause ) && isset( $clause['key'] ) && '_status' === $clause['key'] ) {
+			$has_status_clause = true;
+			break;
+		}
+	}
+
+	$meta_query['relation'] = 'AND';
+	$meta_query[]           = array(
+		'key'     => '_campaign_id',
+		'value'   => $campaign_id,
+		'compare' => '=',
+	);
+
+	if ( ! $has_status_clause ) {
+		$meta_query[] = array(
+			'key'     => '_status',
+			'value'   => 'completed',
+			'compare' => '=',
+		);
+	}
+
+	// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+	$args['meta_query'] = $meta_query;
+	unset( $args['meta_key'], $args['meta_value'] );
 
 	$donations = new WP_Query( $args );
 
@@ -576,7 +603,7 @@ function giftflow_get_campaign_donations( $campaign_id, $args = array(), $paged 
 				$donor_meta['id'] = get_post_meta( $post->ID, '_donor_id', true );
 
 				// donor name.
-				$donor_full_name = get_post_meta( $donor_meta['id'], '_first_name', true ) . ' ' . get_post_meta( $donor_meta['id'], '_last_name', true );
+				$donor_full_name = trim( get_post_meta( $donor_meta['id'], '_first_name', true ) . ' ' . get_post_meta( $donor_meta['id'], '_last_name', true ) );
 				if ( ! $donor_full_name ) {
 					$donor_full_name = get_the_title( $donor_meta['id'] );
 				}
@@ -702,7 +729,7 @@ function giftflow_get_donation_data_by_id( $donation_id ) {
 
 	$donor_id = get_post_meta( $donation_id, '_donor_id', true );
 	// donor_name = first name + last name.
-	$donation_data->donor_name = $donor_id ? get_post_meta( $donor_id, '_first_name', true ) . ' ' . get_post_meta( $donor_id, '_last_name', true ) : esc_html__( '???', 'giftflow' );
+	$donation_data->donor_name = $donor_id ? trim( get_post_meta( $donor_id, '_first_name', true ) . ' ' . get_post_meta( $donor_id, '_last_name', true ) ) : esc_html__( '???', 'giftflow' );
 	$donation_data->donor_email = $donor_id ? get_post_meta( $donor_id, '_email', true ) : '';
 
 	// message.
@@ -1256,38 +1283,77 @@ function giftflow_donation_form_add_recaptcha_field() {
 }
 
 /**
+ * Read the Google reCAPTCHA configuration.
+ *
+ * The integration only works when it is enabled and both keys are present; a
+ * half-configured setup must neither block donations nor silently skip the check.
+ *
+ * @return array{enabled:bool,site_key:string,secret_key:string,configured:bool}
+ */
+function giftflow_get_recaptcha_config() {
+	$api_options = get_option( 'giftflow_options_with_api_keys_options' );
+	$settings    = isset( $api_options['google_recaptcha'] ) && is_array( $api_options['google_recaptcha'] ) ? $api_options['google_recaptcha'] : array();
+
+	$enabled    = isset( $settings['google_recaptcha_enabled'] ) && '1' === (string) $settings['google_recaptcha_enabled'];
+	$site_key   = isset( $settings['google_recaptcha_site_key'] ) ? trim( (string) $settings['google_recaptcha_site_key'] ) : '';
+	$secret_key = isset( $settings['google_recaptcha_secret_key'] ) ? trim( (string) $settings['google_recaptcha_secret_key'] ) : '';
+
+	return array(
+		'enabled'    => $enabled,
+		'site_key'   => $site_key,
+		'secret_key' => $secret_key,
+		'configured' => $enabled && '' !== $site_key && '' !== $secret_key,
+	);
+}
+
+/**
+ * Warn admins about an enabled but incomplete reCAPTCHA configuration.
+ *
+ * @return void
+ */
+function giftflow_recaptcha_configuration_notice() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$recaptcha = giftflow_get_recaptcha_config();
+
+	if ( ! $recaptcha['enabled'] || $recaptcha['configured'] ) {
+		return;
+	}
+
+	echo '<div class="notice notice-warning"><p>';
+	esc_html_e( 'GiftFlow reCAPTCHA is enabled but incomplete: both the site key and the secret key are required. Verification stays disabled until both are filled in.', 'giftflow' );
+	echo '</p></div>';
+}
+add_action( 'admin_notices', 'giftflow_recaptcha_configuration_notice' );
+
+/**
  * Enqueue custom scripts for donation form
  *
  * @return void
  */
 function giftflow_donation_form_enqueue_custom_scripts() {
-	$api_options = get_option( 'giftflow_options_with_api_keys_options' );
+	$recaptcha = giftflow_get_recaptcha_config();
 
-	// google recaptcha.
-	$google_recaptcha_enabled = isset( $api_options['google_recaptcha']['google_recaptcha_enabled'] ) ? $api_options['google_recaptcha']['google_recaptcha_enabled'] : '';
-
-	if ( '1' === $google_recaptcha_enabled ) {
-		$google_recaptcha_site_key = isset( $api_options['google_recaptcha']['google_recaptcha_site_key'] ) ? $api_options['google_recaptcha']['google_recaptcha_site_key'] : '';
-
-		if ( empty( $google_recaptcha_site_key ) ) {
-			return;
-		}
-
-		// enqueue google recaptcha script.
-		wp_enqueue_script( 'giftflow-google-recaptcha', 'https://www.google.com/recaptcha/api.js?render=' . $google_recaptcha_site_key, array(), '1.0.0', true );
-
-		// enqueue grecaptcha script.
-		wp_enqueue_script( 'giftflow-grecaptcha', GIFTFLOW_PLUGIN_URL . 'assets/js/grecaptcha.bundle.js', array( 'giftflow-google-recaptcha', 'giftflow-donation-forms' ), GIFTFLOW_VERSION, true );
-
-		// localize script.
-		wp_localize_script(
-			'giftflow-grecaptcha',
-			'giftflowGoogleRecaptcha',
-			array(
-				'site_key' => $google_recaptcha_site_key,
-			)
-		);
+	if ( ! $recaptcha['configured'] ) {
+		return;
 	}
+
+	// enqueue google recaptcha script.
+	wp_enqueue_script( 'giftflow-google-recaptcha', 'https://www.google.com/recaptcha/api.js?render=' . $recaptcha['site_key'], array(), '1.0.0', true );
+
+	// enqueue grecaptcha script.
+	wp_enqueue_script( 'giftflow-grecaptcha', GIFTFLOW_PLUGIN_URL . 'assets/js/grecaptcha.bundle.js', array( 'giftflow-google-recaptcha', 'giftflow-donation-forms' ), GIFTFLOW_VERSION, true );
+
+	// localize script.
+	wp_localize_script(
+		'giftflow-grecaptcha',
+		'giftflowGoogleRecaptcha',
+		array(
+			'site_key' => $recaptcha['site_key'],
+		)
+	);
 }
 
 /**
@@ -1297,17 +1363,12 @@ function giftflow_donation_form_enqueue_custom_scripts() {
  * @return void
  */
 function giftflow_donation_form_validate_recaptcha( $fields ) {
-	// get recaptcha token.
-	$api_options = get_option( 'giftflow_options_with_api_keys_options' );
-	$google_recaptcha_enabled = isset( $api_options['google_recaptcha']['google_recaptcha_enabled'] ) ? $api_options['google_recaptcha']['google_recaptcha_enabled'] : '';
+	$recaptcha = giftflow_get_recaptcha_config();
 
-	if ( '1' !== $google_recaptcha_enabled ) {
-		return;
-	}
-
-	$google_recaptcha_secret_key = isset( $api_options['google_recaptcha']['google_recaptcha_secret_key'] ) ? $api_options['google_recaptcha']['google_recaptcha_secret_key'] : '';
-
-	if ( empty( $google_recaptcha_secret_key ) ) {
+	// Incomplete configuration (one key missing) is treated as disabled: the
+	// client never receives a token in that state, so requiring one would block
+	// every donation.
+	if ( ! $recaptcha['configured'] ) {
 		return;
 	}
 
@@ -1322,17 +1383,32 @@ function giftflow_donation_form_validate_recaptcha( $fields ) {
 		'https://www.google.com/recaptcha/api/siteverify',
 		array(
 			'body' => array(
-				'secret' => $google_recaptcha_secret_key,
+				'secret' => $recaptcha['secret_key'],
 				'response' => $recaptcha_token,
 			),
 		)
 	);
 
+	if ( is_wp_error( $response ) ) {
+		// Fail open on transport errors: losing a donation because Google is
+		// unreachable is worse than letting one unverified request through.
+		do_action( 'giftflow_recaptcha_verification_error', $response );
+		return;
+	}
+
 	// decode response body.
-	$result = json_decode( $response['body'], true );
+	$result = json_decode( wp_remote_retrieve_body( $response ), true );
+
+	if ( ! is_array( $result ) || ! isset( $result['success'] ) ) {
+		do_action( 'giftflow_recaptcha_verification_error', $result );
+		return;
+	}
+
+	// v3 responses carry a score; v2 responses do not, so a missing score passes.
+	$score = isset( $result['score'] ) ? (float) $result['score'] : 1.0;
 
 	// if success and score is greater than 0.5, return true.
-	if ( ! $result['success'] || $result['score'] < 0.5 ) {
+	if ( empty( $result['success'] ) || $score < 0.5 ) {
 		wp_send_json_error( array( 'message' => __( 'Internal error: reCAPTCHA verification failed. Please try again!', 'giftflow' ) ) );
 	}
 }
@@ -1364,6 +1440,10 @@ function giftflow_prepare_campaign_status_bar_data( $post_id ) {
 		$raised_amount = giftflow_get_campaign_raised_amount( $post_id );
 		$progress_percentage = giftflow_get_campaign_progress_percentage( $post_id );
 		$days_left = giftflow_get_campaign_days_left( $post_id );
+
+		$template_data['goal_amount']         = $goal_amount;
+		$template_data['raised_amount']       = $raised_amount;
+		$template_data['progress_percentage'] = $progress_percentage;
 
 		// Get unique donor count (not donation count).
 		global $wpdb;

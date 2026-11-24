@@ -983,7 +983,7 @@ final class StripeWebhookDispatcher {
 		}
 
 		update_post_meta( $renewal_id, StripeDonationBinding::META_ENVIRONMENT, $environment );
-		update_post_meta( $renewal_id, '_status', 'completed' );
+		( new Donations() )->update_status( $renewal_id, 'completed' );
 		update_post_meta( $renewal_id, '_parent_donation_id', $parent_donation_id );
 		update_post_meta( $renewal_id, '_stripe_invoice_id', $invoice_id );
 		update_post_meta( $renewal_id, '_stripe_subscription_id', $subscription_id );

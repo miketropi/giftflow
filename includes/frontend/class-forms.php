@@ -293,6 +293,65 @@ class Forms extends Base {
 			return false;
 		}
 
+		// Global amount bounds mirror the form's min/max attributes; the browser
+		// hint is not a security boundary.
+		$min_option = giftflow_get_options( 'min_amount', 'giftflow_general_options', 1 );
+		$min_amount = is_numeric( $min_option ) && (float) $min_option > 0 ? (float) $min_option : 1;
+		$max_option = giftflow_get_options( 'max_amount', 'giftflow_general_options', '' );
+		$max_amount = is_numeric( $max_option ) && (float) $max_option > 0 ? (float) $max_option : 0;
+
+		if ( $donation_amount < $min_amount ) {
+			return false;
+		}
+
+		if ( $max_amount > 0 && $donation_amount > $max_amount ) {
+			return false;
+		}
+
+		$campaign_id = isset( $data['campaign_id'] ) ? absint( $data['campaign_id'] ) : 0;
+
+		if ( $campaign_id > 0 ) {
+			$campaign = get_post( $campaign_id );
+
+			// A closed, unpublished or non-campaign ID must not accept money.
+			if ( ! $campaign || 'campaign' !== $campaign->post_type || 'publish' !== $campaign->post_status ) {
+				return false;
+			}
+
+			if ( 'closed' === (string) get_post_meta( $campaign_id, '_status', true ) ) {
+				return false;
+			}
+
+			// Respect the campaign's donation-type switches.
+			$donation_type = isset( $data['donation_type'] ) ? sanitize_text_field( (string) $data['donation_type'] ) : 'one-time';
+
+			if ( 'recurring' === $donation_type && ! get_post_meta( $campaign_id, '_recurring', true ) ) {
+				return false;
+			}
+
+			if ( 'recurring' !== $donation_type && ! get_post_meta( $campaign_id, '_one_time', true ) ) {
+				return false;
+			}
+
+			// When custom amounts are disabled the amount must be one of the presets.
+			$allow_custom = filter_var( get_post_meta( $campaign_id, '_allow_custom_donation_amounts', true ), FILTER_VALIDATE_BOOLEAN );
+
+			if ( ! $allow_custom ) {
+				$presets = giftflow_get_preset_donation_amounts_by_campaign( $campaign_id );
+				$allowed = array();
+
+				foreach ( (array) $presets as $preset ) {
+					if ( isset( $preset['amount'] ) ) {
+						$allowed[] = round( (float) $preset['amount'], 2 );
+					}
+				}
+
+				if ( ! empty( $allowed ) && ! in_array( round( $donation_amount, 2 ), $allowed, true ) ) {
+					return false;
+				}
+			}
+		}
+
 		return true;
 	}
 
