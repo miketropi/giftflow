@@ -6,7 +6,7 @@ Tags: donations, fundraising, campaigns, charity, nonprofit
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.16
+Stable tag: 1.1.17
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -310,6 +310,31 @@ Site administrators are responsible for ensuring compliance with applicable priv
 * Reviewing each service's data processing agreements
 
 == Changelog ==
+
+= 1.1.17 =
+* Fix: Stripe charges round the amount to minor units, so 19.99 is charged as 1999 cents instead of 1998 (one-time and recurring).
+* Fix: donation submission is validated server-side — global min/max amounts, campaign existence and publish state, closed/pending campaign status, the campaign's donation-type switches and preset-only amounts — instead of trusting the form.
+* Fix: the campaign Donations tab lists only completed donations, and the dashboard "Total raised" counts only completed donations.
+* Fix: every donation status change goes through `Donations::update_status()`, so `giftflow_donation_status_*` hooks, admin notifications and observers fire for donations created as completed, admin status edits and Stripe/PayPal renewals.
+* Fix: donor accounts are created only when a donation reaches completed, and the welcome mail links to set a password instead of emailing a plaintext credential.
+* Fix: donor names are split into first and last name, composed names are trimmed, and the donation ownership check is case-insensitive.
+* Fix: a missing donor record no longer resolves through the global post, and `giftflow_get_donor_user_information()` returns defaults instead of reading properties off null.
+* Fix: donor account passwords are no longer run through `sanitize_text_field()`, assigning the donor role preserves existing roles, and deactivation no longer deletes the role.
+* Fix: donor account tab routing resolves the full page path (including parent pages), guards an empty slug and flushes once when the path changes.
+* Fix: the campaign status bar receives goal, raised and progress (the bar no longer renders 0%), and the thank-you button uses the configured Donor Account page.
+* Fix: dynamic blocks in a campaign's story content render on the classic single-campaign template.
+* Fix: bank transfer reference numbers are server-validated, longer and checked for uniqueness.
+* Fix: Stripe and PayPal default to the site currency instead of USD.
+* Fix: donation event history sorts by the requested column and direction.
+* Fix: the admin donation screen keeps JSON transaction data and multiline messages intact, and JSON integers keep their sign.
+* Fix: CSV export requires `manage_options`, honours `date_from`/`date_to`, and neutralises spreadsheet formula injection.
+* Fix: reCAPTCHA survives transport failures, tolerates v2 responses and treats a half-configured key pair as disabled instead of blocking every donation.
+* Fix: the test-mail AJAX endpoint requires `manage_options` and answers with JSON.
+* Fix: the donation form shortcode returns an empty string, and the AJAX form loader only serves published campaigns.
+* Fix: the donation list status filter includes `cancelled`, and the Pending campaign copy matches the enforced behaviour.
+* New: `giftflow/donation.created|completed|refunded|failed` and `giftflow/campaign.published|ended` now fire, and `giftflow_donation_before_insert` is a distinct action from the `giftflow_donation_before_create` filter.
+* New: the Share block declares and renders the `customUrl` attribute.
+* Improvement: the campaign raised amount is one SQL aggregate instead of loading every donation and reading its meta.
 
 = 1.1.16 =
 * Fix: The donor account dashboard no longer triggers an "Undefined array key full_name" warning for logged-in users without a matching donor record; the greeting falls back to the donor names, then the WordPress display name, then a translated "Donor" label.
