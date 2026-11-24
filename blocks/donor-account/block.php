@@ -246,7 +246,9 @@ function giftflow_donor_account_my_donations_callback() {
 		}
 
 		// check $donation donor_email is equal to current user email.
-		if ( $donation->donor_email !== $current_user->user_email ) {
+		// Meta lookups are case-insensitive under the DB collation, so the
+		// ownership check must be too.
+		if ( 0 !== strcasecmp( (string) $donation->donor_email, (string) $current_user->user_email ) ) {
 			// return template not allowed to view this donation.
 			giftflow_load_template(
 				'block/donor-account--not-allowed.php',

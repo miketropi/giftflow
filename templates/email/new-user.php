@@ -17,6 +17,8 @@ $username = $username ?? '';
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $password = $password ?? '';
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+$reset_url = $reset_url ?? '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $login_url = $login_url ?? '';
 
 // Get site information.
@@ -98,6 +100,28 @@ $accent_color = '#0b57d0';
 						<span style="">
 							<?php echo esc_html( $password ); ?>
 						</span>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<?php endif; ?>
+	
+	<!-- Set password (a credential is never emailed) -->
+	<?php if ( empty( $password ) && ! empty( $reset_url ) ) : ?>
+	<tr>
+		<td style="padding: .8rem 0; border-bottom: 1px solid #f1f3f4;">
+			<table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+				<tr>
+					<td style="width: 30%; padding: 0; vertical-align: top;">
+						<p style="font-size: 0.9rem; margin: 0;">
+							<?php esc_html_e( 'Set your password:', 'giftflow' ); ?>
+						</p>
+					</td>
+					<td style="width: 70%; padding: 0; vertical-align: top;">
+						<a href="<?php echo esc_url( $reset_url ); ?>" style="color: <?php echo esc_attr( $accent_color ); ?>; text-decoration: none; font-size: 0.9rem;">
+							<?php esc_html_e( 'Choose a password', 'giftflow' ); ?>
+						</a>
 					</td>
 				</tr>
 			</table>

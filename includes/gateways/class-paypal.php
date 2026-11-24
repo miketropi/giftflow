@@ -1991,7 +1991,7 @@ class PayPal_Gateway extends Gateway_Base {
 	 * @return string
 	 */
 	private function get_currency() {
-		return apply_filters( 'giftflow_paypal_currency', 'USD' );
+		return apply_filters( 'giftflow_paypal_currency', giftflow_get_current_currency() );
 	}
 
 	/**

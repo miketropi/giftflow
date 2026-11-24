@@ -53,7 +53,7 @@ class Shortcodes extends Base {
 
 		$campaign_id = intval( $atts['campaign_id'] );
 		if ( ! $campaign_id ) {
-			return;
+			return '';
 		}
 
 		// gateways.
@@ -259,7 +259,7 @@ class Shortcodes extends Base {
 
 		$campaign_id = intval( $atts['campaign_id'] );
 		if ( ! $campaign_id ) {
-			return;
+			return '';
 		}
 
 		// Prepare template data using helper function.

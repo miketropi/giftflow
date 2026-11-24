@@ -16,7 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string
  */
 function giftflow_thank_donor_block_default_button_url() {
-	return add_query_arg( 'gf-direct-to', 'donor-account', home_url( '/' ) );
+	$page_id = (int) giftflow_get_donor_account_page();
+	$url     = $page_id > 0 ? get_permalink( $page_id ) : '';
+
+	return $url ? $url : home_url( '/' );
 }
 
 /**

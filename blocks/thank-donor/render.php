@@ -19,7 +19,7 @@ $gf_button_url   = $attributes['buttonUrl'] ?? '';
 $gf_show_button  = $attributes['showButton'] ?? true;
 
 if ( empty( $gf_button_url ) && $gf_show_button ) {
-	$gf_button_url = home_url( '/donor-account' );
+	$gf_button_url = giftflow_thank_donor_block_default_button_url();
 }
 
 $gf_message      = wp_kses_post( wpautop( $gf_message ) );

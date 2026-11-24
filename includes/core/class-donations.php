@@ -93,11 +93,14 @@ class Donations extends Base {
 		$post_data = apply_filters( 'giftflow_donation_post_data', $post_data, $data );
 
 		/**
-		 * Fires before a donation is created.
+		 * Fires before a donation row is inserted.
+		 *
+		 * Distinct from the `giftflow_donation_before_create` filter above so a
+		 * callback registered on one name is never invoked twice.
 		 *
 		 * @param array $data Donation data.
 		 */
-		do_action( 'giftflow_donation_before_create', $data );
+		do_action( 'giftflow_donation_before_insert', $data );
 
 		// Create the post.
 		$donation_id = wp_insert_post( $post_data, true );
@@ -128,6 +131,9 @@ class Donations extends Base {
 		 * @param array $data Donation data.
 		 */
 		do_action( 'giftflow_donation_created', $donation_id, $data );
+
+		// Documented lifecycle hook (HookManager::DONATION_CREATED).
+		do_action( HookManager::DONATION_CREATED, $donation_id );
 
 		return $donation_id;
 	}
@@ -380,6 +386,19 @@ class Donations extends Base {
 
 			// Fire status-specific hooks.
 			do_action( "giftflow_donation_status_{$status}", $donation_id, $old_status );
+
+			// Documented lifecycle hooks (HookManager constants).
+			switch ( $status ) {
+				case 'completed':
+					do_action( HookManager::DONATION_COMPLETED, $donation_id );
+					break;
+				case 'refunded':
+					do_action( HookManager::DONATION_REFUNDED, $donation_id );
+					break;
+				case 'failed':
+					do_action( HookManager::DONATION_FAILED, $donation_id, '' );
+					break;
+			}
 		}
 
 		return $result;

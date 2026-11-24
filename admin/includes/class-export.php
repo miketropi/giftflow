@@ -184,6 +184,26 @@ class GiftFlow_Export {
 	}
 
 	/**
+	 * Neutralise spreadsheet formulas in a CSV cell.
+	 *
+	 * Excel, LibreOffice and Sheets execute a cell that starts with `=`, `+`,
+	 * `-`, `@`, a tab or a carriage return. Donor names, emails and campaign
+	 * titles are user input, so prefix such cells with an apostrophe.
+	 *
+	 * @param mixed $value Cell value.
+	 * @return string
+	 */
+	private static function csv_safe_cell( $value ) {
+		$value = (string) $value;
+
+		if ( '' !== $value && false !== strpos( "=+-@\t\r", $value[0] ) ) {
+			return "'" . $value;
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Export donations to CSV.
 
 	 * @param array $donations The donations to export.
@@ -251,7 +271,7 @@ class GiftFlow_Export {
 
 			$row[] = get_post_meta( $donation->ID, '_payment_method', true );
 
-			fputcsv( $output, $row, ',', '"', '\\' );
+			fputcsv( $output, array_map( array( __CLASS__, 'csv_safe_cell' ), $row ), ',', '"', '\\' );
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose

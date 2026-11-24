@@ -77,7 +77,7 @@ class Campaign_Details_Meta extends Base_Meta_Box {
 								<li><strong>' . esc_html__( 'Active', 'giftflow' ) . '</strong> 🟢: ' . esc_html__( 'Campaign is open for donations', 'giftflow' ) . ' 💰</li>
 								<li><strong>' . esc_html__( 'Completed', 'giftflow' ) . '</strong> 🏆: ' . esc_html__( 'Campaign is closed and all donations are collected  ✅, but donations are still allowed.', 'giftflow' ) . '</li>
 								<li><strong>' . esc_html__( 'Closed', 'giftflow' ) . '</strong> 🔒: ' . esc_html__( 'Campaign is closed and no more donations are allowed', 'giftflow' ) . ' ⛔</li>
-								<li><strong>' . esc_html__( 'Pending', 'giftflow' ) . '</strong> ⏳: ' . esc_html__( 'Campaign donations are pending and auto-activated when start date is reached', 'giftflow' ) . ' 📅</li>
+								<li><strong>' . esc_html__( 'Pending', 'giftflow' ) . '</strong> ⏳: ' . esc_html__( 'Campaign has not started yet; donations are blocked until an administrator sets the status to Active.', 'giftflow' ) . ' 📅</li>
 						</ul>',
 				),
 				// on / off one-time donation.

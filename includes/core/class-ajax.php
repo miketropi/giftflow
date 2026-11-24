@@ -134,6 +134,12 @@ class GiftFlow_Ajax {
 			wp_send_json_error( __( 'Invalid campaign ID', 'giftflow' ) );
 		}
 
+		$campaign = get_post( $campaign_id );
+
+		if ( ! $campaign || 'campaign' !== $campaign->post_type || 'publish' !== $campaign->post_status ) {
+			wp_send_json_error( __( 'Invalid campaign ID', 'giftflow' ) );
+		}
+
 		try {
 			$shortcode = '[giftflow_donation_form campaign_id="' . $campaign_id . '"';
 

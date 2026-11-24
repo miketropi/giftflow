@@ -14,12 +14,15 @@ $gf_title          = $attributes['title'] ?? __( 'Share this', 'giftflow' );
 $gf_show_socials   = $attributes['showSocials'] ?? true;
 $gf_show_email     = $attributes['showEmail'] ?? true;
 $gf_show_copy      = $attributes['showCopyUrl'] ?? true;
+$gf_custom_url     = $attributes['customUrl'] ?? '';
 
 $gf_share_url   = '';
 $gf_share_title = get_bloginfo( 'name' );
 $gf_share_desc  = get_bloginfo( 'description' );
 
-if ( is_singular() ) {
+if ( '' !== trim( (string) $gf_custom_url ) ) {
+	$gf_share_url = esc_url_raw( $gf_custom_url );
+} elseif ( is_singular() ) {
 	$gf_share_url   = get_permalink();
 	$gf_share_title = get_the_title();
 	$gf_share_desc  = wp_trim_words( get_the_excerpt(), 30 );

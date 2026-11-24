@@ -105,7 +105,7 @@ class Forms extends Base {
 		}
 
 		// sanitize data if it is an array, else sanitize the data.
-		$fields = giftflow_sanitize_array( $payload );
+		$fields = giftflow_sanitize_array( $payload, array( 'donor_message' ) );
 
 		// The checkout extension payload is server-owned; never accept it from the browser.
 		unset( $fields['_checkout_extension'] );
@@ -318,7 +318,7 @@ class Forms extends Base {
 				return false;
 			}
 
-			if ( 'closed' === (string) get_post_meta( $campaign_id, '_status', true ) ) {
+			if ( in_array( (string) get_post_meta( $campaign_id, '_status', true ), array( 'closed', 'pending' ), true ) ) {
 				return false;
 			}
 
@@ -379,10 +379,10 @@ class Forms extends Base {
 
 		switch ( $gateway_id ) {
 			case 'stripe':
-				$currency = (string) apply_filters( 'giftflow_stripe_currency', 'USD' );
+				$currency = (string) apply_filters( 'giftflow_stripe_currency', giftflow_get_current_currency() );
 				break;
 			case 'paypal':
-				$currency = (string) apply_filters( 'giftflow_paypal_currency', 'USD' );
+				$currency = (string) apply_filters( 'giftflow_paypal_currency', giftflow_get_current_currency() );
 				break;
 			default:
 				$currency = function_exists( 'giftflow_get_current_currency' ) ? (string) giftflow_get_current_currency() : 'USD';

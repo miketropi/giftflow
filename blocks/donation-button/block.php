@@ -107,7 +107,7 @@ function giftflow_donation_button_block_render( $attributes, $content, $block ) 
 
 	// Check if campaign exists and is active.
 	$campaign_status = get_post_status( $campaign_id );
-	$is_active       = 'publish' === $campaign_status;
+	$is_active       = 'publish' === $campaign_status && ! in_array( (string) get_post_meta( $campaign_id, '_status', true ), array( 'closed', 'pending' ), true );
 
 	// Get button attributes.
 	$button_text      = $attributes['buttonText'] ?? esc_html__( 'Donate Now', 'giftflow' );

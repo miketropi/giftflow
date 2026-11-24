@@ -301,8 +301,18 @@ class Donation_Transaction_Meta extends Base_Meta_Box {
 		foreach ( $fields as $field_id => $field ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( isset( $_POST[ $field_id ] ) ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				$new_value = sanitize_text_field( wp_unslash( $_POST[ $field_id ] ) );
+				$raw_value = wp_unslash( $_POST[ $field_id ] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce verified by verify_nonce(); value sanitized per field below.
+
+				if ( 'transaction_raw_data' === $field_id ) {
+					// A JSON textarea must keep newlines and tags: re-encode valid
+					// JSON, otherwise treat it as multiline text.
+					$decoded   = is_string( $raw_value ) ? json_decode( $raw_value, true ) : null;
+					$new_value = null !== $decoded ? wp_json_encode( $decoded ) : sanitize_textarea_field( (string) $raw_value );
+				} elseif ( 'donor_message' === $field_id ) {
+					$new_value = sanitize_textarea_field( (string) $raw_value );
+				} else {
+					$new_value = sanitize_text_field( (string) $raw_value );
+				}
 				if ( 'status' === $field_id ) {
 					$old_status = get_post_meta( $post_id, '_status', true );
 					if ( $old_status !== $new_value ) {

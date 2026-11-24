@@ -256,7 +256,9 @@ function giftflow_get_new_donors_count() {
 			'numberposts' => -1,
 			'date_query' => array(
 				array(
-					'after' => esc_html__( '7 days ago', 'giftflow' ),
+					// Machine-readable relative date: a translated string is not
+					// understood by date_create() and silently falls back to 1970.
+					'after' => '-7 days',
 				),
 			),
 			'fields' => 'ids',
@@ -444,57 +446,4 @@ function giftflow_get_donations_overview_stats_by_period( $period = '30d' ) {
 		'donationsData' => $donations_data,
 		'donorsData'    => $donors_data,
 	);
-}
-
-/**
- * Prepare data for export campaign donations csv.
-
- * @param string $campaign_id The ID of the campaign.
- * @param string $date_from The start date.
- * @param string $date_to The end date.
- * @return array The data for export campaign donations csv.
- */
-function giftflow_prepare_data_for_export_campaign_donations_csv( $campaign_id, $date_from = '', $date_to = '' ) {
-	$args = array(
-		'post_type' => 'donation',
-		'post_status' => 'publish',
-		'numberposts' => -1,
-		'fields' => 'ids',
-	);
-	if ( $campaign_id ) {
-		$args['meta_query'][] = array(
-			'key' => '_campaign_id',
-			'value' => $campaign_id,
-			'compare' => '=',
-		);
-	}
-	if ( $date_from ) {
-		$args['date_query'][] = array(
-			'after' => $date_from,
-		);
-	}
-	if ( $date_to ) {
-		$args['date_query'][] = array(
-			'before' => $date_to,
-		);
-	}
-
-	// query donations.
-	$donation_ids = get_posts( $args );
-	$results = array();
-
-	// put donor to item of donations.
-	foreach ( $donation_ids as $donation_id ) {
-		$results['ID'] = $donation_id;
-		$results['date'] = get_the_date( '', $donation_id );
-		$results['amount'] = get_post_meta( $donation_id, '_amount', true );
-		$results['status'] = get_post_meta( $donation_id, '_status', true );
-		$results['donor'] = giftflow_get_donor_data_by_id( get_post_meta( $donation_id, '_donor_id', true ) );
-		// Transaction ID.
-		$results['transaction_id'] = get_post_meta( $donation_id, '_transaction_id', true );
-		// Payment Method.
-		$results['payment_method'] = get_post_meta( $donation_id, '_payment_method', true );
-	}
-
-	return $results;
 }

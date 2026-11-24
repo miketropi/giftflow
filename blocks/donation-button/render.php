@@ -39,7 +39,8 @@ $gf_is_pill       = 'pill' === $gf_button_style;
 
 $gf_campaign_status = get_post_status( $gf_campaign_id );
 $gf_is_published    = 'publish' === $gf_campaign_status;
-$gf_is_disabled     = ! $gf_is_published || 0 === $gf_campaign_id;
+$gf_campaign_state  = (string) get_post_meta( $gf_campaign_id, '_status', true );
+$gf_is_disabled     = ! $gf_is_published || 0 === $gf_campaign_id || in_array( $gf_campaign_state, array( 'closed', 'pending' ), true );
 
 $gf_wrapper_classes = array( 'giftflow-donation-button' );
 $gf_button_classes  = array( 'giftflow-donation-button__btn' );

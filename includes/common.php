@@ -178,37 +178,41 @@ function giftflow_svg_icon( $name ) {
  * @return float The raised amount.
  */
 function giftflow_get_campaign_raised_amount( $campaign_id ) {
-	// Get all donations for this campaign.
-	$donations = get_posts(
-		array(
-			'post_type' => 'donation',
-			'posts_per_page' => -1,
-			'fields' => 'ids',
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-			'meta_query' => array(
-				array(
-					'key' => '_campaign_id',
-					'value' => $campaign_id,
-					'compare' => '=',
-				),
-				array(
-					'key' => '_status',
-					'value' => 'completed',
-					'compare' => '=',
-				),
-			),
+	global $wpdb;
+
+	$campaign_id = absint( $campaign_id );
+
+	if ( $campaign_id <= 0 ) {
+		return 0.0;
+	}
+
+	// One aggregate instead of a full donation scan plus one meta read per row.
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$total_amount = $wpdb->get_var(
+		$wpdb->prepare(
+			"
+			SELECT SUM(CAST(amount_pm.meta_value AS DECIMAL(14,2)))
+			FROM {$wpdb->postmeta} campaign_pm
+			INNER JOIN {$wpdb->posts} donation_p
+				ON donation_p.ID = campaign_pm.post_id
+				AND donation_p.post_type = 'donation'
+				AND donation_p.post_status = 'publish'
+			INNER JOIN {$wpdb->postmeta} status_pm
+				ON status_pm.post_id = campaign_pm.post_id
+				AND status_pm.meta_key = '_status'
+				AND status_pm.meta_value = 'completed'
+			INNER JOIN {$wpdb->postmeta} amount_pm
+				ON amount_pm.post_id = campaign_pm.post_id
+				AND amount_pm.meta_key = '_amount'
+			WHERE campaign_pm.meta_key = '_campaign_id'
+			AND campaign_pm.meta_value = %d
+			",
+			$campaign_id
 		)
 	);
+	// phpcs:enable
 
-	$total_amount = 0;
-
-	// Sum up all completed donations.
-	foreach ( $donations as $id ) {
-		$amount = get_post_meta( $id, '_amount', true );
-		if ( $amount ) {
-			$total_amount += floatval( $amount );
-		}
-	}
+	$total_amount = $total_amount ? (float) $total_amount : 0.0;
 
 	/**
 	 * Filter the completed-donation total for a campaign.
@@ -277,8 +281,8 @@ function giftflow_display_campaign_progress( $campaign_id ) {
 			</div>
 		</div>',
 		esc_attr( $percentage ),
-		esc_html( number_format( $raised_amount, 2 ) ),
-		esc_html( number_format( $goal_amount, 2 ) ),
+		esc_html( number_format( (float) $raised_amount, 2 ) ),
+		esc_html( number_format( (float) $goal_amount, 2 ) ),
 		esc_html( $percentage )
 	);
 
@@ -830,7 +834,7 @@ function giftflow_get_thank_donor_page() {
  * @param mixed $payment_result Payment result.
  * @return void
  */
-function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) {
+function giftflow_auto_create_user_on_donation( $donation_id, $payment_result = null ) {
 	// get donor id.
 	$donor_id = get_post_meta( $donation_id, '_donor_id', true );
 
@@ -875,9 +879,11 @@ function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) 
 	// load content mail template.
 	ob_start();
 	$new_user_email_data = array(
-		'name' => $donor_data->first_name . ' ' . $donor_data->last_name,
+		'name' => trim( $donor_data->first_name . ' ' . $donor_data->last_name ),
 		'username' => $donor_data->email,
-		'password' => $password,
+		// Never email the generated credential; the donor sets a password via reset.
+		'password' => '',
+		'reset_url' => wp_lostpassword_url( $donor_account_url ),
 		'login_url' => $donor_account_url,
 	);
 
@@ -912,9 +918,16 @@ function giftflow_auto_create_user_on_donation( $donation_id, $payment_result ) 
  * @return object|null
  */
 function giftflow_get_donor_data_by_id( $donor_id = 0 ) {
+	$donor_id = absint( $donor_id );
+
+	// get_post( 0 ) falls back to the global $post; never resolve a donor from it.
+	if ( $donor_id <= 0 ) {
+		return null;
+	}
+
 	$donor_data = get_post( $donor_id );
 
-	if ( ! $donor_data || is_wp_error( $donor_data ) ) {
+	if ( ! $donor_data || is_wp_error( $donor_data ) || 'donor' !== $donor_data->post_type ) {
 		return null;
 	}
 
@@ -1209,6 +1222,22 @@ function giftflow_get_donor_user_information( $user_id ) {
 	// get user data.
 	$user_data = get_user_by( 'id', $user_id );
 
+	if ( ! $user_data ) {
+		return array(
+			'user_id'     => 0,
+			'first_name'  => '',
+			'last_name'   => '',
+			'email'       => '',
+			'donor_id'    => 0,
+			'phone'       => '',
+			'address'     => '',
+			'city'        => '',
+			'state'       => '',
+			'postal_code' => '',
+			'country'     => '',
+		);
+	}
+
 	// giftflow_get_donor_id_by_email.
 	$donor_id = giftflow_get_donor_id_by_email( $user_data->user_email );
 
@@ -1224,12 +1253,12 @@ function giftflow_get_donor_user_information( $user_id ) {
 
 		// donor.
 		'donor_id' => $donor_id,
-		'phone' => $donor_data->phone,
-		'address' => $donor_data->address,
-		'city' => $donor_data->city,
-		'state' => $donor_data->state,
-		'postal_code' => $donor_data->postal_code,
-		'country' => $donor_data->country,
+		'phone' => $donor_data ? $donor_data->phone : '',
+		'address' => $donor_data ? $donor_data->address : '',
+		'city' => $donor_data ? $donor_data->city : '',
+		'state' => $donor_data ? $donor_data->state : '',
+		'postal_code' => $donor_data ? $donor_data->postal_code : '',
+		'country' => $donor_data ? $donor_data->country : '',
 	);
 
 	return $donor_information;
@@ -1484,9 +1513,10 @@ function giftflow_prepare_campaign_status_bar_data( $post_id ) {
  * Sanitize array data recursively
  *
  * @param array $data Data to sanitize.
+ * @param array $textarea_keys Keys that keep newlines (sanitize_textarea_field).
  * @return array Sanitized data.
  */
-function giftflow_sanitize_array( array $data ) {
+function giftflow_sanitize_array( array $data, array $textarea_keys = array() ) {
 	$sanitized = array();
 
 	foreach ( $data as $key => $value ) {
@@ -1494,16 +1524,20 @@ function giftflow_sanitize_array( array $data ) {
 		$clean_key = sanitize_key( $key );
 
 		if ( is_array( $value ) ) {
-			$sanitized[ $clean_key ] = giftflow_sanitize_array( $value );
+			$sanitized[ $clean_key ] = giftflow_sanitize_array( $value, $textarea_keys );
 		} elseif ( is_bool( $value ) ) {
 			$sanitized[ $clean_key ] = (bool) $value;
 		} elseif ( is_int( $value ) ) {
-			$sanitized[ $clean_key ] = absint( $value );
+			// Preserve the sign: absint(-10) would turn an invalid amount into a
+			// valid positive one.
+			$sanitized[ $clean_key ] = (int) $value;
 		} elseif ( is_float( $value ) ) {
 			$sanitized[ $clean_key ] = (float) $value;
 		} else {
-			// Default: text field.
-			$sanitized[ $clean_key ] = sanitize_text_field( $value );
+			// Textarea keys keep their newlines; everything else is single-line.
+			$sanitized[ $clean_key ] = in_array( $clean_key, $textarea_keys, true )
+				? sanitize_textarea_field( $value )
+				: sanitize_text_field( $value );
 		}
 	}
 

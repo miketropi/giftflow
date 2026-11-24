@@ -181,8 +181,14 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 			// Store payment data.
 			update_post_meta( $donation_id, '_donation_amount', floatval( $data['donation_amount'] ) );
 
-			// Generate a unique reference number for this donation.
-			$reference_number = isset( $data['reference_number'] ) ? $data['reference_number'] : '';
+			// Keep the reference the donor was shown when it is well-formed and
+			// unused; otherwise the server issues one. The client never owns it.
+			$reference_number = isset( $data['reference_number'] ) ? sanitize_text_field( (string) $data['reference_number'] ) : '';
+
+			if ( ! $this->is_valid_reference_number( $reference_number ) || $this->reference_number_exists( $reference_number ) ) {
+				$reference_number = $this->generate_reference_number();
+			}
+
 			update_post_meta( $donation_id, '_reference_number', $reference_number );
 
 			// Log the pending payment.
@@ -216,9 +222,55 @@ class Direct_Bank_Transfer_Gateway extends Gateway_Base {
 	 * @return string
 	 */
 	private function generate_reference_number() {
-		// Generate a unique reference: {RANDOM}-{TIMESTAMP}.
-		$random = wp_generate_password( 2, false );
-		return sprintf( '%s-%s', strtoupper( $random ), time() );
+		// Generate a unique reference: {RANDOM}-{TIMESTAMP}. Six characters plus a
+		// uniqueness check replaces the previous two-character prefix.
+		for ( $attempt = 0; $attempt < 5; $attempt++ ) {
+			$random    = strtoupper( wp_generate_password( 6, false, false ) );
+			$reference = sprintf( '%s-%s', $random, time() );
+
+			if ( ! $this->reference_number_exists( $reference ) ) {
+				return $reference;
+			}
+		}
+
+		return sprintf( '%s-%s', strtoupper( wp_generate_password( 8, false, false ) ), time() );
+	}
+
+	/**
+	 * Whether a reference number matches the format this gateway issues.
+	 *
+	 * @param mixed $reference Reference number.
+	 * @return bool
+	 */
+	private function is_valid_reference_number( $reference ) {
+		return is_string( $reference ) && 1 === preg_match( '/^[A-Z0-9]{2,8}-\d{10}$/', $reference );
+	}
+
+	/**
+	 * Whether a reference number is already stored on a donation.
+	 *
+	 * @param string $reference Reference number.
+	 * @return bool
+	 */
+	private function reference_number_exists( $reference ) {
+		if ( '' === $reference ) {
+			return false;
+		}
+
+		$existing = get_posts(
+			array(
+				'post_type'      => 'donation',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key'       => '_reference_number',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'     => $reference,
+			)
+		);
+
+		return ! empty( $existing );
 	}
 
 	/**

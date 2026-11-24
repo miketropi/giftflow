@@ -181,7 +181,7 @@ class Donation extends Base_Post_Type {
 		if ( 'donation' === $typenow ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$selected = isset( $_GET['donation_status'] ) ? sanitize_text_field( wp_unslash( $_GET['donation_status'] ) ) : '';
-			$statuses = array( 'pending', 'completed', 'failed', 'refunded' );
+			$statuses = array_keys( giftflow_get_donation_status_options() );
 
 			echo '<select name="donation_status">';
 			echo '<option value="">' . esc_html__( 'All Statuses', 'giftflow' ) . '</option>';

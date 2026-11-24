@@ -220,6 +220,10 @@ add_action( 'wp_ajax_giftflow_test_send_mail', 'giftflow_test_send_mail_ajax' );
  * Test send mail ajax.
  */
 function giftflow_test_send_mail_ajax() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( 'Insufficient permissions', 403 );
+	}
+
 	// check nonce.
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'giftflow_admin_nonce' ) ) {
 		wp_send_json_error( 'Invalid nonce' );
@@ -230,7 +234,8 @@ function giftflow_test_send_mail_ajax() {
 
 	// do action test mail.
 	do_action( 'giftflow_test_send_mail', $name );
-	die();
+
+	wp_send_json_success();
 }
 
 // test send mail action.
