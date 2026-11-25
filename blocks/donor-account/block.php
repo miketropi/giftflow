@@ -364,6 +364,10 @@ function giftflow_donor_account_my_account_callback() {
 		'state'       => $donor['state'] ?? '',
 		'postal_code' => $donor['postal_code'] ?? '',
 		'country'     => $donor['country'] ?? '',
+		'bio'         => $donor['bio'] ?? '',
+		'socials'     => $donor['socials'] ?? array(),
+		'avatar_url'  => $donor['avatar_url'] ?? '',
+		'has_custom_avatar' => ! empty( $donor['has_custom_avatar'] ),
 	);
 
 	// load template donor-account--my-account.
@@ -471,7 +475,21 @@ function giftflow_sanitize_account_form_data( $post_data = array() ) {
 		'state'       => sanitize_text_field( wp_unslash( $post_data['state'] ?? '' ) ),
 		'postal_code' => sanitize_text_field( wp_unslash( $post_data['postal_code'] ?? '' ) ),
 		'country'     => sanitize_text_field( wp_unslash( $post_data['country'] ?? '' ) ),
+		'bio'         => mb_substr( sanitize_textarea_field( wp_unslash( $post_data['bio'] ?? '' ) ), 0, 500 ),
 	);
+
+	$social_keys = array( 'facebook', 'x', 'threads', 'linkedin', 'instagram', 'website' );
+
+	foreach ( $social_keys as $social_key ) {
+		$social_url = trim( (string) wp_unslash( $post_data[ 'social_' . $social_key ] ?? '' ) );
+
+		// A bare host is a common paste; give it a scheme so the URL validates.
+		if ( '' !== $social_url && ! preg_match( '#^[a-z][a-z0-9+.-]*:#i', $social_url ) ) {
+			$social_url = 'https://' . ltrim( $social_url, '/' );
+		}
+
+		$form_data[ 'social_' . $social_key ] = esc_url_raw( $social_url );
+	}
 
 	/**
 	 * Filter the sanitized account form data before it is returned.
@@ -516,6 +534,28 @@ function giftflow_validate_account_form_data( $data ) {
 
 	if ( empty( $data['last_name'] ) ) {
 		$errors[] = esc_html__( 'Last name is required.', 'giftflow' );
+	}
+
+	$social_labels = array(
+		'facebook'  => esc_html__( 'Facebook', 'giftflow' ),
+		'x'         => esc_html__( 'X', 'giftflow' ),
+		'threads'   => esc_html__( 'Threads', 'giftflow' ),
+		'linkedin'  => esc_html__( 'LinkedIn', 'giftflow' ),
+		'instagram' => esc_html__( 'Instagram', 'giftflow' ),
+		'website'   => esc_html__( 'Website', 'giftflow' ),
+	);
+
+	foreach ( $social_labels as $social_key => $social_label ) {
+		$url = isset( $data[ 'social_' . $social_key ] ) ? trim( (string) $data[ 'social_' . $social_key ] ) : '';
+
+		if ( '' === $url ) {
+			continue;
+		}
+
+		if ( ! preg_match( '#^https?://#i', $url ) || false === filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			/* translators: %s: social network label. */
+			$errors[] = sprintf( esc_html__( '%s must be a full URL starting with https://.', 'giftflow' ), $social_label );
+		}
 	}
 
 	return $errors;
@@ -589,13 +629,31 @@ function giftflow_update_donor_account( $user_id, $data, $donor_id ) {
 	// Filter the donor meta fields to be updated.
 	$meta_fields = apply_filters(
 		'giftflow_donor_account_meta_fields',
-		array( 'first_name', 'last_name', 'phone', 'address', 'city', 'state', 'postal_code', 'country' ),
+		array(
+			'first_name',
+			'last_name',
+			'phone',
+			'address',
+			'city',
+			'state',
+			'postal_code',
+			'country',
+			'bio',
+			'social_facebook',
+			'social_x',
+			'social_threads',
+			'social_linkedin',
+			'social_instagram',
+			'social_website',
+		),
 		$user_id,
 		$donor_id
 	);
 
 	foreach ( $meta_fields as $field ) {
-		update_post_meta( $donor_id, '_' . $field, $data[ $field ] );
+		if ( array_key_exists( $field, $data ) ) {
+			update_post_meta( $donor_id, '_' . $field, $data[ $field ] );
+		}
 	}
 
 	// Fires after donor account information has been updated.
