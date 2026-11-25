@@ -32,6 +32,10 @@ class GiftFlow_Ajax {
 		// giftflow_get_campaign_donation_form.
 		add_action( 'wp_ajax_giftflow_get_campaign_donation_form', array( $this, 'get_campaign_donation_form' ) );
 		add_action( 'wp_ajax_nopriv_giftflow_get_campaign_donation_form', array( $this, 'get_campaign_donation_form' ) );
+
+		// Donor profile avatar.
+		add_action( 'wp_ajax_giftflow_upload_donor_avatar', array( $this, 'upload_donor_avatar' ) );
+		add_action( 'wp_ajax_giftflow_remove_donor_avatar', array( $this, 'remove_donor_avatar' ) );
 	}
 
 	/**
@@ -115,6 +119,111 @@ class GiftFlow_Ajax {
 			array(
 				'__html'                     => $html,
 				'__replace_content_selector' => '.__donations-list-by-campaign-' . $campaign,
+			)
+		);
+	}
+
+	/**
+	 * Store a donor's uploaded profile photo.
+	 *
+	 * The browser crops the image to a square before uploading, so the stored
+	 * attachment is always ready to render as an avatar.
+	 *
+	 * @return void
+	 */
+	public function upload_donor_avatar() {
+		check_ajax_referer( 'giftflow_avatar', 'nonce' );
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( __( 'You must be signed in to change your photo.', 'giftflow' ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated by media_handle_upload().
+		$file = isset( $_FILES['avatar'] ) ? $_FILES['avatar'] : array();
+
+		if ( empty( $file ) || ! isset( $file['error'] ) || UPLOAD_ERR_OK !== (int) $file['error'] ) {
+			wp_send_json_error( __( 'Choose an image to upload.', 'giftflow' ) );
+		}
+
+		if ( isset( $file['size'] ) && (int) $file['size'] > 5 * MB_IN_BYTES ) {
+			wp_send_json_error( __( 'The image must be smaller than 5 MB.', 'giftflow' ) );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+
+		$attachment_id = media_handle_upload(
+			'avatar',
+			0,
+			array( 'post_title' => __( 'Donor profile photo', 'giftflow' ) ),
+			array(
+				'test_form' => false,
+				'mimes'     => array(
+					'jpg|jpeg' => 'image/jpeg',
+					'png'      => 'image/png',
+					'webp'     => 'image/webp',
+				),
+			)
+		);
+
+		if ( is_wp_error( $attachment_id ) ) {
+			wp_send_json_error( $attachment_id->get_error_message() );
+		}
+
+		$user     = wp_get_current_user();
+		$previous = (int) get_user_meta( $user->ID, 'giftflow_avatar_id', true );
+
+		update_user_meta( $user->ID, 'giftflow_avatar_id', (int) $attachment_id );
+
+		$donor_id = giftflow_get_donor_id_by_email( $user->user_email );
+
+		if ( $donor_id ) {
+			update_post_meta( $donor_id, '_avatar_id', (int) $attachment_id );
+		}
+
+		if ( $previous > 0 && $previous !== (int) $attachment_id ) {
+			wp_delete_attachment( $previous, true );
+		}
+
+		wp_send_json_success(
+			array(
+				'id'  => (int) $attachment_id,
+				'url' => wp_get_attachment_image_url( (int) $attachment_id, array( 192, 192 ) ),
+			)
+		);
+	}
+
+	/**
+	 * Remove the custom avatar and fall back to Gravatar.
+	 *
+	 * @return void
+	 */
+	public function remove_donor_avatar() {
+		check_ajax_referer( 'giftflow_avatar', 'nonce' );
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( __( 'You must be signed in to change your photo.', 'giftflow' ), 403 );
+		}
+
+		$user     = wp_get_current_user();
+		$previous = (int) get_user_meta( $user->ID, 'giftflow_avatar_id', true );
+
+		delete_user_meta( $user->ID, 'giftflow_avatar_id' );
+
+		$donor_id = giftflow_get_donor_id_by_email( $user->user_email );
+
+		if ( $donor_id ) {
+			delete_post_meta( $donor_id, '_avatar_id' );
+		}
+
+		if ( $previous > 0 ) {
+			wp_delete_attachment( $previous, true );
+		}
+
+		wp_send_json_success(
+			array(
+				'url' => get_avatar_url( $user->user_email, array( 'size' => 192 ) ),
 			)
 		);
 	}

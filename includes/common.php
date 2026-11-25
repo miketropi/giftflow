@@ -941,6 +941,17 @@ function giftflow_get_donor_data_by_id( $donor_id = 0 ) {
 	$donor_data->state = get_post_meta( $donor_id, '_state', true );
 	$donor_data->postal_code = get_post_meta( $donor_id, '_postal_code', true );
 	$donor_data->country = get_post_meta( $donor_id, '_country', true );
+	$donor_data->bio     = get_post_meta( $donor_id, '_bio', true );
+	$donor_data->avatar_id = (int) get_post_meta( $donor_id, '_avatar_id', true );
+
+	$donor_data->socials = array(
+		'facebook'  => get_post_meta( $donor_id, '_social_facebook', true ),
+		'x'         => get_post_meta( $donor_id, '_social_x', true ),
+		'threads'   => get_post_meta( $donor_id, '_social_threads', true ),
+		'linkedin'  => get_post_meta( $donor_id, '_social_linkedin', true ),
+		'instagram' => get_post_meta( $donor_id, '_social_instagram', true ),
+		'website'   => get_post_meta( $donor_id, '_social_website', true ),
+	);
 
 	return $donor_data;
 }
@@ -1235,6 +1246,11 @@ function giftflow_get_donor_user_information( $user_id ) {
 			'state'       => '',
 			'postal_code' => '',
 			'country'     => '',
+			'bio'         => '',
+			'socials'     => array(),
+			'avatar_id'   => 0,
+			'avatar_url'  => '',
+			'has_custom_avatar' => false,
 		);
 	}
 
@@ -1259,10 +1275,101 @@ function giftflow_get_donor_user_information( $user_id ) {
 		'state' => $donor_data ? $donor_data->state : '',
 		'postal_code' => $donor_data ? $donor_data->postal_code : '',
 		'country' => $donor_data ? $donor_data->country : '',
+		'bio' => $donor_data ? (string) $donor_data->bio : '',
+		'socials' => $donor_data && is_array( $donor_data->socials ) ? $donor_data->socials : array(),
+		'avatar_id' => $donor_data ? (int) $donor_data->avatar_id : 0,
+		'avatar_url' => get_avatar_url( $user_data->user_email, array( 'size' => 96 ) ),
+		'has_custom_avatar' => $donor_data ? $donor_data->avatar_id > 0 : false,
 	);
 
 	return $donor_information;
 }
+
+/**
+ * Resolve the custom avatar attachment ID for an email address.
+ *
+ * The user meta is authoritative when a WP user exists; donor meta covers
+ * donors without an account.
+ *
+ * @param string $email Email address.
+ * @return int Attachment ID, 0 when no custom avatar is set.
+ */
+function giftflow_get_donor_avatar_id( $email ) {
+	$email = sanitize_email( $email );
+
+	if ( ! is_email( $email ) ) {
+		return 0;
+	}
+
+	$user = get_user_by( 'email', $email );
+
+	if ( $user ) {
+		$avatar_id = (int) get_user_meta( $user->ID, 'giftflow_avatar_id', true );
+
+		if ( $avatar_id > 0 ) {
+			return $avatar_id;
+		}
+	}
+
+	$donor_id = giftflow_get_donor_id_by_email( $email );
+
+	return $donor_id ? (int) get_post_meta( $donor_id, '_avatar_id', true ) : 0;
+}
+
+/**
+ * Use the donor's uploaded avatar instead of Gravatar when one exists.
+ *
+ * @param array             $args        Avatar arguments.
+ * @param mixed             $id_or_email User, post, comment, id or email.
+ * @return array
+ */
+function giftflow_filter_donor_avatar_data( $args, $id_or_email ) {
+	if ( ! empty( $args['force_default'] ) ) {
+		return $args;
+	}
+
+	$email = '';
+
+	if ( is_numeric( $id_or_email ) ) {
+		$user  = get_userdata( (int) $id_or_email );
+		$email = $user ? $user->user_email : '';
+	} elseif ( $id_or_email instanceof WP_User ) {
+		$email = $id_or_email->user_email;
+	} elseif ( $id_or_email instanceof WP_Post ) {
+		$email = (string) get_post_meta( $id_or_email->ID, '_email', true );
+
+		if ( '' === $email ) {
+			$email = (string) get_the_author_meta( 'user_email', $id_or_email->post_author );
+		}
+	} elseif ( $id_or_email instanceof WP_Comment ) {
+		$email = (string) $id_or_email->comment_author_email;
+	} elseif ( is_string( $id_or_email ) ) {
+		$email = $id_or_email;
+	}
+
+	if ( ! is_email( $email ) ) {
+		return $args;
+	}
+
+	$avatar_id = giftflow_get_donor_avatar_id( $email );
+
+	if ( $avatar_id <= 0 ) {
+		return $args;
+	}
+
+	$size = isset( $args['size'] ) ? (int) $args['size'] : 96;
+	$url  = wp_get_attachment_image_url( $avatar_id, array( max( 1, $size ), max( 1, $size ) ) );
+
+	if ( ! $url ) {
+		return $args;
+	}
+
+	$args['url']          = $url;
+	$args['found_avatar'] = true;
+
+	return $args;
+}
+add_filter( 'pre_get_avatar_data', 'giftflow_filter_donor_avatar_data', 10, 2 );
 
 /**
  * Get payment methods options

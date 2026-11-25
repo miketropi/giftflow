@@ -165,6 +165,7 @@ function giftflow_load_files() {
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/meta-boxes/class-base-meta-box.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/meta-boxes/class-donation-transaction-meta.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/meta-boxes/class-donor-contact-meta.php';
+	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/meta-boxes/class-donor-profile-meta.php';
 	require_once GIFTFLOW_PLUGIN_DIR . 'admin/includes/meta-boxes/class-campaign-details-meta.php';
 
 	// Frontend files.
