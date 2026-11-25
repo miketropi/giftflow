@@ -458,7 +458,7 @@ function giftflow_render_profile_section( $form_data ) {
 					array(
 						'id'          => 'social_' . $social_key,
 						'name'        => 'social_' . $social_key,
-						'type'        => 'url',
+						'type'        => 'text',
 						'label'       => $social_label,
 						'value'       => isset( $socials[ $social_key ] ) ? $socials[ $social_key ] : '',
 						'placeholder' => 'https://',
@@ -490,45 +490,78 @@ function giftflow_render_avatar_modal() {
 	);
 	?>
 	<style>
-		.gfw-avatar-control { display: flex; gap: 1rem; align-items: flex-start; }
-		.gfw-avatar-preview { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 1px solid #dcdcde; flex-shrink: 0; }
+		.gfw-avatar-control { display: flex; gap: 1.25rem; align-items: flex-start; }
+		.gfw-avatar-preview { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 1px solid #dcdcde; box-shadow: 0 0 0 4px #fff, 0 0 0 5px #e4e7ea; flex-shrink: 0; }
 		.gfw-avatar-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-		.gfw-avatar-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 .875rem; border-radius: 6px; border: 1px solid #c3c4c7; background: #fff; color: #1d2327; font-size: .8125rem; font-weight: 500; cursor: pointer; }
-		.gfw-avatar-btn:hover { background: #f6f7f7; }
+		.gfw-avatar-btn { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 34px; padding: 0 .875rem; border-radius: 6px; border: 1px solid #c3c4c7; background: #fff; color: #1d2327; font-size: .8125rem; font-weight: 500; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+		.gfw-avatar-btn:hover { background: #f6f7f7; border-color: #a7aaad; }
 		.gfw-avatar-btn--primary { border-color: #0b57d0; background: #0b57d0; color: #fff; }
-		.gfw-avatar-btn--primary:hover { background: #0a4cb8; }
+		.gfw-avatar-btn--primary:hover { background: #0a4cb8; border-color: #0a4cb8; }
 		.gfw-avatar-btn[disabled] { opacity: .6; cursor: default; }
 		.gfw-avatar-help { margin: .5rem 0 0; max-width: 56ch; font-size: .8125rem; color: #50575e; }
 		.gfw-avatar-status { margin: .35rem 0 0; min-height: 1.2em; font-size: .8125rem; }
 		.gfw-avatar-status.is-error { color: #b32d2e; }
-		.gfw-avatar-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, .65); }
+		.gfw-avatar-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 1.25rem; background: rgba(9, 14, 24, .68); backdrop-filter: blur(3px); }
 		.gfw-avatar-modal[hidden] { display: none; }
-		.gfw-avatar-modal__dialog { width: 100%; max-width: 420px; padding: 1.25rem; border-radius: 12px; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, .35); }
-		.gfw-avatar-modal__title { margin: 0 0 .25rem; font-size: 1.0625rem; }
-		.gfw-avatar-modal__hint { margin: 0 0 .75rem; font-size: .8125rem; color: #50575e; }
-		.gfw-avatar-crop { position: relative; width: 100%; max-width: 320px; margin: 0 auto .75rem; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #0f172a; }
+		.gfw-avatar-modal__dialog { width: 100%; max-width: 460px; max-height: calc(100vh - 2.5rem); overflow: auto; padding: 1.5rem; border: 1px solid rgba(15, 23, 42, .08); border-radius: 16px; background: #fff; box-shadow: 0 32px 80px rgba(0, 0, 0, .38); animation: gfw-avatar-pop .16s ease-out; }
+		@keyframes gfw-avatar-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+		.gfw-avatar-modal__dialog:focus { outline: none; }
+		.gfw-avatar-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+		.gfw-avatar-modal__title { margin: 0; font-size: 1.125rem; line-height: 1.3; color: #1d2327; }
+		.gfw-avatar-modal__hint { margin: .25rem 0 0; font-size: .8125rem; line-height: 1.45; color: #50575e; }
+		.gfw-avatar-modal__close { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: 999px; background: #f1f3f4; color: #50575e; font-size: 20px; line-height: 1; cursor: pointer; transition: background .15s ease, color .15s ease; }
+		.gfw-avatar-modal__close:hover { background: #e4e7ea; color: #1d2327; }
+		.gfw-avatar-crop { position: relative; width: min(100%, 320px); margin: 0 auto 1rem; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: repeating-conic-gradient(#263143 0% 25%, #1c2533 0% 50%) 50% / 24px 24px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
 		.gfw-avatar-crop canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
 		.gfw-avatar-crop canvas:active { cursor: grabbing; }
-		.gfw-avatar-zoom { width: 100%; margin: 0 0 .75rem; }
-		.gfw-avatar-modal__actions { display: flex; gap: .5rem; justify-content: flex-end; }
-		.gfw-avatar-modal__status { margin: .5rem 0 0; min-height: 1.2em; font-size: .8125rem; }
+		.gfw-avatar-crop__grid { position: absolute; inset: 0; pointer-events: none; opacity: .38; background-image: linear-gradient(rgba(255, 255, 255, .7) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .7) 1px, transparent 1px); background-size: 33.333% 33.333%; background-position: -1px -1px; }
+		.gfw-avatar-crop__mask { position: absolute; inset: 0; pointer-events: none; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(9, 14, 24, .62); }
+		.gfw-avatar-crop__ring { position: absolute; inset: 0; pointer-events: none; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85); }
+		.gfw-avatar-zoom-row { display: flex; align-items: center; gap: .75rem; margin: 0 0 .35rem; }
+		.gfw-avatar-zoom-label { flex-shrink: 0; font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #50575e; }
+		.gfw-avatar-zoom { flex: 1; appearance: none; -webkit-appearance: none; height: 22px; margin: 0; background: transparent; }
+		.gfw-avatar-zoom::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: #dcdcde; }
+		.gfw-avatar-zoom::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: #0b57d0; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .28); cursor: pointer; }
+		.gfw-avatar-zoom::-moz-range-track { height: 4px; border-radius: 999px; background: #dcdcde; }
+		.gfw-avatar-zoom::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #0b57d0; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .28); cursor: pointer; }
+		.gfw-avatar-zoom:focus { outline: none; }
+		.gfw-avatar-zoom:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(11, 87, 208, .35); }
+		.gfw-avatar-modal__actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: .75rem; }
+		.gfw-avatar-modal__actions .gfw-avatar-btn { min-height: 38px; padding: 0 1.15rem; }
+		.gfw-avatar-modal__actions .gfw-avatar-btn--primary { flex: 1 1 auto; }
+		.gfw-avatar-modal__status { margin: .75rem 0 0; min-height: 1.2em; font-size: .8125rem; }
 		.gfw-avatar-modal__status.is-error { color: #b32d2e; }
 		body.gfw-avatar-modal-open { overflow: hidden; }
+		@media (max-width: 480px) {
+			.gfw-avatar-modal { padding: .75rem; align-items: flex-end; }
+			.gfw-avatar-modal__dialog { max-height: 92vh; padding: 1.25rem; border-radius: 16px 16px 0 0; }
+		}
 	</style>
 
 	<div class="gfw-avatar-modal" id="gfw-avatar-modal" hidden>
-		<div class="gfw-avatar-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="gfw-avatar-modal-title">
-			<h4 class="gfw-avatar-modal__title" id="gfw-avatar-modal-title"><?php esc_html_e( 'Crop your photo', 'giftflow' ); ?></h4>
-			<p class="gfw-avatar-modal__hint"><?php esc_html_e( 'Drag the photo to reposition it and use the slider to zoom.', 'giftflow' ); ?></p>
+		<div class="gfw-avatar-modal__dialog" id="gfw-avatar-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="gfw-avatar-modal-title" aria-describedby="gfw-avatar-modal-hint" tabindex="-1">
+			<div class="gfw-avatar-modal__header">
+				<div>
+					<h4 class="gfw-avatar-modal__title" id="gfw-avatar-modal-title"><?php esc_html_e( 'Crop your photo', 'giftflow' ); ?></h4>
+					<p class="gfw-avatar-modal__hint" id="gfw-avatar-modal-hint"><?php esc_html_e( 'Drag the photo to reposition it and use the slider to zoom. The circle shows how your photo appears on the site.', 'giftflow' ); ?></p>
+				</div>
+				<button type="button" class="gfw-avatar-modal__close" id="gfw-avatar-modal-close" aria-label="<?php esc_attr_e( 'Close', 'giftflow' ); ?>">&times;</button>
+			</div>
 			<div class="gfw-avatar-crop">
 				<canvas id="gfw-avatar-canvas" width="320" height="320"></canvas>
+				<div class="gfw-avatar-crop__grid" aria-hidden="true"></div>
+				<div class="gfw-avatar-crop__mask" aria-hidden="true"></div>
+				<div class="gfw-avatar-crop__ring" aria-hidden="true"></div>
 			</div>
-			<input type="range" class="gfw-avatar-zoom" id="gfw-avatar-zoom" min="1" max="3" step="0.01" value="1" aria-label="<?php esc_attr_e( 'Zoom', 'giftflow' ); ?>" />
+			<div class="gfw-avatar-zoom-row">
+				<span class="gfw-avatar-zoom-label"><?php esc_html_e( 'Zoom', 'giftflow' ); ?></span>
+				<input type="range" class="gfw-avatar-zoom" id="gfw-avatar-zoom" min="1" max="3" step="0.01" value="1" aria-label="<?php esc_attr_e( 'Zoom', 'giftflow' ); ?>" />
+			</div>
+			<p class="gfw-avatar-modal__status" id="gfw-avatar-modal-status" role="status" aria-live="polite"></p>
 			<div class="gfw-avatar-modal__actions">
 				<button type="button" class="gfw-avatar-btn" id="gfw-avatar-cancel"><?php esc_html_e( 'Cancel', 'giftflow' ); ?></button>
 				<button type="button" class="gfw-avatar-btn gfw-avatar-btn--primary" id="gfw-avatar-save"><?php esc_html_e( 'Save Photo', 'giftflow' ); ?></button>
 			</div>
-			<p class="gfw-avatar-modal__status" id="gfw-avatar-modal-status" role="status" aria-live="polite"></p>
 		</div>
 	</div>
 
@@ -552,6 +585,9 @@ function giftflow_render_avatar_modal() {
 		var zoomInput = document.getElementById('gfw-avatar-zoom');
 		var saveBtn = document.getElementById('gfw-avatar-save');
 		var cancelBtn = document.getElementById('gfw-avatar-cancel');
+		var closeBtn = document.getElementById('gfw-avatar-modal-close');
+		var dialog = document.getElementById('gfw-avatar-modal-dialog');
+		var lastFocused = null;
 		var ctx = canvas.getContext('2d');
 		var size = canvas.width;
 		var image = null;
@@ -597,6 +633,12 @@ function giftflow_render_avatar_modal() {
 		function closeModal() {
 			modal.hidden = true;
 			document.body.classList.remove('gfw-avatar-modal-open');
+
+			if (lastFocused && typeof lastFocused.focus === 'function') {
+				lastFocused.focus();
+			}
+
+			lastFocused = null;
 		}
 
 		function openModal(file) {
@@ -614,6 +656,8 @@ function giftflow_render_avatar_modal() {
 
 				modal.hidden = false;
 				document.body.classList.add('gfw-avatar-modal-open');
+				lastFocused = document.activeElement;
+				dialog.focus();
 				setStatus('', false);
 				saveBtn.disabled = false;
 			};
@@ -668,6 +712,7 @@ function giftflow_render_avatar_modal() {
 		canvas.addEventListener('pointercancel', stopDrag);
 
 		cancelBtn.addEventListener('click', closeModal);
+		closeBtn.addEventListener('click', closeModal);
 		modal.addEventListener('click', function (event) {
 			if (event.target === modal) {
 				closeModal();
