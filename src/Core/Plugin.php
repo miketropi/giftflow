@@ -386,6 +386,7 @@ class Plugin {
 	private function init_meta_boxes(): void {
 		new \GiftFlow\Admin\MetaBoxes\Donation_Transaction_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Donor_Contact_Meta();
+		new \GiftFlow\Admin\MetaBoxes\Donor_Profile_Meta();
 		new \GiftFlow\Admin\MetaBoxes\Campaign_Details_Meta();
 		\GiftFlow\Core\Donation_Event_History::register_meta_box();
 	}
